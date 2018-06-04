@@ -1,0 +1,13 @@
+.DS_Store
+Thumbs.db
+*.log
+node_modules/
+public/
+.deploy*/
+
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
