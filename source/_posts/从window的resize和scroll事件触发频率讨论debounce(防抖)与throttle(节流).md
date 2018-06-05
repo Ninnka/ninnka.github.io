@@ -1,7 +1,13 @@
 ---
 title: 从window的resize和scroll事件触发频率讨论debounce(防抖)与throttle(节流)
-date: 2018-06-04 21:50:33
+date: 2016-12-11 21:50:33
+categories:
+	- JavaScript
 tags:
+	- 前端
+	- debounce
+	- throttle
+	- 性能优化
 ---
 
 ## 使用debounce(防抖)来优化window的resize和scroll事件
