@@ -1,10 +1,10 @@
 ---
-title: Vue的组件继承
+title: Vue2的组件继承
 date: 2018-06-05 11:41:31
 categories:
+	- 前端
 	- JavaScript
 tags:
-	- 前端
 	- Vue
 	- extend
 ---

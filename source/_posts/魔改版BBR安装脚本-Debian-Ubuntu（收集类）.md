@@ -2,10 +2,11 @@
 title: '魔改版BBR安装脚本:Debian_Ubuntu（收集类）（转载）'
 date: 2018-06-05 14:53:00
 categories:
-	- 收藏
+	- Linux
 tags:
 	- BBR
 	- 转载
+	- 收藏
 ---
 
 > 原文地址: https://blog.liyuans.com/archives/altered-bbr-onekey-script-collection.html
