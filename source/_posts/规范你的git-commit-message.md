@@ -22,6 +22,8 @@ tags:
 5. 使用Commitlint：检查你的message
 6. 使用standard-version：全自动CHANGELOG
 
+<!-- more -->
+
 ## 实践记录
 
 ### git commit message的格式
