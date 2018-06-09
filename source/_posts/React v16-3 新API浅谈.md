@@ -130,51 +130,41 @@ class ScrollingList extends React.Component {
 当然，`Redux` 对比 `Context API` ，`Redux` 清晰的代码结构，reducer/store/component分的很清楚，虽说很繁杂。
 
 让我们来[官方的案例](https://reactjs.org/docs/context.html)
+
 ```jsx
-// Context lets us pass a value deep into the component tree
-// without explicitly threading it through every component.
-// Create a context for the current theme (with "light" as the default).
 // 通过API创建一个Context对象,默认值为'light'
 const ThemeContext = React.createContext('light');
 
-class App extends React.Component {
-  render() {
-    // Use a Provider to pass the current theme to the tree below.
-    // Any component can read it, no matter how deep it is.
-    // In this example, we're passing "dark" as the current value.
-    // 使用Context对象中的Provider组件包裹要使用的组件，并设置值为'dark'
-    // 被包裹的组件无论层级多深，都可以读取到Context中存储的值'dark'
-    return (
-      <ThemeContext.Provider value="dark">
-        <Toolbar />
-      </ThemeContext.Provider>
-    );
-  }
-}
-
-// A component in the middle doesn't have to
-// pass the theme down explicitly anymore.
 // 中间的组件不需要显示的传递
-function Toolbar(props) {
+const Toolbar = (props) => {
   return (
     <div>
-      <ThemedButton />
+      <ThemedButton></ThemedButton>
     </div>
   );
 }
 
-function ThemedButton(props) {
-  // Use a Consumer to read the current theme context.
-  // React will find the closest theme Provider above and use its value.
-  // In this example, the current theme is "dark".
+const ThemedButton = (props) => {
   // 使用Consumer包裹需要使用Context的组件
   // React将会找到最近的Theme Provider并使用它的值
   // 在这个案例中，'theme'就是在创建Provider时设置的'dark'
   return (
     <ThemeContext.Consumer>
-      {theme => <Button {...props} theme={theme} />}
+      {theme => <Button {...props} theme={theme}></Button>}
     </ThemeContext.Consumer>
   );
+}
+
+class App extends React.Component {
+  render() {
+    // 使用Context对象中的Provider组件包裹要使用的组件，并设置值为'dark'
+    // 被包裹的组件无论层级多深，都可以读取到Context中存储的值'dark'
+    return (
+      <ThemeContext.Provider value="dark">
+        <Toolbar></Toolbar>
+      </ThemeContext.Provider>
+    );
+  }
 }
 ```
 
