@@ -1,6 +1,6 @@
 ---
 title: 魔改版TCP加速算法BBR安装脚本:Debian_Ubuntu（收集类）（转载）
-date: 2018-06-05 14:53:00
+date: 2017-12-05 14:53:00
 categories:
 	- Linux
 tags:
