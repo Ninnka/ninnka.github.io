@@ -181,6 +181,89 @@ export default {
 }
 ```
 
+上述方法需要人肉添加图片到模板中，显然很不优雅
+
+那有没有优雅又高效的方法呢？答案是肯定有的。
+
+假设我们的 `assets` 文件夹是这样的：
+```
+- assets
+  |- images
+    |- bg_home.png
+    |- bg-tab.png
+    |- bg-nav.png
+    |- ...
+```
+
+我们在 `images` 的文件夹中加入 `index.js`，并添加以下代码：
+```javascript
+export default {
+  // 路径也可以写成'@/assets/images/bg_home.png'的形式，只要是会经过webpack处理的文件，都可以使用这种方法，可以在webpack中根据需要进行其他的配置。
+  bgHome: require('./bg_home.png'), 
+  bgTab: require('./bg_tab.png'),
+  bgNav: require('./bg_nav.png'),
+  // ...
+};
+```
+
+然后在 `assets` 文件夹在添加 `index.js`，代码：
+```javascript
+import images from './images';
+
+export {
+  images,
+  // ...
+};
+```
+
+这是，文件目录应该是这样的：
+```
+- assets
+  |- images
+    |- bg_home.png
+    |- bg-tab.png
+    |- bg-nav.png
+    |- index.js
+    |- ...
+  |- index.js
+```
+
+使用起来也很简单，我们回到 `App.vue`
+在 `Vue` 的实例 `created`时：
+```javascript
+// App.vue <script>
+import { images } from '@/assets';
+export default {
+	data () {
+    return {
+      preloadImg: false,
+      imageAssets: []
+    };
+	},
+	
+  async created () {
+    this.imageAssets = images;
+  },
+  
+  async mounted () {
+    setTimeout(() => {
+      this.preloadImg = true;
+    }, 500);
+  }
+}
+```
+
+```html
+<!-- App.vue template -->
+<!-- ... -->
+	<div id="preload-imgs" v-if="preloadImg">
+		<img v-for="(src, index) of imageAssets" :key="index" :src="src" :alt="`preload: ${index}`">
+	</div>
+<!-- ... -->
+```
+
+> 关于 webpack 如何处理静态资源路径，这里有个[中文文档](http://hq5544.github.io/vue-webpack/static.html)
+
 ### 使用动态 `polyfill`
 
 > `polyfill` 为不支持ES2015+的老旧浏览器提供了一个完整的 ES2015+ 环境，这样就可以使用新的内置对象比如 Promise 或者 WeakMap, 静态方法比如 Array.from 或者 Object.assign, 实例方法比如 Array.prototype.includes 和生成器函数（提供给你使用 regenerator 插件）。为了达到这一点， polyfill 添加到了全局范围，就像原生类型比如 String 一样。
