@@ -1,6 +1,6 @@
 ---
 title: Vue2的组件继承
-date: 2018-06-05 11:41:31
+date: 2017-06-05 11:41:31
 categories:
 	- 前端
 	- JavaScript

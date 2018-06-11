@@ -33,7 +33,7 @@ class Comp extends React.Component {
     otherAttr: 'value',
   }
   
- 	static getDerivedStateFromProps(props, state) {
+  static getDerivedStateFromProps(props, state) {
     // 返回一个对象，对象会用于更新state
     return {
       someText: 'a new text value'
@@ -290,7 +290,7 @@ class MyComponent extends React.Component {
   }
 
   render() {
-  	// ref不需要传入callback，只需要传入ref对象即可
+    // ref不需要传入callback，只需要传入ref对象即可
     return <input type="text" ref={this.inputRef} />;
   }
 
