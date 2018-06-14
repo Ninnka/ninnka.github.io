@@ -7,7 +7,6 @@ tags:
 	- Nodejs
 	- 命令行工具
 	- 爬虫
-	- UglifyEs/UglifyJs
 	- npm-package
 ---
 
