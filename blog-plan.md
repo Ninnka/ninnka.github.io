@@ -1,6 +1,5 @@
 # list
 
-- 爬取动态网站数据-puppeteer(headless browser) 的妙用
 - 支付密码输入框的多种实现方法
 - tabLayout + viewpager
 - vue-marquee-text

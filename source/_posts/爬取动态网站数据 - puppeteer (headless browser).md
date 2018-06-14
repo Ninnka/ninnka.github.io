@@ -369,3 +369,91 @@ async function writeBufferPureImg (buffer, filename) {
   });
 }
 ```
+
+## 保存和读取Cookie
+
+pixiv 会验证cookie来判断是否登录，具体cookie名称是 `PHPSESSID`
+
+- 增加保存 cookie 的参数
+```javascript
+program
+  // ...
+  .option('--set-cookie [cookie]', 'storage cookie in local file', '')
+  .parse(process.argv);
+```
+
+```javascript
+const Cookie = require('../utils/cookies');
+
+// ...
+
+async function main () {
+  if (program.setCookie) {
+    await Cookie.storageCookieToLocal(program.setCookie);
+    process.exit(0);
+  } else {
+    try {
+      await Cookie.readCookieFromLocal();
+      FetchingData();
+    } catch (err) {
+      process.exit(0);
+    }
+  }
+}
+
+main();
+```
+
+```javascript
+const cookiesObj = {
+  PHPSESSID: {
+    value: '',
+    domain: '.pixiv.net',
+    path: '/',
+    expires: '2018-07-12T06:19:27.371Z',
+    httpOnly: true,
+    secure: true,
+  },
+};
+
+// ...
+
+async function storageCookieToLocal (cookie) {
+  return new Promise((resolve) => {
+    fs.writeFile('pixiv-cookie', cookie, (err) => {
+      if (err) {
+        // console.log(`保存失败`.red);
+        userController.spinner.text = `保存失败`.red;
+        userController.spinner.fail();
+        // console.log(err);
+      } else {
+        // console.log(`保存成功`.cyan);
+        userController.spinner.text = `保存成功`.cyan;
+        userController.spinner.succeed();
+      }
+      resolve();
+    });
+  });
+}
+
+async function readCookieFromLocal () {
+  return new Promise((resolve) => {
+    fs.readFile('pixiv-cookie','utf-8', (err, data) => {
+      if (err) {
+        userController.spinner.text = `读取 Cookie 失败`.red;
+        userController.spinner.fail();
+        reject();
+      } else {
+        userController.spinner.text = `读取 Cookie 成功`.cyan;
+        userController.spinner.succeed();
+        setCookiesObjAttr('PHPSESSID', 'value', data.toString());
+        resolve();
+      }
+    });
+  });
+}
+
+async function setCookiesObjAttr (cookieType, key, value) {
+  cookiesObj[cookieType][key] = value;
+}
+```
