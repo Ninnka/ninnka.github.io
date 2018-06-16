@@ -1,6 +1,5 @@
 # list
 
-- 支付密码输入框的多种实现方法
 - tabLayout + viewpager
 - vue-marquee-text
 - vue-router 动态路由的返回问题
