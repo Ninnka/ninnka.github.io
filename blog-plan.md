@@ -1,6 +1,6 @@
 # list
 
-- tabLayout + viewpager
+- vue-json-view-editor
 - vue-marquee-text
 - vue-router 动态路由的返回问题
 - 上传图片组件的实现
