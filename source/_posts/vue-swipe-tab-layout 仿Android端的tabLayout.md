@@ -1,6 +1,6 @@
 ---
 title: vue-swipe-tab-layout 仿Android端的 TabLayout + ViewPager
-date: 2018-05-03 19:08:02
+date: 2017-05-03 19:08:02
 categories:
 	- 前端
 	- JavaScript

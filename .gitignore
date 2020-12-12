@@ -11,3 +11,4 @@ public/
 *.ntvs*
 *.njsproj
 *.sln
+db.json

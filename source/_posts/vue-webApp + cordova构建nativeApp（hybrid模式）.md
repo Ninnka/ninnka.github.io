@@ -1,6 +1,6 @@
 ---
 title: vue-webApp + cordova构建nativeApp（hybrid模式）
-date: 2018-03-05 14:24:57
+date: 2017-03-05 14:24:57
 categories:
 	- 前端
 	- JavaScript
