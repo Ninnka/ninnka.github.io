@@ -81,4 +81,4 @@ theme: next
 deploy:
   type: git
   repo: https://Rennzh:18826255396hua@github.com/Rennzh/Rennzh.github.io.git
-  branch: master
+  branch: gh-pages
