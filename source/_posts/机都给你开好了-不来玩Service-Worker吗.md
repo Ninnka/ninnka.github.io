@@ -32,6 +32,8 @@ Worker 线程内不能访问到 window 以及 dom 相关的数据。同时，在
 - 独立的声明周期
 - 基于 `Web Worker` 的事件机制
 
+<!-- more -->
+
 ### Service Worker 的生命周期
 ![service_worker_lifecycle.png](https://i.loli.net/2019/09/10/LkbuedToJ4aMOUi.png)
 

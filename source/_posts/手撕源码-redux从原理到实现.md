@@ -113,6 +113,8 @@ function createStore(
 }
 ```
 
+<!-- more -->
+
 ### getState
 
 ```javascript
