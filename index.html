@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta property="og:type" content="website">
+<meta property="og:title" content="NinnkaStack">
+<meta property="og:url" content="http://yoursite.com/index.html">
+<meta property="og:site_name" content="NinnkaStack">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="Ninnka">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : true,
+    isPost : false,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>NinnkaStack</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">NinnkaStack</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content index posts-expand">
+            
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/05/15/%E6%89%8B%E6%92%95%E6%BA%90%E7%A0%81-redux%E4%BB%8E%E5%8E%9F%E7%90%86%E5%88%B0%E5%AE%9E%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/05/15/%E6%89%8B%E6%92%95%E6%BA%90%E7%A0%81-redux%E4%BB%8E%E5%8E%9F%E7%90%86%E5%88%B0%E5%AE%9E%E7%8E%B0/" class="post-title-link" itemprop="url">手撕源码-redux从原理到实现</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-15 16:36:58" itemprop="dateCreated datePublished" datetime="2021-05-15T16:36:58+08:00">2021-05-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-17 13:30:06" itemprop="dateModified" datetime="2021-05-17T13:30:06+08:00">2021-05-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/redux/" itemprop="url" rel="index"><span itemprop="name">redux</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本文主要分为两部分，第一部分是分析redux的原理，第二部分是根据我们分析的结果来实现一个五脏六腑俱全的mini-redux</p>
+<p>分析redux原理的过程中，会对必要但不是全部的概念都解释一遍，所以需要对 <code>redux</code> 有基础的认识</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://redux.js.org/tutorials/essentials/part-1-overview-concepts">redux 官方教程传送门</a></p>
+</blockquote>
+<p>在认识 <code>redux</code> 之前，我只知道 <code>react-redux</code>，并且认为 redux 是 react 的一部分，相信大多入门的新人也会有这样的误解</p>
+<p>正文开始之前，先同步一下我们的认识点</p>
+<ul>
+<li>redux 与 react 没有任何关系，redux 可以用在任何框架中，比如 React，Vue 等等；</li>
+<li>redux 是一个数据状态管理器，用来实现数据的中心化管理</li>
+<li>正文不会对 react-router 做原理分析，react-router 会另开一篇做分析</li>
+</ul>
+<h1 id="Redux"><a href="#Redux" class="headerlink" title="Redux"></a>Redux</h1><p>redux 基础功能是数据管理和通知订阅，redux是如何实现的呢？</p>
+<h2 id="Store"><a href="#Store" class="headerlink" title="Store"></a>Store</h2><p>先来看一段官方demo</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; createStore &#125; <span class="keyword">from</span> <span class="string">&#x27;redux&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">counterReducer</span>(<span class="params">state = &#123; value: <span class="number">0</span> &#125;, action</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">switch</span> (action.type) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">&#x27;counter/incremented&#x27;</span>:</span><br><span class="line">      <span class="keyword">return</span> &#123; <span class="attr">value</span>: state.value + <span class="number">1</span> &#125;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">&#x27;counter/decremented&#x27;</span>:</span><br><span class="line">      <span class="keyword">return</span> &#123; <span class="attr">value</span>: state.value - <span class="number">1</span> &#125;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">      <span class="keyword">return</span> state</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> store = createStore(counterReducer, &#123; <span class="attr">value</span>: <span class="number">0</span> &#125;)</span><br><span class="line"></span><br><span class="line">store.subscribe(<span class="function">() =&gt;</span> <span class="built_in">console</span>.log(store.getState()))</span><br><span class="line"></span><br><span class="line">store.dispatch(&#123; <span class="attr">type</span>: <span class="string">&#x27;counter/incremented&#x27;</span> &#125;)</span><br><span class="line"><span class="comment">// &#123;value: 1&#125;</span></span><br><span class="line">store.dispatch(&#123; <span class="attr">type</span>: <span class="string">&#x27;counter/incremented&#x27;</span> &#125;)</span><br><span class="line"><span class="comment">// &#123;value: 2&#125;</span></span><br><span class="line">store.dispatch(&#123; <span class="attr">type</span>: <span class="string">&#x27;counter/decremented&#x27;</span> &#125;)</span><br><span class="line"><span class="comment">// &#123;value: 1&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>redux 通过 <code>createStore</code> 创建一个数据中心管理器 <code>store</code><br>createStore 可以说是数据流的入口</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src/createStore.ts</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">createStore</span>(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  reducer: Reducer&lt;S, A&gt;,</span></span></span><br><span class="line"><span class="function"><span class="params">  preloadedState?: PreloadedState&lt;S&gt; | StoreEnhancer&lt;Ext, StateExt&gt;,</span></span></span><br><span class="line"><span class="function"><span class="params">  enhancer?: StoreEnhancer&lt;Ext, StateExt&gt;</span></span></span><br><span class="line"><span class="function"><span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 对 reducer，preloader，enhancer做了很多空值校验</span></span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 把 reducer，state，listener 都保存到闭包中，供下面的函数处理时使用</span></span><br><span class="line">  <span class="keyword">let</span> currentReducer = reducer</span><br><span class="line">  <span class="keyword">let</span> currentState = preloadedState <span class="keyword">as</span> S</span><br><span class="line">  <span class="keyword">let</span> currentListeners: (<span class="function">() =&gt;</span> <span class="keyword">void</span>)[] | <span class="literal">null</span> = []</span><br><span class="line">  <span class="keyword">let</span> nextListeners = currentListeners</span><br><span class="line">  <span class="keyword">let</span> isDispatching = <span class="literal">false</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 创建了若干函数用于操作数据流</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 获取当前的数据状态</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">getState</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 订阅</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">subscribe</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 派发事件</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">dispatch</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 替换 reducer</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">replaceReducer</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 监听 state 变化的观测器</span></span><br><span class="line">  <span class="comment">// https://github.com/tc39/proposal-observable</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">observable</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 发起初始化的 action，这个是内部的action，需要在业务代码中有对应的 reducer 才会触发响应</span></span><br><span class="line">  dispatch(&#123; <span class="attr">type</span>: ActionTypes.INIT &#125; <span class="keyword">as</span> A)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> store = &#123;</span><br><span class="line">    dispatch: dispatch <span class="keyword">as</span> Dispatch&lt;A&gt;,</span><br><span class="line">    subscribe,</span><br><span class="line">    getState,</span><br><span class="line">    replaceReducer,</span><br><span class="line">    [$$observable]: observable</span><br><span class="line">  &#125; <span class="keyword">as</span> unknown <span class="keyword">as</span> Store&lt;ExtendState&lt;S, StateExt&gt;, A, StateExt, Ext&gt; &amp; Ext</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 最后返回了一个大对象，把上述创建的函数都丢了出去</span></span><br><span class="line">  <span class="keyword">return</span> store;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/05/15/%E6%89%8B%E6%92%95%E6%BA%90%E7%A0%81-redux%E4%BB%8E%E5%8E%9F%E7%90%86%E5%88%B0%E5%AE%9E%E7%8E%B0/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/05/15/%E6%89%8B%E6%92%95%E6%BA%90%E7%A0%81-%E6%89%8B%E5%86%99%E5%AE%9E%E7%8E%B0Koa%E6%B4%8B%E8%91%B1%E6%A8%A1%E5%9E%8B%E4%B8%AD%E9%97%B4%E4%BB%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/05/15/%E6%89%8B%E6%92%95%E6%BA%90%E7%A0%81-%E6%89%8B%E5%86%99%E5%AE%9E%E7%8E%B0Koa%E6%B4%8B%E8%91%B1%E6%A8%A1%E5%9E%8B%E4%B8%AD%E9%97%B4%E4%BB%B6/" class="post-title-link" itemprop="url">手撕源码-手写实现Koa洋葱模型中间件</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-15 15:11:45" itemprop="dateCreated datePublished" datetime="2021-05-15T15:11:45+08:00">2021-05-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-17 13:29:50" itemprop="dateModified" datetime="2021-05-17T13:29:50+08:00">2021-05-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/NodeJs/" itemprop="url" rel="index"><span itemprop="name">NodeJs</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/NodeJs/Koa/" itemprop="url" rel="index"><span itemprop="name">Koa</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/NodeJs/Koa/%E6%B4%8B%E8%91%B1%E6%A8%A1%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">洋葱模型</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/NodeJs/Koa/%E6%B4%8B%E8%91%B1%E6%A8%A1%E5%9E%8B/%E4%B8%AD%E9%97%B4%E4%BB%B6/" itemprop="url" rel="index"><span itemprop="name">中间件</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Koa洋葱模型分析"><a href="#Koa洋葱模型分析" class="headerlink" title="Koa洋葱模型分析"></a>Koa洋葱模型分析</h1><p>在实现Koa的洋葱模型之前，先回顾一下洋葱模型的运作方式</p>
+<p><img src="https://camo.githubusercontent.com/d80cf3b511ef4898bcde9a464de491fa15a50d06/68747470733a2f2f7261772e6769746875622e636f6d2f66656e676d6b322f6b6f612d67756964652f6d61737465722f6f6e696f6e2e706e67" alt="洋葱模型"></p>
+<h2 id="中间件的执行机制"><a href="#中间件的执行机制" class="headerlink" title="中间件的执行机制"></a>中间件的执行机制</h2><p>先来看个简单例子</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 声明一个异步函数作为中间件</span></span><br><span class="line">app.use(<span class="keyword">async</span> (ctx, next) =&gt; &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="number">1</span>);</span><br><span class="line">  <span class="keyword">await</span> next();</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="number">2</span>);</span><br><span class="line">&#125;);</span><br><span class="line">app.use(<span class="keyword">async</span> (ctx, next) =&gt; &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="number">3</span>);</span><br><span class="line">  <span class="keyword">await</span> next();</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="number">4</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 输出顺序是：</span></span><br><span class="line"><span class="comment">// 1</span></span><br><span class="line"><span class="comment">// 3</span></span><br><span class="line"><span class="comment">// 4</span></span><br><span class="line"><span class="comment">// 2</span></span><br></pre></td></tr></table></figure>
+
+<p>所有的请求经过一个中间件的时候都会执行两次，执行next前和执行next后的代码分为两部分执行。</p>
+<h2 id="中间件是怎么保存的"><a href="#中间件是怎么保存的" class="headerlink" title="中间件是怎么保存的"></a>中间件是怎么保存的</h2><p>通过上面的案例，可以把中间件的注册关键方法锁定在 <code>app.use</code> 上</p>
+<p>我们先看 <code>use</code> 方法</p>
+<p>koa/lib/application.js<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqj59zns7nj31b20fmn0m.jpg" alt="koa-application-use"></p>
+<p>简化一下可以得到</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">use</span>(<span class="params">fn</span>)</span> &#123;</span><br><span class="line">  <span class="comment">// 保存在middleware数组中</span></span><br><span class="line">  <span class="built_in">this</span>.middleware.push(fn);</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 <code>app.use</code> 中，中间件会被推入到一个 <code>middleware</code> 数组中保存起来。</p>
+<p>中间件被保存起来后，在什么时候，用什么方式调用的呢？</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/05/15/%E6%89%8B%E6%92%95%E6%BA%90%E7%A0%81-%E6%89%8B%E5%86%99%E5%AE%9E%E7%8E%B0Koa%E6%B4%8B%E8%91%B1%E6%A8%A1%E5%9E%8B%E4%B8%AD%E9%97%B4%E4%BB%B6/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/26/%E6%9C%BA%E9%83%BD%E7%BB%99%E4%BD%A0%E5%BC%80%E5%A5%BD%E4%BA%86-%E4%B8%8D%E6%9D%A5%E7%8E%A9Service-Worker%E5%90%97/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/10/26/%E6%9C%BA%E9%83%BD%E7%BB%99%E4%BD%A0%E5%BC%80%E5%A5%BD%E4%BA%86-%E4%B8%8D%E6%9D%A5%E7%8E%A9Service-Worker%E5%90%97/" class="post-title-link" itemprop="url">机都给你开好了，来玩Service Worker呀！</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-10-26 14:55:38" itemprop="dateCreated datePublished" datetime="2019-10-26T14:55:38+08:00">2019-10-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-17 13:31:30" itemprop="dateModified" datetime="2021-05-17T13:31:30+08:00">2021-05-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/Service-Worker/" itemprop="url" rel="index"><span itemprop="name">Service Worker</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>本文主要讲 service worker 的主要基本特性以及使用方法，从实际开发的 PWA 中学习 service worker。</p>
+</blockquote>
+<h2 id="Service-Worker-是什么"><a href="#Service-Worker-是什么" class="headerlink" title="Service Worker 是什么"></a>Service Worker 是什么</h2><p>Service Worker 是一个运行在在浏览器后台，独立于网页运行的由事件驱动的脚本。<br>本质上是 Web Worker 的一种具体实现，通常与 Cache API 相结合使用，因为 Worker 线程执行的脚本与网页脚本相独立的缘故，<br>Worker 线程内不能访问到 window 以及 dom 相关的数据。同时，在 Service Worker 中处理大量数据时也不会阻塞的主线程。所以通常可以在 Service Worker 线程中拦截浏览器的请求，读取和存储请求内容，进而实现离线应用。</p>
+<h2 id="Service-Worker-能做什么"><a href="#Service-Worker-能做什么" class="headerlink" title="Service Worker 能做什么"></a>Service Worker 能做什么</h2><ul>
+<li><p><img src="https://i.loli.net/2020/01/21/ISGNLpAicBjsDWO.png" alt="网络优先"><br>当客户端发起请求时，<code>Service worker</code>会先请求对应的资源，并把结果返回，同时在<code>cache storage</code>中存储一份。</p>
+<p>在出现网络不可访问或服务出错时可以从缓存中获取相同的资源做容灾处理。</p>
+</li>
+<li><p><img src="https://i.loli.net/2020/01/21/ltMkrZxgoPsEcFR.png" alt="缓存优先.png"><br>当客户端发起请求时，<code>Service worker</code>会先从<code>cache storage</code>中读取资源，并把结果返回，同时请求一份资源，成功的话更新到缓存中。</p>
+<p>  这样可以保持极快的响应速度，适用于更新频率不高的资源。</p>
+</li>
+</ul>
+<h2 id="Service-Worker-的基本架构"><a href="#Service-Worker-的基本架构" class="headerlink" title="Service Worker 的基本架构"></a>Service Worker 的基本架构</h2><ul>
+<li>独立的声明周期</li>
+<li>基于 <code>Web Worker</code> 的事件机制</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2019/10/26/%E6%9C%BA%E9%83%BD%E7%BB%99%E4%BD%A0%E5%BC%80%E5%A5%BD%E4%BA%86-%E4%B8%8D%E6%9D%A5%E7%8E%A9Service-Worker%E5%90%97/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/23/TypeScript%E6%8A%80%E5%B7%A7%E4%B9%8B%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%A3%85%E9%80%BC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/08/23/TypeScript%E6%8A%80%E5%B7%A7%E4%B9%8B%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%A3%85%E9%80%BC/" class="post-title-link" itemprop="url">TypeScript技巧之从入门到装逼</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-08-23 14:55:08" itemprop="dateCreated datePublished" datetime="2019-08-23T14:55:08+08:00">2019-08-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-17 13:30:17" itemprop="dateModified" datetime="2021-05-17T13:30:17+08:00">2021-05-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/TypeScript/" itemprop="url" rel="index"><span itemprop="name">TypeScript</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="预备动作"><a href="#预备动作" class="headerlink" title="预备动作"></a>预备动作</h2><blockquote>
+<p>阅读本篇之前你可能需要一定的TypeScript基础，如果还没开始上手建议从这里开始</p>
+</blockquote>
+<blockquote>
+<p>以下是传送门</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="http://www.typescriptlang.org/docs/home.html">TypeScript Document 官方文档</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhongsp.gitbooks.io/typescript-handbook/content/">TypeScript HandBook 小手册</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.typescriptlang.org/play/index.html">TypeScript Playground 旧版练习场</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.typescriptlang.org/v2/en/play">TypeScript Playground 新版练习场 (比上面那个高级，写作期间是beta版)</a></li>
+</ol>
+</blockquote>
+<h2 id="正片开始"><a href="#正片开始" class="headerlink" title="正片开始"></a>正片开始</h2><blockquote>
+<p>主要介绍 TypeScript 的常用和不常用的各种技巧，包括用这些技巧创建一些高级类型函数，会附上 Playground 的链接。</p>
+</blockquote>
+<h3 id="关键词"><a href="#关键词" class="headerlink" title="关键词"></a>关键词</h3><blockquote>
+<p>用于更加细粒度的处理接口和类型别名**</p>
+</blockquote>
+<blockquote>
+<ul>
+<li>@scope <em>runtime</em> 运行时</li>
+<li>@scope <em>lexical</em> 静态分析/词法分析</li>
+</ul>
+</blockquote>
+<p><strong>类型断言 / 类型守卫 / 类型约束</strong></p>
+<blockquote>
+<p>可以获取，确定，约束变量类型</p>
+</blockquote>
+<h4 id="typeof-scope-runtime"><a href="#typeof-scope-runtime" class="headerlink" title="typeof @scope runtime"></a><code>typeof</code> @scope <em>runtime</em></h4><blockquote>
+<p>获取变量的类型，常用于一些需要确认变量的类型然后进行不同操作的场景</p>
+</blockquote>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> AOrB = &#123; <span class="attr">s</span>: <span class="built_in">string</span>; &#125; | <span class="built_in">string</span>;</span><br><span class="line"><span class="keyword">const</span> val: AOrB = &#123; <span class="attr">s</span>: <span class="string">&#x27;a&#x27;</span> &#125;;</span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">typeof</span> val === <span class="string">&#x27;object&#x27;</span>) &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(val.s);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(val);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="http://www.typescriptlang.org/v2/en/play#code/C4TwDgpgBAgg8gJwEJQLxQN5QM4C4fAICWAdgOYDcUAvlAD4HHkUCwAUAMYD2J2wUANwCGAG3zxkaTDnwByIbJqs2RAGZQAFKEhd1wkWlTpZXAEYArCB2CyAlJnZQo3XlxEQAdCK5kN+j9i2yrQQItjQGI7OPNhunt6++kHs1EA">Playground Link</a></p>
+<h4 id="extends-scope-lexical"><a href="#extends-scope-lexical" class="headerlink" title="extends @scope lexical"></a><code>extends</code> @scope <em>lexical</em></h4><blockquote>
+<p>类型约束，通常用在泛型传参时约束参数范围</p>
+</blockquote>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> Gen &#123;</span><br><span class="line">    s: <span class="built_in">string</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> Others &#123;</span><br><span class="line">    d: <span class="built_in">number</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">BaseFunc</span>&lt;<span class="title">P</span> <span class="title">extends</span> <span class="title">Gen</span>&gt;(<span class="params">p: P</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(p);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> s1: Gen = &#123;</span><br><span class="line">    s: <span class="string">&#x27;something&#x27;</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> s2: Others = &#123;</span><br><span class="line">    d: <span class="number">1</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">BaseFunc(s1); <span class="comment">// good</span></span><br><span class="line"></span><br><span class="line">BaseFunc(s2); <span class="comment">// bad, error</span></span><br></pre></td></tr></table></figure>
+
+<p><a href="http://www.typescriptlang.org/v2/en/play?target=7#code/JYOwLgpgTgZghgYwgAgOIRMg3gWAFDKHIDOAXCWFKAOYDc+AvvvqJLIigPJgAW0x2fEWQATciACuAWwBG0eniZ58MCSARhgAe0wAhOMQgAxNQgA8ABWQQAHpBAiB6EAD4AFAAdyFgJSCCRAg6xFoANhAAdKFa1J4+Ckr4QSDEYCQAjOTOyAC8-sJkyADkIVIQvDRFADSMCknBacQATOTcfFACebgBhGLI6TWKdXj6hibqbsTp8cgA9LPI1FpaIswjBsamk00z88gycCJV1lBQWlBAA">Playground Link</a></p>
+<h4 id="instanceof-scope-runtime"><a href="#instanceof-scope-runtime" class="headerlink" title="instanceof @scope runtime"></a><code>instanceof</code> @scope <em>runtime</em></h4><blockquote>
+<p>确认目标是是否在指定对象的原型链上</p>
+</blockquote>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Animal</span> </span>&#123;</span><br><span class="line">    name: <span class="built_in">string</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params">name: <span class="built_in">string</span></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Dog</span> <span class="keyword">extends</span> <span class="title">Animal</span> </span>&#123;</span><br><span class="line">    wang: <span class="built_in">number</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params">name: (<span class="keyword">typeof</span> Animal)[<span class="string">&#x27;name&#x27;</span>], wang: <span class="built_in">number</span></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(name);</span><br><span class="line">        <span class="built_in">this</span>.wang = wang;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">wangwang</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">&#x27;wangwang&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Cat</span> <span class="keyword">extends</span> <span class="title">Animal</span> </span>&#123;</span><br><span class="line">    miao: <span class="built_in">number</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params">name: (<span class="keyword">typeof</span> Animal)[<span class="string">&#x27;name&#x27;</span>], miao: <span class="built_in">number</span></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(name);</span><br><span class="line">        <span class="built_in">this</span>.miao = miao;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">miaomiao</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">&#x27;miaomiao&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> dog: Dog = <span class="keyword">new</span> Dog(<span class="string">&#x27;dog&#x27;</span>, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> cat: Cat = <span class="keyword">new</span> Cat(<span class="string">&#x27;cat&#x27;</span>, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">doS</span>&lt;<span class="title">C</span> <span class="title">extends</span> <span class="title">Animal</span>&gt;(<span class="params">cls: C</span>) </span>&#123;</span><br><span class="line">    <span class="comment">/** bad */</span></span><br><span class="line">    cls.wangwang(); <span class="comment">// error</span></span><br><span class="line">    cls.miaomiao(); <span class="comment">// error</span></span><br><span class="line">    <span class="comment">/** good */</span></span><br><span class="line">    <span class="comment">/** 函数已经限制了 cls 的约束范围 */</span></span><br><span class="line">    <span class="keyword">if</span> (cls <span class="keyword">instanceof</span> Dog) &#123;</span><br><span class="line">        <span class="comment">/** 通过 instanceof 类型守卫 进一步确认类型 */</span></span><br><span class="line">        cls.wangwang();</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (cls <span class="keyword">instanceof</span> Cat)  &#123;</span><br><span class="line">        <span class="comment">/** 同上 */</span></span><br><span class="line">        cls.miaomiao();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><a href="http://www.typescriptlang.org/v2/en/play?target=7#code/MYGwhgzhAECCB2BLAtmE0DeBYAUNf08YyApgFzQQAuATovAOYDcuuB0wA9vNTQK7AqnGgAoipCr3oMAlJjbsCVABaIIAOnEloAXkLESLPAQC+uMzlyhIMACKcG0EgA8qJeABMYCFGnnH8AHcwRgp4PmQAIxIaIwV8Lh5aASFRLQoRKgBPAAcSTgAzOCRUEBkAbQByLUqAXQAaaGDQwgjomjlsAMUIPjy0gxkjRSVVDWbHPQnh01ZuiYmRTvjFRIhOEBJ1EAcRSoWQhkqhlYsLK3AoaABhMConV3cvYt90LvZkRDBOMLaYuO6a2SgmEYgMGWyeUKL1KFWqBjqjU+31+URiy267F6-TBpBOmNGanUyM4umgJJm+HO3RJJKW-hGCW4602212lVpX04x0p0DOcyB0A8Dgo9kmhBIgWgYr2wqOjQAjPirMz7sA7hRbvc9PBJTc7nt1VRKorlTgCnx4IJENwhZwAMoAHmuDzcnm8JTQAD4RKAIJqMewAPQAKhD0EiYA80BDQZWfvUB0YSyY0CDQacNBownjIA0nO+KbTGZi2ZoK1D4YYnE40djFbD0EAv4qAB1NAE+6gHm-QAKaYA2JUAYXIcPPQQAhboAyv0A+uaAYGDAC9qMbj3UQRV9Q-o1BCwHyRTFgcZleggCwEwDj8dBV1R15voIBvH0A0eqACO1ANbK0EA2-GAADlAKbWgDsPQAl0Te5yt2AmSYMCmpxOHm2iLtAy4wKe57QlqcgMrujaADAqgBQcn+BIJHmxJcnS+LsGcQA">Playground Link</a></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2019/08/23/TypeScript%E6%8A%80%E5%B7%A7%E4%B9%8B%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%A3%85%E9%80%BC/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/01/%E7%88%AC%E5%8F%96%E5%8A%A8%E6%80%81%E7%BD%91%E7%AB%99%E6%95%B0%E6%8D%AE%20-%20puppeteer%20(headless%20browser)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/06/01/%E7%88%AC%E5%8F%96%E5%8A%A8%E6%80%81%E7%BD%91%E7%AB%99%E6%95%B0%E6%8D%AE%20-%20puppeteer%20(headless%20browser)/" class="post-title-link" itemprop="url">爬取动态网站数据 - puppeteer (headless browser)</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-06-01 18:22:04" itemprop="dateCreated datePublished" datetime="2018-06-01T18:22:04+08:00">2018-06-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-17 13:21:34" itemprop="dateModified" datetime="2021-05-17T13:21:34+08:00">2021-05-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>我在之前有提到过pixiv用React重写了部分页面，导致以前的方法不能爬取那部分的页面了。<br>熟悉 <code>React/Vue/Angular</code> 开发的同学应该很清楚，这类框架开发的Web应用有个很明显的特征，web应用的原始页面的DOM只有简单body和一个id为root的节点（当然，其他人为加入的也会存在）。如果用以前的superagent配合request只能把这部分下载下来，如果pixiv使用了service-side rendering的还好，但是pixiv并没有使用（我觉得以后pixiv可能大概会用上）。</p>
+</blockquote>
+<p>说回正题，因为pixiv的部分页面改为“动态加载”后，直接获取文档不能获取到DOM，那么有没有什么办法能够获取代码然后执行js生成DOM，再获取页面的内容呢？<br>仔细想想这种行为不就像是一个浏览器了吗？<br>其实这种情况我之前就遇到过，当时是因为有要求爬取京东和淘宝的部分页面，但是京东和淘宝的首页出了靠近顶部部分以外的都是懒加载。顺着上面所说的思路，我很快想到了以前看到过的 <code>headless browser</code>，然后找到了 <code>puppeteer</code>，中文名是木偶戏</p>
+<blockquote>
+<p>Puppeteer 是一个提供了高集成API，通过开发者工具协议来控制无页面Chrome或者Chromium的 node 库. 它同样能用来控制正常的 Chrome 和 Chromium。<br>我们可以用 Puppeteer 做什么？</p>
+<ul>
+<li>生成一个快照或者PDF。</li>
+<li>爬取SPA（单页应用）并生成预渲染的内容 (比如： “SSR”)。</li>
+<li>自动化提交，输入，UI测试等。</li>
+<li>创建一个最新的，全自动测试的环境。在最新Chrome上使用最新的javascript和浏览器特性运行测试代码。</li>
+<li>按照时间线来跟踪捕获网站的运行，用来帮助诊断性能问题。</li>
+</ul>
+</blockquote>
+<p>Bingo，这正是我在这次爬虫中要用到的，接下来将使用它爬取pixiv的React App。</p>
+<p><strong><a target="_blank" rel="noopener" href="https://github.com/Rennzh/node-pixiv-crawler">源代码</a>，源代码已经是最新的，如果想看以前的方法的可以 <code>git checkout</code> 到以前的仓库节点。</strong></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/06/01/%E7%88%AC%E5%8F%96%E5%8A%A8%E6%80%81%E7%BD%91%E7%AB%99%E6%95%B0%E6%8D%AE%20-%20puppeteer%20(headless%20browser)/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/01/React%20v16-3%20%E6%96%B0API%E6%B5%85%E8%B0%88/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/05/01/React%20v16-3%20%E6%96%B0API%E6%B5%85%E8%B0%88/" class="post-title-link" itemprop="url">React v16.3 新API浅谈</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-05-01 14:37:29" itemprop="dateCreated datePublished" datetime="2018-05-01T14:37:29+08:00">2018-05-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-17 13:21:34" itemprop="dateModified" datetime="2021-05-17T13:21:34+08:00">2021-05-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>早在 React v16.3 发布前，就时不时能看见各路大佬对新API的分析，每次看完之后都受益匪浅 :) 。如今 React v16.3 也更新了一小段时间了，看着旧项目更新到 React v16.3后满满的 warning，我决定重新阅读新的API后对代码进行更新。（当然，可以使用官方的迁移工具，但是不亲自体验一下总觉得少了什么 :- ）</p>
+</blockquote>
+<h2 id="React-v15-x-React-v16-gt-React-v16-3"><a href="#React-v15-x-React-v16-gt-React-v16-3" class="headerlink" title="React v15.x ~ React v16 -&gt; React v16.3"></a>React v15.x ~ React v16 -&gt; React v16.3</h2><blockquote>
+<p>这次的升级主要是几个生命周期的API改动以及加入新的 <code>context</code> api，生命周期的改动是为了适应 <code>React fiber</code>。</p>
+</blockquote>
+<h3 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h3><blockquote>
+<p><a target="_blank" rel="noopener" href="https://reactjs.org/docs/react-component.html">组件生命周期相关-官方文档</a></p>
+</blockquote>
+<h4 id="新API：static-getDerivedStateFromProps"><a href="#新API：static-getDerivedStateFromProps" class="headerlink" title="新API：static getDerivedStateFromProps()"></a>新API：<code>static getDerivedStateFromProps()</code></h4><p>用于替代以前的 <code>componentWillReceiveProps()</code> 和 <code>componentWillUpdate()</code></p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Comp</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  </span><br><span class="line">  state = &#123;</span><br><span class="line">    someText: <span class="string">&#x27;old text&#x27;</span>,</span><br><span class="line">    otherAttr: <span class="string">&#x27;value&#x27;</span>,</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">static</span> <span class="function"><span class="title">getDerivedStateFromProps</span>(<span class="params">props, state</span>)</span> &#123;</span><br><span class="line">    <span class="comment">// 返回一个对象，对象会用于更新state</span></span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">      someText: <span class="string">&#x27;a new text value&#x27;</span></span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="comment">// 返回null表示不需要更新</span></span><br><span class="line">    <span class="comment">/* </span></span><br><span class="line"><span class="comment">     * return null;</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>getDerivedStateFromProps</code>被设计为了 <code>static</code> 方法，以后可以直接通过 <code>componentName.getDerivedStateFromProps</code> 调用。这个方法在组件初始化时和组件的props更新时都会被调用，方法接收了两个参数，分别是新的 <code>props</code> 和 旧的<code>state</code>。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/05/01/React%20v16-3%20%E6%96%B0API%E6%B5%85%E8%B0%88/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/17/mint-ui%E7%9A%84loadmore%EF%BC%88%E4%B8%8A%E6%BB%91%EF%BC%8C%E4%B8%8B%E6%8B%89%EF%BC%89%E7%BB%84%E4%BB%B6%E7%9A%84%E9%9D%9E%E4%BE%B5%E5%85%A5%E5%BC%8F%EF%BC%88%E4%B8%8D%E4%BF%AE%E6%94%B9%E6%BA%90%E7%A0%81%EF%BC%89%E4%BC%98%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/03/17/mint-ui%E7%9A%84loadmore%EF%BC%88%E4%B8%8A%E6%BB%91%EF%BC%8C%E4%B8%8B%E6%8B%89%EF%BC%89%E7%BB%84%E4%BB%B6%E7%9A%84%E9%9D%9E%E4%BE%B5%E5%85%A5%E5%BC%8F%EF%BC%88%E4%B8%8D%E4%BF%AE%E6%94%B9%E6%BA%90%E7%A0%81%EF%BC%89%E4%BC%98%E5%8C%96/" class="post-title-link" itemprop="url">mint-ui的loadmore（上滑，下拉）组件的非侵入式（不修改源码）优化</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-03-17 22:57:58" itemprop="dateCreated datePublished" datetime="2018-03-17T22:57:58+08:00">2018-03-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-17 13:21:34" itemprop="dateModified" datetime="2021-05-17T13:21:34+08:00">2021-05-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>移动端开发时难免会有列表，列表最典型的的分页模式就是上滑加载更多，此外还需要刷新列表——下拉刷新数据。</p>
+</blockquote>
+<p>最初，为了列表的上滑加载更多和下拉刷新数据的功能，我把目光放到了 <code>mint-ui</code> 的 <code>loadmore</code> 组件，虽说这个库已经有相当长的一段时间没有优化了。</p>
+<p>移动端开发大部分时候还会遇到顶部一排tab，页面滑动可以切换tab这种需求，是的，每天中午点开的饿了么那一种，熟悉Android的同学大概知道那个叫做 <code>TabLayout</code> 和 <code>ViewPager</code>。但是这次的重点不是这个，而是我在使用 <code>loadmore</code> 的下拉加载时与我个人封装的 <code>swipe-tab-layout</code> 进行组合使用时体验不太理想，尤其是下拉太过容易触发，本想看看文档，查看组件是否有一个角度属性，用来设置触发下拉。不过很遗憾，并没有这种属性。</p>
+<p>这种情况当然是只能查看源码，看看有没有能够修改的。果不其然，在查看 <code>loadmore</code> 组件的源码时发现了两个重要的方法：</p>
+<ol>
+<li>handleTouchStart</li>
+<li>handleTouchMove</li>
+</ol>
+<p>故名思议，第一个方法是处理手指刚触摸到屏幕时的处理，第二个方法是处理手指在屏幕上滑动时的情况。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/03/17/mint-ui%E7%9A%84loadmore%EF%BC%88%E4%B8%8A%E6%BB%91%EF%BC%8C%E4%B8%8B%E6%8B%89%EF%BC%89%E7%BB%84%E4%BB%B6%E7%9A%84%E9%9D%9E%E4%BE%B5%E5%85%A5%E5%BC%8F%EF%BC%88%E4%B8%8D%E4%BF%AE%E6%94%B9%E6%BA%90%E7%A0%81%EF%BC%89%E4%BC%98%E5%8C%96/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/05/%E9%AD%94%E6%94%B9%E7%89%88TCP%E5%8A%A0%E9%80%9F%E7%AE%97%E6%B3%95BBR%E5%AE%89%E8%A3%85%E8%84%9A%E6%9C%ACDebian_Ubuntu%EF%BC%88%E6%94%B6%E9%9B%86%E7%B1%BB%EF%BC%89%EF%BC%88%E8%BD%AC%E8%BD%BD%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/12/05/%E9%AD%94%E6%94%B9%E7%89%88TCP%E5%8A%A0%E9%80%9F%E7%AE%97%E6%B3%95BBR%E5%AE%89%E8%A3%85%E8%84%9A%E6%9C%ACDebian_Ubuntu%EF%BC%88%E6%94%B6%E9%9B%86%E7%B1%BB%EF%BC%89%EF%BC%88%E8%BD%AC%E8%BD%BD%EF%BC%89/" class="post-title-link" itemprop="url">魔改版TCP加速算法BBR安装脚本:Debian_Ubuntu（收集类）（转载）</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-12-05 14:53:00" itemprop="dateCreated datePublished" datetime="2017-12-05T14:53:00+08:00">2017-12-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-17 13:21:34" itemprop="dateModified" datetime="2021-05-17T13:21:34+08:00">2021-05-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>原文地址: <a target="_blank" rel="noopener" href="https://blog.liyuans.com/archives/altered-bbr-onekey-script-collection.html">https://blog.liyuans.com/archives/altered-bbr-onekey-script-collection.html</a><br>这里我仅做一个文档保存备份</p>
+</blockquote>
+<h1 id="雨落无声版本脚本"><a href="#雨落无声版本脚本" class="headerlink" title="雨落无声版本脚本"></a>雨落无声版本脚本</h1><blockquote>
+<p>来源<a target="_blank" rel="noopener" href="http://www.hostloc.com/thread-372361-1-1.html">雨落无声：魔改版 BBR 一键安装脚本 For Debian8 / Ubuntu16 +</a></p>
+</blockquote>
+<p>注意：内核固定切换为 4.10.15，成功率高。</p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
+<li>在 Debian 8 和 Ubuntu16 + 系统上一键部署魔改版 BBR，自动换内核成 4.10.15 ，自动安装 Headers。</li>
+<li>用户只需要将系统安装成 Debian 8 或者 Ubuntu 16 即可，剩下的交给脚本来吧。</li>
+</ul>
+<h2 id="提醒"><a href="#提醒" class="headerlink" title="提醒"></a>提醒</h2><p><strong>部分商家的 VPS 可能会遇到换内核之后无法启动系统的情况，所以请运行脚本前一定要备份好重要数据！！</strong></p>
+<h2 id="一键脚本"><a href="#一键脚本" class="headerlink" title="一键脚本"></a>一键脚本</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -N --no-check-certificate https://raw.githubusercontent.com/FunctionClub/YankeeBBR/master/bbr.sh &amp;&amp; bash bbr.sh install</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>然后根据提示重启系统。重启完成后，运行</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash bbr.sh start</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>查看魔改 BBR 状态，运行下面的命令，如果看到有 tsunami 就表示开启成功！</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sysctl net.ipv4.tcp_available_congestion_control</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/12/05/%E9%AD%94%E6%94%B9%E7%89%88TCP%E5%8A%A0%E9%80%9F%E7%AE%97%E6%B3%95BBR%E5%AE%89%E8%A3%85%E8%84%9A%E6%9C%ACDebian_Ubuntu%EF%BC%88%E6%94%B6%E9%9B%86%E7%B1%BB%EF%BC%89%EF%BC%88%E8%BD%AC%E8%BD%BD%EF%BC%89/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/08/05/Vue2%E9%A6%96%E5%B1%8F%E5%8A%A0%E8%BD%BD%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/08/05/Vue2%E9%A6%96%E5%B1%8F%E5%8A%A0%E8%BD%BD%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="post-title-link" itemprop="url">Vue2加载优化</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-08-05 17:39:37" itemprop="dateCreated datePublished" datetime="2017-08-05T17:39:37+08:00">2017-08-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-17 13:21:34" itemprop="dateModified" datetime="2021-05-17T13:21:34+08:00">2021-05-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>以vue-cli2作为开发脚手架为前提，虽然内部做了不少的打包优化来减少文件体积，但是仍然有提升的空间。提升的方向大致就为两种：1. 代码结构；2. webpack的打包配置</p>
+</blockquote>
+<h2 id="调整代码结构"><a href="#调整代码结构" class="headerlink" title="调整代码结构"></a>调整代码结构</h2><h3 id="配合vue-router使用异步加载"><a href="#配合vue-router使用异步加载" class="headerlink" title="配合vue-router使用异步加载"></a>配合vue-router使用异步加载</h3><p>如何配合vue-router使用异步加载在官方文档中已有说明，简单的来说就是在需要的时候再加载特定的js，这部分js在打包的时候会被单独打包到一个js中，以此达到减少bundle的体积的目的。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> TestView = <span class="function">() =&gt;</span> <span class="keyword">import</span>(<span class="string">&#x27;@/views/test-view&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> routerOptions = &#123;</span><br><span class="line">  routes: [</span><br><span class="line">    &#123;</span><br><span class="line">      path: <span class="string">&#x27;/&#x27;</span>,</span><br><span class="line">      component: TestView,</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  ],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/08/05/Vue2%E9%A6%96%E5%B1%8F%E5%8A%A0%E8%BD%BD%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/05/Vue2%E7%9A%84%E7%BB%84%E4%BB%B6%E7%BB%A7%E6%89%BF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/06/05/Vue2%E7%9A%84%E7%BB%84%E4%BB%B6%E7%BB%A7%E6%89%BF/" class="post-title-link" itemprop="url">Vue2的组件继承</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-06-05 11:41:31" itemprop="dateCreated datePublished" datetime="2017-06-05T11:41:31+08:00">2017-06-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-17 13:21:34" itemprop="dateModified" datetime="2021-05-17T13:21:34+08:00">2021-05-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>接触过面向对象语言的同学肯定清楚，面向对象中有一个非常重要的特性，那就是继承。通过继承可以更好的封装一个类，良好的封装能够减少耦合，并且可以对成员进行更精确的控制，Vue也提供了类型的继承方法。</p>
+</blockquote>
+<h2 id="一个基础的状态组件"><a href="#一个基础的状态组件" class="headerlink" title="一个基础的状态组件"></a>一个基础的状态组件</h2><p>在考虑继承组件前，我们先创建一个基础的状态组件。组件的运用场景比较简单，有一个列表，列表的每一项有自己的状态，这个状态组件显示在列表中每一项的右上角或者左上角，并显示出具体的状态文本。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- status.vue --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;item-status&quot;</span> <span class="attr">:style</span>=<span class="string">&quot;&#123;</span></span></span><br><span class="line"><span class="tag"><span class="string">    ...statusStyles,</span></span></span><br><span class="line"><span class="tag"><span class="string">    ...positionStyles,</span></span></span><br><span class="line"><span class="tag"><span class="string">&#125;&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">span</span>&gt;</span>&#123;&#123; statusText &#125;&#125;<span class="tag">&lt;/<span class="name">span</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/06/05/Vue2%E7%9A%84%E7%BB%84%E4%BB%B6%E7%BB%A7%E6%89%BF/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+
+  
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+  </nav>
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ninnka</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">41</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ninnka</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

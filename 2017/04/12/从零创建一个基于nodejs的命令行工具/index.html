@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="有时突然奇想，想要快速获取某些网站的页面数据，但是没有合适的工具。其实，开发一个爬虫工具是非常简单的。这次我准备以爬取著名的插画网站:pixiv为案例，介绍如何爬取网站的页面数据代码已经准备好，github地址pixiv已用React重写，没有使用Service-side Rendering，所以普通的爬取方法是行不通的，日后再使用 puppeteer 进行重写爬取方法。  创建项目 现在任意文">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零创建基于nodejs的命令行工具">
+<meta property="og:url" content="http://yoursite.com/2017/04/12/%E4%BB%8E%E9%9B%B6%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E5%9F%BA%E4%BA%8Enodejs%E7%9A%84%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7/index.html">
+<meta property="og:site_name" content="NinnkaStack">
+<meta property="og:description" content="有时突然奇想，想要快速获取某些网站的页面数据，但是没有合适的工具。其实，开发一个爬虫工具是非常简单的。这次我准备以爬取著名的插画网站:pixiv为案例，介绍如何爬取网站的页面数据代码已经准备好，github地址pixiv已用React重写，没有使用Service-side Rendering，所以普通的爬取方法是行不通的，日后再使用 puppeteer 进行重写爬取方法。  创建项目 现在任意文">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-04-12T06:28:49.000Z">
+<meta property="article:modified_time" content="2021-05-17T05:21:34.050Z">
+<meta property="article:author" content="Ninnka">
+<meta property="article:tag" content="Nodejs">
+<meta property="article:tag" content="命令行工具">
+<meta property="article:tag" content="爬虫">
+<meta property="article:tag" content="npm-package">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2017/04/12/%E4%BB%8E%E9%9B%B6%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E5%9F%BA%E4%BA%8Enodejs%E7%9A%84%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>从零创建基于nodejs的命令行工具 | NinnkaStack</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">NinnkaStack</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/04/12/%E4%BB%8E%E9%9B%B6%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E5%9F%BA%E4%BA%8Enodejs%E7%9A%84%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          从零创建基于nodejs的命令行工具
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-04-12 14:28:49" itemprop="dateCreated datePublished" datetime="2017-04-12T14:28:49+08:00">2017-04-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-17 13:21:34" itemprop="dateModified" datetime="2021-05-17T13:21:34+08:00">2021-05-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>有时突然奇想，想要快速获取某些网站的页面数据，但是没有合适的工具。<br>其实，开发一个爬虫工具是非常简单的。<br>这次我准备以爬取著名的<a target="_blank" rel="noopener" href="https://www.pixiv.net/">插画网站:pixiv</a>为案例，介绍如何爬取网站的页面数据<br>代码已经准备好，<a target="_blank" rel="noopener" href="https://github.com/Rennzh/node-pixiv-crawler">github地址</a><br><strong>pixiv已用React重写，没有使用Service-side Rendering，所以普通的爬取方法是行不通的，日后再使用 <code>puppeteer</code> 进行重写爬取方法。</strong></p>
+</blockquote>
+<h2 id="创建项目"><a href="#创建项目" class="headerlink" title="创建项目"></a>创建项目</h2><ul>
+<li>现在任意文件夹中创建一个名为 test-crawler</li>
+<li>进入 test-crawler 文件夹，开启 bash 或者 cmd 并cd到这个文件内，使用 <code>npm init --yes</code> 快速初始化 <code>package.json</code> 文件</li>
+</ul>
+<p>创建好后，文件夹中会有如下的文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">-(test-crawler)</span><br><span class="line">|- package.json</span><br></pre></td></tr></table></figure>
+
+<a id="more"></a>
+
+<h3 id="创建可执行脚本"><a href="#创建可执行脚本" class="headerlink" title="创建可执行脚本"></a>创建可执行脚本</h3><ul>
+<li><p>在文件夹中创建 bin 文件夹，</p>
+</li>
+<li><p>并在 bin 文件中创建 <code>crawling.js</code> 文件</p>
+</li>
+<li><p>创建好后，文件夹中会有如下的文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">- (test-crawler)</span><br><span class="line">|_ bin</span><br><span class="line">	 |_ crawling.js</span><br><span class="line">|_ package.json</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>打开 <code>crawling.js</code></p>
+</li>
+<li><p>加入以下代码</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/env node</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">&#x27;test crawling&#x27;</span>);</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p><strong>第一行代码是用在 Linux 以及 Unix 的注释，用来判断node的文件位置。<br>如果你使用的操作系统是Linux 或者 Unix，MacOs，可以先使用 <code>which node</code>命令得到 node 的位置。</strong></p>
+<h3 id="创建全局的脚本命令"><a href="#创建全局的脚本命令" class="headerlink" title="创建全局的脚本命令"></a>创建全局的脚本命令</h3><ul>
+<li>创建完脚本后，打开 <code>package.json</code>。</li>
+<li>加入以下代码：<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="attr">&quot;bin&quot;</span>: &#123;</span><br><span class="line">    <span class="attr">&quot;crawling&quot;</span>: <span class="string">&quot;bin/crawling.js&quot;</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  script: &#123;</span><br><span class="line">    &quot;crawling&quot;: &quot;bin/crawling.js&quot;,</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p><strong>使用 <code>bin</code> 可以告诉 node，你需要创建的全局命令名以及命令需要执行的文件。</strong></p>
+<ul>
+<li>在项目根目录下使用 <code>npm link</code> 为命令创建一个全局的path。这样就可以在任意位置执行命令。<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm link</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p><strong>这个不建议在开发进行时使用，因为每次修改后需要重新 <code>npm link</code>，使用 <code>npm link</code> 时需要重新安装 <code>node_modules</code>。所以，开发时仍然是手动执行 <code>crawling.js</code> 文件。</strong></p>
+<p><strong>使用这个命令前，要先删掉当前文件夹中的 <code>node_modules</code>，否则会遇到 <code>syscall unlink</code> 的问题。</strong></p>
+<h3 id="测试命令"><a href="#测试命令" class="headerlink" title="测试命令"></a>测试命令</h3><ul>
+<li><p>任意文件夹中执行命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ crawling</span><br><span class="line">crawling // 输出结果</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>测试结束后记得执行 <code>npm unlink</code> 删除链接。</p>
+</li>
+</ul>
+<h2 id="命令行参数"><a href="#命令行参数" class="headerlink" title="命令行参数"></a>命令行参数</h2><ul>
+<li><p>当我们执行以下命令时可以将命令标识后面的文字输入到nodejs的进程中。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crawling somevalue</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>接收这些参数的变量名为 <code>process.argv</code></p>
+</li>
+</ul>
+<h3 id="process-argv"><a href="#process-argv" class="headerlink" title="process.argv"></a>process.argv</h3><ul>
+<li><p><code>process.argv</code> 是一个数组，将传入的值以空格分开。</p>
+</li>
+<li><p>打开 <code>crawling.js</code>，修改代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/env node</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">&#x27;test crawling&#x27;</span>);</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> item <span class="keyword">of</span> process.argv) &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(item);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>执行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ node ./bin/crawling somevalue othervalue</span><br><span class="line"><span class="built_in">test</span> crawling // 输出<span class="built_in">test</span> crawling</span><br><span class="line">node // 第一个参数</span><br><span class="line">./bin/crawling // 第二个参数</span><br><span class="line">somevalue // 第三个参数</span><br><span class="line">othervalue // 第四个参数</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p><strong>node进程会把上面的命令所有值以空格分开保存到 <code>process.argv</code>。</strong></p>
+<h3 id="commander"><a href="#commander" class="headerlink" title="commander"></a>commander</h3><blockquote>
+<p>commander 是一个简化命令行参数操作的库。</p>
+</blockquote>
+<ul>
+<li><p>修改 <code>crawling.js</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/env node</span></span><br><span class="line"><span class="keyword">const</span> program = <span class="built_in">require</span>(<span class="string">&#x27;commander&#x27;</span>);</span><br><span class="line">program</span><br><span class="line">  .version(<span class="string">&#x27;test-crawler v0.0.1&#x27;</span>, <span class="string">&#x27;-v, --version&#x27;</span>)</span><br><span class="line">  .option(<span class="string">&#x27;-u, --urls [address]&#x27;</span>, <span class="string">&#x27;Set the url [address] for img&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">  .option(<span class="string">&#x27;-i, --ids [illust_id]&#x27;</span>, <span class="string">&#x27;Set the [illust_id] which belong to img&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">  .option(<span class="string">&#x27;-o, --output [output_path]&#x27;</span>, <span class="string">&#x27;Set the img [output_path]&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">  .option(<span class="string">&#x27;-n, --file-name [file_name]&#x27;</span>, <span class="string">&#x27;Custom [file_name]&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">  .parse(process.argv);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>commander</code> 内置了 <code>version</code>方法，可以生成一个版本的命令。</p>
+</li>
+<li><p>此外，我们试着先加入一些命令<br>‘-u, –urls’ 都是表示同一个命令，前者是缩写，后者是全写，跟在后面的方括号以及里面的字符串是用来表示这个命令可以接收一个参数<br>比如：命令名  -u somgarg 或者 命令名  –urls somgarg</p>
+</li>
+<li><p>执行命令，输出版本号</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ node ./bin/crawling -v</span><br><span class="line">test-crawler v0.0.1</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<blockquote>
+<p><code>Commander</code> 的更多介绍和使用方法可以查看<a target="_blank" rel="noopener" href="https://github.com/tj/commander.js">仓库</a></p>
+</blockquote>
+<h2 id="爬虫代码"><a href="#爬虫代码" class="headerlink" title="爬虫代码"></a>爬虫代码</h2><blockquote>
+<p>关羽爬虫的核心，主要集中在：</p>
+<ol>
+<li>获取网页的真实内容</li>
+<li>分析DOM节点</li>
+</ol>
+</blockquote>
+<p>对此我们需要使用到</p>
+<ol>
+<li>cheerio</li>
+<li>superagent</li>
+<li>superagent-charset</li>
+</ol>
+<ul>
+<li>安装<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install -S cheerio superagent superagent-charset</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h3 id="分析和获取需要爬取的网站内容，然后解析内容"><a href="#分析和获取需要爬取的网站内容，然后解析内容" class="headerlink" title="分析和获取需要爬取的网站内容，然后解析内容"></a>分析和获取需要爬取的网站内容，然后解析内容</h3><ul>
+<li>以<a target="_blank" rel="noopener" href="https://www.pixiv.net/">插画网站:pixiv</a>的插画页面为例，首先获取页面内容</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 解析传入的url</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;String&#125;</span> </span>mediumUrl 网站的地址或者插画的id</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">fetchMediumUrl</span> (<span class="params">mediumUrl, pageAttemptTimes = <span class="number">0</span></span>) </span>&#123;</span><br><span class="line">  mediumUrl = transformMediumUrl(<span class="built_in">String</span>(mediumUrl));</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">    superagent</span><br><span class="line">      .get(mediumUrl)</span><br><span class="line">      .set(<span class="string">&#x27;Cookie&#x27;</span>, Cookie.cookiesStr)</span><br><span class="line">      .timeout(<span class="number">60</span> * <span class="number">1000</span>)</span><br><span class="line">      .end(<span class="function">(<span class="params">err, res</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (err) &#123;</span><br><span class="line">          <span class="built_in">console</span>.log(<span class="string">`下载网页失败:<span class="subst">$&#123;mediumUrl&#125;</span>`</span>.yellow);</span><br><span class="line">          <span class="built_in">console</span>.log(err);</span><br><span class="line">          <span class="comment">// * 重新连接下载</span></span><br><span class="line">          <span class="keyword">if</span> (pageAttemptTimes &lt; userController.pageAttemptTimes) &#123;</span><br><span class="line">            <span class="keyword">const</span> newAttempt = pageAttemptTimes + <span class="number">1</span>;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">`重连次数<span class="subst">$&#123;newAttempt&#125;</span>`</span>.yellow.bgWhite);</span><br><span class="line">            fetchMediumUrl(mediumUrl, newAttempt);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="built_in">console</span>.log(<span class="string">`下载网页成功:<span class="subst">$&#123;mediumUrl&#125;</span>`</span>.green);</span><br><span class="line">          res.res &amp;&amp; res.res.text &amp;&amp; parseMediumPage(res.res.text);</span><br><span class="line">          resolve(&#123;</span><br><span class="line">            code: <span class="number">0</span>,</span><br><span class="line">            type: <span class="string">&#x27;fetchMediumUrl&#x27;</span></span><br><span class="line">          &#125;)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>分析网页中图片的DOM结构，获取对应的DOM节点，再获取图片地址</li>
+</ul>
+<p>经分析得出：<br>图片在 <code>._illust_modal .wrapper .original-image</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;String&#125;</span> <span class="variable">pageContent</span></span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">parseMediumPage</span> (<span class="params">pageContent</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> $ = cheerio.load(pageContent);</span><br><span class="line">  <span class="keyword">const</span> _multiple$ = $(<span class="string">&#x27;.works_display a.multiple&#x27;</span>);</span><br><span class="line">  <span class="keyword">if</span> (_multiple$[<span class="number">0</span>]) &#123;</span><br><span class="line">    <span class="comment">// * 图源是multiple的情况</span></span><br><span class="line">    <span class="keyword">const</span> multipleDataSrc = _multiple$.attr(<span class="string">&#x27;href&#x27;</span>);</span><br><span class="line">    multipleDataSrc &amp;&amp; fetchMultipleHref(multipleDataSrc);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// * 图源不是multiple的情况</span></span><br><span class="line">    <span class="keyword">const</span> _illust_modal$ = $(<span class="string">&#x27;._illust_modal .wrapper .original-image&#x27;</span>);</span><br><span class="line">    <span class="keyword">const</span> dataSrc = _illust_modal$.data(<span class="string">&#x27;src&#x27;</span>);</span><br><span class="line">    dataSrc &amp;&amp; pureImg.getPureImg(dataSrc)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>下载片，并写入本地（代码较多，可以去<a target="_blank" rel="noopener" href="https://github.com/Rennzh/node-pixiv-crawler">仓库</a>查看）</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;String&#125;</span> <span class="variable">imgPath</span></span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getPureImg</span> (<span class="params">imgPath</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; illustId, name &#125; = spliceIllustInfoFormPath(imgPath);</span><br><span class="line">  <span class="keyword">const</span> illustUrl = transformIllustUrl(imgPath);</span><br><span class="line">  fetchPureImg(illustUrl, name);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;String&#125;</span> <span class="variable">illustUrl</span></span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">fetchPureImg</span> (<span class="params">illustUrl, filename, pageAttemptTimes = <span class="number">0</span></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`下载图片中:<span class="subst">$&#123;filename&#125;</span>`</span>.gray);</span><br><span class="line">    superagent</span><br><span class="line">      .get(illustUrl)</span><br><span class="line">      <span class="comment">// .set(&#x27;Cookie&#x27;, cookiesStr)</span></span><br><span class="line">      .set(<span class="string">&#x27;Referer&#x27;</span>, referer)</span><br><span class="line">      .timeout(<span class="number">60</span> * <span class="number">1000</span>)</span><br><span class="line">      .end(<span class="function">(<span class="params">err, res</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (err) &#123;</span><br><span class="line">          <span class="built_in">console</span>.log(<span class="string">`下载图片失败:<span class="subst">$&#123;filename&#125;</span>`</span>.yellow);</span><br><span class="line">          <span class="built_in">console</span>.log(err);</span><br><span class="line">          <span class="comment">// * 重新连接下载</span></span><br><span class="line">          <span class="keyword">if</span> (pageAttemptTimes &lt; userController.pageAttemptTimes) &#123;</span><br><span class="line">            <span class="keyword">const</span> newAttempt = pageAttemptTimes + <span class="number">1</span>;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">`重连次数<span class="subst">$&#123;newAttempt&#125;</span>`</span>.yellow.bgWhite);</span><br><span class="line">            fetchPureImg(illustUrl, filename, newAttempt);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="built_in">console</span>.log(<span class="string">`下载图片成功:<span class="subst">$&#123;filename&#125;</span>`</span>.green);</span><br><span class="line">          res.body &amp;&amp; writeBufferPureImg(res.body, filename);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Buffer&#125;</span> <span class="variable">buffer</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;String&#125;</span> <span class="variable">filename</span></span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">writeBufferPureImg</span> (<span class="params">buffer, filename</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">let</span> dirPath = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">  <span class="keyword">if</span> (pathController.output) &#123;</span><br><span class="line">    dirPath = path.resolve(process.cwd(), pathController.output);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> dateFormated = moment().format(<span class="string">&#x27;YYYY-MM-DD&#x27;</span>);</span><br><span class="line">    dirPath = path.join(process.cwd(), <span class="string">`<span class="subst">$&#123;dateFormated&#125;</span> pixiv`</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (!fsExistsSync(dirPath)) &#123;</span><br><span class="line">    fs.mkdirSync(<span class="string">`<span class="subst">$&#123;dirPath&#125;</span>`</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">const</span> filenameList = filename.split(<span class="string">&#x27;.&#x27;</span>);</span><br><span class="line">  filename = userController.cFilenamePrefix + filenameList[<span class="number">0</span>] + userController.cFilenameSuffix + <span class="string">`.<span class="subst">$&#123;filenameList[<span class="number">1</span>]&#125;</span>`</span>;</span><br><span class="line">  <span class="keyword">const</span> filenameFull = path.join(dirPath, filename);</span><br><span class="line">  fs.writeFile(filenameFull, buffer, <span class="function">(<span class="params">err</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (err) &#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">`写入失败:<span class="subst">$&#123;filenameFull&#125;</span>`</span>.red);</span><br><span class="line">      <span class="built_in">console</span>.log(err);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">`写入成功:<span class="subst">$&#123;filenameFull&#125;</span>`</span>.cyan);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;String&#125;</span> <span class="variable">path</span></span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">fsExistsSync</span> (<span class="params">path</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    fs.accessSync(path, fs.F_OK);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="发布npm-package"><a href="#发布npm-package" class="headerlink" title="发布npm-package"></a>发布npm-package</h2><ol>
+<li><p>注册一个npm账号</p>
+</li>
+<li><p>在本地执行命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm login</span><br></pre></td></tr></table></figure></li>
+<li><p>登录成功后<br>执行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm publish</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>创建一个基于 <code>Nodejs</code> 的命令行工具，最基本的几点：</p>
+<ol>
+<li>在 <code>package.json</code> 中加入命令名和命令的执行脚本路径</li>
+<li>添加 <code>bin</code> 文件夹，在 <code>bin</code> 文件夹中中加入执行脚本</li>
+<li>执行脚本的顶部需要声明<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#!&#x2F;usr&#x2F;bin&#x2F;env node</span><br></pre></td></tr></table></figure></li>
+<li>使用 <code>Commander</code> 或其他工具库处理命令行参数，也可以不使用。</li>
+<li>根据情况使用 <code>cheerio</code> 或者 <code>puppeteer</code> 爬取网页内容。</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Nodejs/" rel="tag"># Nodejs</a>
+              <a href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7/" rel="tag"># 命令行工具</a>
+              <a href="/tags/%E7%88%AC%E8%99%AB/" rel="tag"># 爬虫</a>
+              <a href="/tags/npm-package/" rel="tag"># npm-package</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/03/05/vue-webApp%20+%20cordova%E6%9E%84%E5%BB%BAnativeApp%EF%BC%88hybrid%E6%A8%A1%E5%BC%8F%EF%BC%89/" rel="prev" title="vue-webApp + cordova构建nativeApp（hybrid模式）">
+      <i class="fa fa-chevron-left"></i> vue-webApp + cordova构建nativeApp（hybrid模式）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/04/16/vue-pwd-input%20%E6%94%AF%E4%BB%98%E5%AF%86%E7%A0%81%E8%BE%93%E5%85%A5%E7%BB%84%E4%BB%B6%E7%9A%84%E5%AE%9E%E7%8E%B0/" rel="next" title="vue-pwd-input 支付密码输入组件的实现">
+      vue-pwd-input 支付密码输入组件的实现 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E9%A1%B9%E7%9B%AE"><span class="nav-number">1.</span> <span class="nav-text">创建项目</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E5%8F%AF%E6%89%A7%E8%A1%8C%E8%84%9A%E6%9C%AC"><span class="nav-number">1.1.</span> <span class="nav-text">创建可执行脚本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E5%85%A8%E5%B1%80%E7%9A%84%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4"><span class="nav-number">1.2.</span> <span class="nav-text">创建全局的脚本命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E5%91%BD%E4%BB%A4"><span class="nav-number">1.3.</span> <span class="nav-text">测试命令</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%8F%82%E6%95%B0"><span class="nav-number">2.</span> <span class="nav-text">命令行参数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#process-argv"><span class="nav-number">2.1.</span> <span class="nav-text">process.argv</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#commander"><span class="nav-number">2.2.</span> <span class="nav-text">commander</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%88%AC%E8%99%AB%E4%BB%A3%E7%A0%81"><span class="nav-number">3.</span> <span class="nav-text">爬虫代码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E6%9E%90%E5%92%8C%E8%8E%B7%E5%8F%96%E9%9C%80%E8%A6%81%E7%88%AC%E5%8F%96%E7%9A%84%E7%BD%91%E7%AB%99%E5%86%85%E5%AE%B9%EF%BC%8C%E7%84%B6%E5%90%8E%E8%A7%A3%E6%9E%90%E5%86%85%E5%AE%B9"><span class="nav-number">3.1.</span> <span class="nav-text">分析和获取需要爬取的网站内容，然后解析内容</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%91%E5%B8%83npm-package"><span class="nav-number">4.</span> <span class="nav-text">发布npm-package</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-number">5.</span> <span class="nav-text">结论</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ninnka</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">41</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ninnka</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

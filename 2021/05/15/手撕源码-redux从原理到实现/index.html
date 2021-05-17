@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前言本文主要分为两部分，第一部分是分析redux的原理，第二部分是根据我们分析的结果来实现一个五脏六腑俱全的mini-redux 分析redux原理的过程中，会对必要但不是全部的概念都解释一遍，所以需要对 redux 有基础的认识  redux 官方教程传送门  在认识 redux 之前，我只知道 react-redux，并且认为 redux 是 react 的一部分，相信大多入门的新人也会有这样">
+<meta property="og:type" content="article">
+<meta property="og:title" content="手撕源码-redux从原理到实现">
+<meta property="og:url" content="http://yoursite.com/2021/05/15/%E6%89%8B%E6%92%95%E6%BA%90%E7%A0%81-redux%E4%BB%8E%E5%8E%9F%E7%90%86%E5%88%B0%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="NinnkaStack">
+<meta property="og:description" content="前言本文主要分为两部分，第一部分是分析redux的原理，第二部分是根据我们分析的结果来实现一个五脏六腑俱全的mini-redux 分析redux原理的过程中，会对必要但不是全部的概念都解释一遍，所以需要对 redux 有基础的认识  redux 官方教程传送门  在认识 redux 之前，我只知道 react-redux，并且认为 redux 是 react 的一部分，相信大多入门的新人也会有这样">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-05-15T08:36:58.000Z">
+<meta property="article:modified_time" content="2021-05-17T05:30:06.203Z">
+<meta property="article:author" content="Ninnka">
+<meta property="article:tag" content="Web">
+<meta property="article:tag" content="前端">
+<meta property="article:tag" content="redux">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2021/05/15/%E6%89%8B%E6%92%95%E6%BA%90%E7%A0%81-redux%E4%BB%8E%E5%8E%9F%E7%90%86%E5%88%B0%E5%AE%9E%E7%8E%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>手撕源码-redux从原理到实现 | NinnkaStack</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">NinnkaStack</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/05/15/%E6%89%8B%E6%92%95%E6%BA%90%E7%A0%81-redux%E4%BB%8E%E5%8E%9F%E7%90%86%E5%88%B0%E5%AE%9E%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          手撕源码-redux从原理到实现
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-15 16:36:58" itemprop="dateCreated datePublished" datetime="2021-05-15T16:36:58+08:00">2021-05-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-17 13:30:06" itemprop="dateModified" datetime="2021-05-17T13:30:06+08:00">2021-05-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/redux/" itemprop="url" rel="index"><span itemprop="name">redux</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本文主要分为两部分，第一部分是分析redux的原理，第二部分是根据我们分析的结果来实现一个五脏六腑俱全的mini-redux</p>
+<p>分析redux原理的过程中，会对必要但不是全部的概念都解释一遍，所以需要对 <code>redux</code> 有基础的认识</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://redux.js.org/tutorials/essentials/part-1-overview-concepts">redux 官方教程传送门</a></p>
+</blockquote>
+<p>在认识 <code>redux</code> 之前，我只知道 <code>react-redux</code>，并且认为 redux 是 react 的一部分，相信大多入门的新人也会有这样的误解</p>
+<p>正文开始之前，先同步一下我们的认识点</p>
+<ul>
+<li>redux 与 react 没有任何关系，redux 可以用在任何框架中，比如 React，Vue 等等；</li>
+<li>redux 是一个数据状态管理器，用来实现数据的中心化管理</li>
+<li>正文不会对 react-router 做原理分析，react-router 会另开一篇做分析</li>
+</ul>
+<h1 id="Redux"><a href="#Redux" class="headerlink" title="Redux"></a>Redux</h1><p>redux 基础功能是数据管理和通知订阅，redux是如何实现的呢？</p>
+<h2 id="Store"><a href="#Store" class="headerlink" title="Store"></a>Store</h2><p>先来看一段官方demo</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; createStore &#125; <span class="keyword">from</span> <span class="string">&#x27;redux&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">counterReducer</span>(<span class="params">state = &#123; value: <span class="number">0</span> &#125;, action</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">switch</span> (action.type) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">&#x27;counter/incremented&#x27;</span>:</span><br><span class="line">      <span class="keyword">return</span> &#123; <span class="attr">value</span>: state.value + <span class="number">1</span> &#125;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">&#x27;counter/decremented&#x27;</span>:</span><br><span class="line">      <span class="keyword">return</span> &#123; <span class="attr">value</span>: state.value - <span class="number">1</span> &#125;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">      <span class="keyword">return</span> state</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> store = createStore(counterReducer, &#123; <span class="attr">value</span>: <span class="number">0</span> &#125;)</span><br><span class="line"></span><br><span class="line">store.subscribe(<span class="function">() =&gt;</span> <span class="built_in">console</span>.log(store.getState()))</span><br><span class="line"></span><br><span class="line">store.dispatch(&#123; <span class="attr">type</span>: <span class="string">&#x27;counter/incremented&#x27;</span> &#125;)</span><br><span class="line"><span class="comment">// &#123;value: 1&#125;</span></span><br><span class="line">store.dispatch(&#123; <span class="attr">type</span>: <span class="string">&#x27;counter/incremented&#x27;</span> &#125;)</span><br><span class="line"><span class="comment">// &#123;value: 2&#125;</span></span><br><span class="line">store.dispatch(&#123; <span class="attr">type</span>: <span class="string">&#x27;counter/decremented&#x27;</span> &#125;)</span><br><span class="line"><span class="comment">// &#123;value: 1&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>redux 通过 <code>createStore</code> 创建一个数据中心管理器 <code>store</code><br>createStore 可以说是数据流的入口</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src/createStore.ts</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">createStore</span>(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  reducer: Reducer&lt;S, A&gt;,</span></span></span><br><span class="line"><span class="function"><span class="params">  preloadedState?: PreloadedState&lt;S&gt; | StoreEnhancer&lt;Ext, StateExt&gt;,</span></span></span><br><span class="line"><span class="function"><span class="params">  enhancer?: StoreEnhancer&lt;Ext, StateExt&gt;</span></span></span><br><span class="line"><span class="function"><span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 对 reducer，preloader，enhancer做了很多空值校验</span></span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 把 reducer，state，listener 都保存到闭包中，供下面的函数处理时使用</span></span><br><span class="line">  <span class="keyword">let</span> currentReducer = reducer</span><br><span class="line">  <span class="keyword">let</span> currentState = preloadedState <span class="keyword">as</span> S</span><br><span class="line">  <span class="keyword">let</span> currentListeners: (<span class="function">() =&gt;</span> <span class="keyword">void</span>)[] | <span class="literal">null</span> = []</span><br><span class="line">  <span class="keyword">let</span> nextListeners = currentListeners</span><br><span class="line">  <span class="keyword">let</span> isDispatching = <span class="literal">false</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 创建了若干函数用于操作数据流</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 获取当前的数据状态</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">getState</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 订阅</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">subscribe</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 派发事件</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">dispatch</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 替换 reducer</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">replaceReducer</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 监听 state 变化的观测器</span></span><br><span class="line">  <span class="comment">// https://github.com/tc39/proposal-observable</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">observable</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 发起初始化的 action，这个是内部的action，需要在业务代码中有对应的 reducer 才会触发响应</span></span><br><span class="line">  dispatch(&#123; <span class="attr">type</span>: ActionTypes.INIT &#125; <span class="keyword">as</span> A)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> store = &#123;</span><br><span class="line">    dispatch: dispatch <span class="keyword">as</span> Dispatch&lt;A&gt;,</span><br><span class="line">    subscribe,</span><br><span class="line">    getState,</span><br><span class="line">    replaceReducer,</span><br><span class="line">    [$$observable]: observable</span><br><span class="line">  &#125; <span class="keyword">as</span> unknown <span class="keyword">as</span> Store&lt;ExtendState&lt;S, StateExt&gt;, A, StateExt, Ext&gt; &amp; Ext</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 最后返回了一个大对象，把上述创建的函数都丢了出去</span></span><br><span class="line">  <span class="keyword">return</span> store;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<a id="more"></a>
+
+<h3 id="getState"><a href="#getState" class="headerlink" title="getState"></a>getState</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src/createStore.ts</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取当前的数据状态</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getState</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> currentState <span class="keyword">as</span> S</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>getState很好理解，就是返回闭包中保存的 currentState</p>
+<h3 id="subscribe"><a href="#subscribe" class="headerlink" title="subscribe"></a>subscribe</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src/createStore.ts</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 订阅state的变化，当state change时，会触发监听器</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">subscribe</span>(<span class="params">listener: () =&gt; <span class="keyword">void</span></span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 订阅状态锁</span></span><br><span class="line">  <span class="keyword">let</span> isSubscribed = <span class="literal">true</span></span><br><span class="line">  <span class="comment">// 把监听器推入 nextListeners，供后续响应式使用</span></span><br><span class="line">  nextListeners.push(listener)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 返回一个取消订阅的函数</span></span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> <span class="title">unsubscribe</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSubscribed) &#123;</span><br><span class="line">      <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    isSubscribed = <span class="literal">false</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> index = nextListeners.indexOf(listener)</span><br><span class="line">    nextListeners.splice(index, <span class="number">1</span>)</span><br><span class="line">    currentListeners = <span class="literal">null</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>subscribe也很好理解，主要是把我们的订阅的监听器都保存到数组中，并提供一个取消订阅的函数</p>
+<h3 id="dispatch"><a href="#dispatch" class="headerlink" title="dispatch"></a>dispatch</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src/createStore.ts</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">dispatch</span>(<span class="params">action: A</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (isDispatching) &#123;</span><br><span class="line">    <span class="comment">// ...输出校验log</span></span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    isDispatching = <span class="literal">true</span></span><br><span class="line">    <span class="comment">// 通过我们定义的 reducer去处理后得到一个新的state</span></span><br><span class="line">    currentState = currentReducer(currentState, action)</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    isDispatching = <span class="literal">false</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 通过 subscribe 添加的订阅器会在经过 reducer 处理完数据后响应</span></span><br><span class="line">  <span class="keyword">const</span> listeners = (currentListeners = nextListeners)</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; listeners.length; i++) &#123;</span><br><span class="line">    <span class="keyword">const</span> listener = listeners[i]</span><br><span class="line">    listener()</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> action</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>dispatch</code> 做的事情很简单，派发一个事件，然后通过我们定义的 reducer去处理后得到一个新的state，并遍历监听器数组，逐个触发</p>
+<h3 id="replaceReducer"><a href="#replaceReducer" class="headerlink" title="replaceReducer"></a>replaceReducer</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src/createStore.ts</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">replaceReducer</span>&lt;<span class="title">NewState</span>, <span class="title">NewActions</span> <span class="title">extends</span> <span class="title">A</span>&gt;(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  nextReducer: Reducer&lt;NewState, NewActions&gt;</span></span></span><br><span class="line"><span class="function"><span class="params"></span>): <span class="title">Store</span>&lt;<span class="title">ExtendState</span>&lt;<span class="title">NewState</span>, <span class="title">StateExt</span>&gt;, <span class="title">NewActions</span>, <span class="title">StateExt</span>, <span class="title">Ext</span>&gt; &amp; <span class="title">Ext</span> </span>&#123;</span><br><span class="line">  ;(currentReducer <span class="keyword">as</span> unknown <span class="keyword">as</span> Reducer&lt;NewState, NewActions&gt;) = nextReducer</span><br><span class="line"></span><br><span class="line">  <span class="comment">// This action has a similar effect to ActionTypes.INIT.</span></span><br><span class="line">  <span class="comment">// Any reducers that existed in both the new and old rootReducer</span></span><br><span class="line">  <span class="comment">// will receive the previous state. This effectively populates</span></span><br><span class="line">  <span class="comment">// the new state tree with any relevant data from the old one.</span></span><br><span class="line">  dispatch(&#123; <span class="attr">type</span>: ActionTypes.REPLACE &#125; <span class="keyword">as</span> A)</span><br><span class="line">  <span class="comment">// change the type of the store by casting it to the new store</span></span><br><span class="line">  <span class="keyword">return</span> store <span class="keyword">as</span> unknown <span class="keyword">as</span> Store&lt;</span><br><span class="line">    ExtendState&lt;NewState, StateExt&gt;,</span><br><span class="line">    NewActions,</span><br><span class="line">    StateExt,</span><br><span class="line">    Ext</span><br><span class="line">  &gt; &amp;</span><br><span class="line">    Ext</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>replaceReducer</code> 就更简单了，主要是把旧的 <code>reducer</code> 替换成新的，并触发一个内部的 <code>action</code></p>
+<h3 id="observable"><a href="#observable" class="headerlink" title="observable"></a>observable</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">observable</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> outerSubscribe = subscribe</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="comment">// 定义一个新的 observable.subscribe 来包装 store.subscribe</span></span><br><span class="line">    <span class="function"><span class="title">subscribe</span>(<span class="params">observer: unknown</span>)</span> &#123;</span><br><span class="line">      <span class="comment">// 定义一个满足 `observable` 条件的执行器函数，用于操作我们传入的 observable</span></span><br><span class="line">      <span class="function"><span class="keyword">function</span> <span class="title">observeState</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="keyword">const</span> observerAsObserver = observer <span class="keyword">as</span> Observer&lt;S&gt;</span><br><span class="line">        <span class="keyword">if</span> (observerAsObserver.next) &#123;</span><br><span class="line">          observerAsObserver.next(getState())</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      observeState()</span><br><span class="line">      <span class="comment">// 最后使用 store 中的 subscribe订阅一下，然后把observable执行器传入</span></span><br><span class="line">      <span class="keyword">const</span> unsubscribe = outerSubscribe(observeState)</span><br><span class="line">      <span class="keyword">return</span> &#123; unsubscribe &#125;</span><br><span class="line">    &#125;,</span><br><span class="line"></span><br><span class="line">    [$$observable]() &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">this</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>大家可能对 <code>observable</code> 比较陌生，这是一个新的 <code>proposal</code><br><a target="_blank" rel="noopener" href="https://github.com/tc39/proposal-observable">proposal-observable</a></p>
+<p>具体可以戳上面的链接查看</p>
+<p>redux 通过 store 把这个 api 暴露出来了，但是实际官方并不希望它在外部被调用，<br>非要使用的话，可以通过这种方式</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> subscription = store[$$observable].subscribe(&#123;</span><br><span class="line">    <span class="function"><span class="title">next</span>(<span class="params">val</span>)</span> &#123; <span class="built_in">console</span>.log(val) &#125;,</span><br><span class="line">    <span class="function"><span class="title">error</span>(<span class="params">err</span>)</span> &#123; <span class="built_in">console</span>.log(err) &#125;,</span><br><span class="line">    <span class="function"><span class="title">complete</span>(<span class="params"></span>)</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;complete&quot;</span>) &#125;,</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>这个api是把 <code>subscribe</code> 包了一层，然后可以以 <code>observable</code> 的形式调用，需要注意的是$$observable，这是 redux 的一个内部变量</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> $$observable = <span class="comment">/* #__PURE__ */</span> (<span class="function">() =&gt;</span></span><br><span class="line">  (<span class="keyword">typeof</span> <span class="built_in">Symbol</span> === <span class="string">&#x27;function&#x27;</span> &amp;&amp; <span class="built_in">Symbol</span>.observable) || <span class="string">&#x27;@@observable&#x27;</span>)()</span><br></pre></td></tr></table></figure>
+
+<p>官方并没有把 <code>$$observable</code> 变量主动暴露出来，侧面说明官方不希望外部使用这个api</p>
+<h1 id="Redux-toolkit"><a href="#Redux-toolkit" class="headerlink" title="Redux-toolkit"></a>Redux-toolkit</h1>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Web/" rel="tag"># Web</a>
+              <a href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag"># 前端</a>
+              <a href="/tags/redux/" rel="tag"># redux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/05/15/%E6%89%8B%E6%92%95%E6%BA%90%E7%A0%81-%E6%89%8B%E5%86%99%E5%AE%9E%E7%8E%B0Koa%E6%B4%8B%E8%91%B1%E6%A8%A1%E5%9E%8B%E4%B8%AD%E9%97%B4%E4%BB%B6/" rel="prev" title="手撕源码-手写实现Koa洋葱模型中间件">
+      <i class="fa fa-chevron-left"></i> 手撕源码-手写实现Koa洋葱模型中间件
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Redux"><span class="nav-number">2.</span> <span class="nav-text">Redux</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Store"><span class="nav-number">2.1.</span> <span class="nav-text">Store</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#getState"><span class="nav-number">2.1.1.</span> <span class="nav-text">getState</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#subscribe"><span class="nav-number">2.1.2.</span> <span class="nav-text">subscribe</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dispatch"><span class="nav-number">2.1.3.</span> <span class="nav-text">dispatch</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#replaceReducer"><span class="nav-number">2.1.4.</span> <span class="nav-text">replaceReducer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#observable"><span class="nav-number">2.1.5.</span> <span class="nav-text">observable</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Redux-toolkit"><span class="nav-number">3.</span> <span class="nav-text">Redux-toolkit</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ninnka</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">41</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ninnka</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

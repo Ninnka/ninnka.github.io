@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="早在 React v16.3 发布前，就时不时能看见各路大佬对新API的分析，每次看完之后都受益匪浅 :) 。如今 React v16.3 也更新了一小段时间了，看着旧项目更新到 React v16.3后满满的 warning，我决定重新阅读新的API后对代码进行更新。（当然，可以使用官方的迁移工具，但是不亲自体验一下总觉得少了什么 :- ）  React v15.x ~ React v16 -">
+<meta property="og:type" content="article">
+<meta property="og:title" content="React v16.3 新API浅谈">
+<meta property="og:url" content="http://yoursite.com/2018/05/01/React%20v16-3%20%E6%96%B0API%E6%B5%85%E8%B0%88/index.html">
+<meta property="og:site_name" content="NinnkaStack">
+<meta property="og:description" content="早在 React v16.3 发布前，就时不时能看见各路大佬对新API的分析，每次看完之后都受益匪浅 :) 。如今 React v16.3 也更新了一小段时间了，看着旧项目更新到 React v16.3后满满的 warning，我决定重新阅读新的API后对代码进行更新。（当然，可以使用官方的迁移工具，但是不亲自体验一下总觉得少了什么 :- ）  React v15.x ~ React v16 -">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-05-01T06:37:29.000Z">
+<meta property="article:modified_time" content="2021-05-17T05:21:34.049Z">
+<meta property="article:author" content="Ninnka">
+<meta property="article:tag" content="React">
+<meta property="article:tag" content="Context API">
+<meta property="article:tag" content="新版API">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2018/05/01/React%20v16-3%20%E6%96%B0API%E6%B5%85%E8%B0%88/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>React v16.3 新API浅谈 | NinnkaStack</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">NinnkaStack</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/01/React%20v16-3%20%E6%96%B0API%E6%B5%85%E8%B0%88/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          React v16.3 新API浅谈
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-05-01 14:37:29" itemprop="dateCreated datePublished" datetime="2018-05-01T14:37:29+08:00">2018-05-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-17 13:21:34" itemprop="dateModified" datetime="2021-05-17T13:21:34+08:00">2021-05-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>早在 React v16.3 发布前，就时不时能看见各路大佬对新API的分析，每次看完之后都受益匪浅 :) 。如今 React v16.3 也更新了一小段时间了，看着旧项目更新到 React v16.3后满满的 warning，我决定重新阅读新的API后对代码进行更新。（当然，可以使用官方的迁移工具，但是不亲自体验一下总觉得少了什么 :- ）</p>
+</blockquote>
+<h2 id="React-v15-x-React-v16-gt-React-v16-3"><a href="#React-v15-x-React-v16-gt-React-v16-3" class="headerlink" title="React v15.x ~ React v16 -&gt; React v16.3"></a>React v15.x ~ React v16 -&gt; React v16.3</h2><blockquote>
+<p>这次的升级主要是几个生命周期的API改动以及加入新的 <code>context</code> api，生命周期的改动是为了适应 <code>React fiber</code>。</p>
+</blockquote>
+<h3 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h3><blockquote>
+<p><a target="_blank" rel="noopener" href="https://reactjs.org/docs/react-component.html">组件生命周期相关-官方文档</a></p>
+</blockquote>
+<h4 id="新API：static-getDerivedStateFromProps"><a href="#新API：static-getDerivedStateFromProps" class="headerlink" title="新API：static getDerivedStateFromProps()"></a>新API：<code>static getDerivedStateFromProps()</code></h4><p>用于替代以前的 <code>componentWillReceiveProps()</code> 和 <code>componentWillUpdate()</code></p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Comp</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  </span><br><span class="line">  state = &#123;</span><br><span class="line">    someText: <span class="string">&#x27;old text&#x27;</span>,</span><br><span class="line">    otherAttr: <span class="string">&#x27;value&#x27;</span>,</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">static</span> <span class="function"><span class="title">getDerivedStateFromProps</span>(<span class="params">props, state</span>)</span> &#123;</span><br><span class="line">    <span class="comment">// 返回一个对象，对象会用于更新state</span></span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">      someText: <span class="string">&#x27;a new text value&#x27;</span></span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="comment">// 返回null表示不需要更新</span></span><br><span class="line">    <span class="comment">/* </span></span><br><span class="line"><span class="comment">     * return null;</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>getDerivedStateFromProps</code>被设计为了 <code>static</code> 方法，以后可以直接通过 <code>componentName.getDerivedStateFromProps</code> 调用。这个方法在组件初始化时和组件的props更新时都会被调用，方法接收了两个参数，分别是新的 <code>props</code> 和 旧的<code>state</code>。</p>
+<a id="more"></a>
+
+<h4 id="新API：getSnapshotBeforeUpdate"><a href="#新API：getSnapshotBeforeUpdate" class="headerlink" title="新API：getSnapshotBeforeUpdate"></a>新API：<code>getSnapshotBeforeUpdate</code></h4><p><code>getSnapshotBeforeUpdate</code> 用于在组件更新前，获取旧的props和state。<br>比如说：dom 的 scroll position。<a target="_blank" rel="noopener" href="https://reactjs.org/docs/react-component.html#getsnapshotbeforeupdate">官方案例</a></p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ScrollingList</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="title">constructor</span>(<span class="params">props</span>)</span> &#123;</span><br><span class="line">    <span class="built_in">super</span>(props);</span><br><span class="line">    <span class="built_in">this</span>.listRef = React.createRef();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">getSnapshotBeforeUpdate</span>(<span class="params">prevProps, prevState</span>)</span> &#123;</span><br><span class="line">    <span class="comment">// Are we adding new items to the list?</span></span><br><span class="line">    <span class="comment">// Capture the scroll position so we can adjust scroll later.</span></span><br><span class="line">    <span class="keyword">if</span> (prevProps.list.length &lt; <span class="built_in">this</span>.props.list.length) &#123;</span><br><span class="line">      <span class="keyword">const</span> list = <span class="built_in">this</span>.listRef.current;</span><br><span class="line">      <span class="keyword">return</span> list.scrollHeight - list.scrollTop;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">componentDidUpdate</span>(<span class="params">prevProps, prevState, snapshot</span>)</span> &#123;</span><br><span class="line">    <span class="comment">// If we have a snapshot value, we&#x27;ve just added new items.</span></span><br><span class="line">    <span class="comment">// Adjust scroll so these new items don&#x27;t push the old ones out of view.</span></span><br><span class="line">    <span class="comment">// (snapshot here is the value returned from getSnapshotBeforeUpdate)</span></span><br><span class="line">    <span class="keyword">if</span> (snapshot !== <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">const</span> list = <span class="built_in">this</span>.listRef.current;</span><br><span class="line">      list.scrollTop = list.scrollHeight - snapshot;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">render</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      &lt;div ref=&#123;<span class="built_in">this</span>.listRef&#125;&gt;&#123;<span class="comment">/* ...contents... */</span>&#125;&lt;/div&gt;</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这个例子中，每次列表的item变化时，为了保持当前列表的滚动位置，更新前会把当前的scroll position保存起来，DOM更新完成后再改变列表的滚动位置。<br>你有可能会有疑问，这个用 <code>componentWillUpdate()</code> 也能实现啊。是的，普通情况下，<code>componentWillUpdate()</code> 是可以做同样的事情。<br>但是在 <code>React fiber</code> 架构中，组件的更新分为了两个步骤：</p>
+<ol>
+<li>render/reconciliation</li>
+<li>commit</li>
+</ol>
+<p>而 <code>componentWillUpdate, render</code> 都是属于第一个阶段的，在异步渲染的情况下（React 优化了 <code>Async Rendering</code>，并将在 v17 中带来新的API），第一阶段和第二阶段必定会有延迟（可能大到无法忽略，也可能小到可以忽略），这种情况下如果对浏览器进行了拉伸改变了窗口大小，则拿到的 <code>scrollHeight</code> 就是不对的了，但是 <code>getSnapshotBeforeUpdate</code> 与 <code>componentDidUpdate</code> 都在第二阶段，这个阶段会一口气完成，中间不会有延迟。</p>
+<h4 id="弃用：componentWillReceiveProps-UNSAFE-componentWillReceiveProps"><a href="#弃用：componentWillReceiveProps-UNSAFE-componentWillReceiveProps" class="headerlink" title="弃用：componentWillReceiveProps() / UNSAFE_componentWillReceiveProps()"></a>弃用：<code>componentWillReceiveProps() / UNSAFE_componentWillReceiveProps()</code></h4><p>原来的 <code>componentWillReceiveProps()</code> 现在仍然能够使用，但是会有warning提示，直到下一个大版本移除为止。<br>请使用 <code>static getDerivedStateFromProps()</code>。</p>
+<h4 id="弃用：componentWillMount-UNSAFE-componentWillMount"><a href="#弃用：componentWillMount-UNSAFE-componentWillMount" class="headerlink" title="弃用：componentWillMount() / UNSAFE_componentWillMount()"></a>弃用：<code>componentWillMount() / UNSAFE_componentWillMount()</code></h4><p>原来的 <code>componentWillMount()</code> 现在仍然能够使用，但是会有warning提示，直到下一个大版本移除为止。<br>请使用 <code>static getDerivedStateFromProps()</code>。</p>
+<p>组件初始化时的数据操作，比如异步获取数据，这些操作是建议放在 <code>componentDidMount()</code> 中操作，因为从v16开始，<code>componentWillMount</code> 有可能会被调用多次，这涉及到 <code>React fiber</code>，这里不展开讨论。</p>
+<h4 id="弃用：componentWillUpdate-UNSAFE-componentWillUpdate"><a href="#弃用：componentWillUpdate-UNSAFE-componentWillUpdate" class="headerlink" title="弃用：componentWillUpdate() / UNSAFE_componentWillUpdate()"></a>弃用：<code>componentWillUpdate() / UNSAFE_componentWillUpdate()</code></h4><p>原来的 <code>componentWillUpdate()</code>，与 <code>componentWillMount()</code> 相同，在 <code>React fiber</code> 架构下，组件更新时有可能会被调用多次，已经是个不安全不稳定的API，下个大版本会移除。<br>请使用 <code>getSnapshotBeforeUpdate</code>。</p>
+<h3 id="Official-Context-API"><a href="#Official-Context-API" class="headerlink" title="Official Context API"></a>Official Context API</h3><blockquote>
+<p>读过 React 官方文档的同学肯定知道在 context api，这个API在v16.3之前一直都是出于实验性状态（虽说redux就是基于这个API实现的），在v16.3中，它终于变了一个稳定的API，并且被官方强烈推荐中。<br>有同学为质疑，我已经有Redux，mobx等库了，为什么还需要一个新的content api呢？<br>其实他们并不是相互替代的关系，我们完全可以根据不同场景来判断使用哪一个。</p>
+</blockquote>
+<p>新的 <code>Context API</code> 注重于解决这几个问题（以后想到了我再补充）：</p>
+<ol>
+<li>对比组件的 <code>props</code> 传递，<code>Context API</code> 不需要通过每一个组件一步步往下传递。</li>
+<li>对比Redux，可以根据父子组件或者嵌套组件之间的关系来进一步确认context。</li>
+<li>两个互相嵌套的组件提供的两个Context中，key相同的部分会冲突（<strong>待求证</strong>）</li>
+</ol>
+<p>当然，<code>Redux</code> 对比 <code>Context API</code> ，<code>Redux</code> 清晰的代码结构，reducer/store/component分的很清楚，虽说很繁杂。</p>
+<p>让我们来<a target="_blank" rel="noopener" href="https://reactjs.org/docs/context.html">官方的案例</a></p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 通过API创建一个Context对象,默认值为&#x27;light&#x27;</span></span><br><span class="line"><span class="keyword">const</span> ThemeContext = React.createContext(<span class="string">&#x27;light&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 中间的组件不需要显示的传递</span></span><br><span class="line"><span class="keyword">const</span> Toolbar = <span class="function">(<span class="params">props</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;div&gt;</span><br><span class="line">      &lt;ThemedButton&gt;&lt;/ThemedButton&gt;</span><br><span class="line">    &lt;/div&gt;</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> ThemedButton = <span class="function">(<span class="params">props</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 使用Consumer包裹需要使用Context的组件</span></span><br><span class="line">  <span class="comment">// React将会找到最近的Theme Provider并使用它的值</span></span><br><span class="line">  <span class="comment">// 在这个案例中，&#x27;theme&#x27;就是在创建Provider时设置的&#x27;dark&#x27;</span></span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;ThemeContext.Consumer&gt;</span><br><span class="line">      &#123;<span class="function"><span class="params">theme</span> =&gt;</span> <span class="xml"><span class="tag">&lt;<span class="name">Button</span> &#123;<span class="attr">...props</span>&#125; <span class="attr">theme</span>=<span class="string">&#123;theme&#125;</span>&gt;</span><span class="tag">&lt;/<span class="name">Button</span>&gt;</span></span>&#125;</span><br><span class="line">    &lt;/ThemeContext.Consumer&gt;</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">App</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="title">render</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="comment">// 使用Context对象中的Provider组件包裹要使用的组件，并设置值为&#x27;dark&#x27;</span></span><br><span class="line">    <span class="comment">// 被包裹的组件无论层级多深，都可以读取到Context中存储的值&#x27;dark&#x27;</span></span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      &lt;ThemeContext.Provider value=<span class="string">&quot;dark&quot;</span>&gt;</span><br><span class="line">        &lt;Toolbar&gt;&lt;/Toolbar&gt;</span><br><span class="line">      &lt;/ThemeContext.Provider&gt;</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从案例中，我们不难看出，使用 <code>Context API</code> 不外乎三个步骤</p>
+<ol>
+<li>创建一个Context对象并设置默认值</li>
+<li>使用Context对象的Provider组件包裹外层组件</li>
+<li>使用Context对象的Consumer组件内层组件，子组件必须是一个返回组件的方法，用于传递值，可以自定义prop名</li>
+</ol>
+<p>以上三个步骤就能使用 <code>Context API</code> 的基本功能。</p>
+<h3 id="动态Context"><a href="#动态Context" class="headerlink" title="动态Context"></a>动态Context</h3><p>关于如何实现<a target="_blank" rel="noopener" href="https://codesandbox.io/s/x9vm1wm05w">动态Context</a>，我写了一个比较简单案例，当然，也可以查看官方案例，原理是一样的。</p>
+<p>创建一个外层的组件，在state中定义好需要属性，然后传入Provider的value，同时传入一些方法，比如案例中的 <code>changeTexts</code>。</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">&quot;react&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> In <span class="keyword">from</span> <span class="string">&quot;./in&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> defaultContextValue = &#123;</span><br><span class="line">  someText1: <span class="string">&quot;text1&quot;</span>,</span><br><span class="line">  someText2: <span class="string">&quot;text2&quot;</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> SomeContext = React.createContext(defaultContextValue);</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Out</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">  state = &#123;</span><br><span class="line">    ...defaultContextValue</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  changeTexts = <span class="function"><span class="params">newTexts</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.setState(<span class="function">(<span class="params">prevState, props</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> &#123;</span><br><span class="line">        ...newTexts</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">render</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      &lt;SomeContext.Provider</span><br><span class="line">        value=&#123;&#123;</span><br><span class="line">          someTexts: <span class="built_in">this</span>.state,</span><br><span class="line">          changeTexts: <span class="built_in">this</span>.changeTexts</span><br><span class="line">        &#125;&#125;</span><br><span class="line">      &gt;</span><br><span class="line">        &lt;SomeContext.Consumer&gt;</span><br><span class="line">          &#123;<span class="function"><span class="params">textAbout</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">In</span> <span class="attr">textAbout</span>=<span class="string">&#123;textAbout&#125;</span> /&gt;</span></span>;</span><br><span class="line">          &#125;&#125;</span><br><span class="line">        &lt;/SomeContext.Consumer&gt;</span><br><span class="line">      &lt;/SomeContext.Provider&gt;</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> Out;</span><br></pre></td></tr></table></figure>
+
+<p>创建一个子组件，子组件有个按钮，点击后调用Provider中的 <code>changeTexts</code> 方法。</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">&quot;react&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">In</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">  <span class="keyword">static</span> <span class="function"><span class="title">getDerivedStateFromProps</span>(<span class="params">props, state</span>)</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&quot;props&quot;</span>, props);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  changeTexts = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.props.textAbout.changeTexts(&#123;</span><br><span class="line">      someText1: <span class="string">&quot;new text1&quot;</span>,</span><br><span class="line">      someText2: <span class="string">&quot;new text2&quot;</span></span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">render</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      &lt;div&gt;</span><br><span class="line">        &#123;<span class="built_in">this</span>.props.textAbout</span><br><span class="line">          ? <span class="built_in">this</span>.props.textAbout.someTexts.someText1</span><br><span class="line">          : <span class="string">&quot;empty&quot;</span>&#125;</span><br><span class="line">        &lt;button onClick=&#123;<span class="built_in">this</span>.changeTexts&#125;&gt;按钮&lt;/button&gt;</span><br><span class="line">      &lt;/div&gt;</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> In;</span><br></pre></td></tr></table></figure>
+
+<h3 id="createRef-API"><a href="#createRef-API" class="headerlink" title="createRef API"></a>createRef API</h3><p>v16.3以前创建ref都是这样创建的</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyComponent</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="title">constructor</span>(<span class="params">props</span>)</span> &#123;</span><br><span class="line">    <span class="built_in">super</span>(props);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">this</span>.inputRef = <span class="literal">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">render</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;text&quot;</span> <span class="attr">ref</span>=<span class="string">&#123;(node)</span> =&gt;</span> &#123;</span></span><br><span class="line"><span class="xml">      this.inputRef = node;</span></span><br><span class="line"><span class="xml">    &#125;&#125; /&gt;</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">componentDidMount</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.inputRef.current.focus();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>v16.3后，多了 <code>createRef</code> API</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyComponent</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="title">constructor</span>(<span class="params">props</span>)</span> &#123;</span><br><span class="line">    <span class="built_in">super</span>(props);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">this</span>.inputRef = React.createRef();</span><br><span class="line">    <span class="comment">// 使用新API创建一个Ref对象</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">render</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="comment">// ref不需要传入callback，只需要传入ref对象即可</span></span><br><span class="line">    <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;text&quot;</span> <span class="attr">ref</span>=<span class="string">&#123;this.inputRef&#125;</span> /&gt;</span></span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">componentDidMount</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.inputRef.current.focus();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="forwardRef-API"><a href="#forwardRef-API" class="headerlink" title="forwardRef API"></a>forwardRef API</h3><p>createRef API 提供了一种创建ref的新方法，但是在某些场景中，我们需要直接ref一个组件内的真实DOM而不是组件本身，过去的做法是：</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> NestComp = <span class="function">(<span class="params">props</span>) =&gt;</span> &#123;</span><br><span class="line">  &lt;div&gt;</span><br><span class="line">  	&lt;input type=<span class="string">&quot;text&quot;</span> ref=&#123;props.inputRef&#125; /&gt;</span><br><span class="line">  &lt;/div&gt;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyComponent</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="title">constructor</span>(<span class="params">props</span>)</span> &#123;</span><br><span class="line">    <span class="built_in">super</span>(props);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">this</span>.inputRef = <span class="literal">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">render</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">NestComp</span> <span class="attr">inputRef</span>=<span class="string">&#123;(node)</span> =&gt;</span> &#123;</span></span><br><span class="line"><span class="xml">      this.inputRef = node;</span></span><br><span class="line"><span class="xml">    &#125;&#125;/&gt;</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">componentDidMount</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.inputRef.current.focus();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在过去的做法中，我们需要传递一个callback到子组件的内部，再绑定到子组件真实DOM中。</p>
+<p>但是v16.3提供的 <code>forwardRef API</code> 提供了更简便更函数式的方法。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> NestComp = React.forwardRef(<span class="function">(<span class="params">props, ref</span>) =&gt;</span> &#123;</span><br><span class="line">  &lt;div&gt;</span><br><span class="line">  	&lt;input type=<span class="string">&quot;text&quot;</span> ref=&#123;ref&#125; /&gt;</span><br><span class="line">  &lt;/div&gt;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyComponent</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="title">constructor</span>(<span class="params">props</span>)</span> &#123;</span><br><span class="line">    <span class="built_in">super</span>(props);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">this</span>.inputRef = React.createRef();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">render</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">NestComp</span> <span class="attr">ref</span>=<span class="string">&#123;</span> <span class="attr">inputRef</span> &#125;/&gt;</span></span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">componentDidMount</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.inputRef.current.focus();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="StrictMode-Component-（严格模式）"><a href="#StrictMode-Component-（严格模式）" class="headerlink" title="StrictMode Component （严格模式）"></a>StrictMode Component （严格模式）</h3><blockquote>
+<p><a target="_blank" rel="noopener" href="https://reactjs.org/docs/strict-mode.html">官方文档</a></p>
+</blockquote>
+<ul>
+<li>使用方法</li>
+</ul>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">ExampleApplication</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;div&gt;</span><br><span class="line">      &lt;Header /&gt;</span><br><span class="line">      &lt;React.StrictMode&gt;</span><br><span class="line">        &lt;div&gt;</span><br><span class="line">          &lt;ComponentOne /&gt;</span><br><span class="line">          &lt;ComponentTwo /&gt;</span><br><span class="line">        &lt;/div&gt;</span><br><span class="line">      &lt;/React.StrictMode&gt;</span><br><span class="line">      &lt;Footer /&gt;</span><br><span class="line">    &lt;/div&gt;</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的例子中，<code>ComponentOne</code> 和 <code>ComponentTwo</code> 将会被检测<br>在严格模式下，以下几点是会被检测出来的：</p>
+<ol>
+<li>使用了前面提到过的旧的生命周期</li>
+<li>使用传统的字符串（callback）创建ref的方法</li>
+<li>检测意料之外的副作用</li>
+<li>使用了旧的Context API</li>
+</ol>
+<p><strong>使用严格模式更利于我们在开发期间发现错误。</strong></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/React/" rel="tag"># React</a>
+              <a href="/tags/Context-API/" rel="tag"># Context API</a>
+              <a href="/tags/%E6%96%B0%E7%89%88API/" rel="tag"># 新版API</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/03/17/mint-ui%E7%9A%84loadmore%EF%BC%88%E4%B8%8A%E6%BB%91%EF%BC%8C%E4%B8%8B%E6%8B%89%EF%BC%89%E7%BB%84%E4%BB%B6%E7%9A%84%E9%9D%9E%E4%BE%B5%E5%85%A5%E5%BC%8F%EF%BC%88%E4%B8%8D%E4%BF%AE%E6%94%B9%E6%BA%90%E7%A0%81%EF%BC%89%E4%BC%98%E5%8C%96/" rel="prev" title="mint-ui的loadmore（上滑，下拉）组件的非侵入式（不修改源码）优化">
+      <i class="fa fa-chevron-left"></i> mint-ui的loadmore（上滑，下拉）组件的非侵入式（不修改源码）优化
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/06/01/%E7%88%AC%E5%8F%96%E5%8A%A8%E6%80%81%E7%BD%91%E7%AB%99%E6%95%B0%E6%8D%AE%20-%20puppeteer%20(headless%20browser)/" rel="next" title="爬取动态网站数据 - puppeteer (headless browser)">
+      爬取动态网站数据 - puppeteer (headless browser) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#React-v15-x-React-v16-gt-React-v16-3"><span class="nav-number">1.</span> <span class="nav-text">React v15.x ~ React v16 -&gt; React v16.3</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-number">1.1.</span> <span class="nav-text">生命周期</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%B0API%EF%BC%9Astatic-getDerivedStateFromProps"><span class="nav-number">1.1.1.</span> <span class="nav-text">新API：static getDerivedStateFromProps()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%B0API%EF%BC%9AgetSnapshotBeforeUpdate"><span class="nav-number">1.1.2.</span> <span class="nav-text">新API：getSnapshotBeforeUpdate</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%83%E7%94%A8%EF%BC%9AcomponentWillReceiveProps-UNSAFE-componentWillReceiveProps"><span class="nav-number">1.1.3.</span> <span class="nav-text">弃用：componentWillReceiveProps() &#x2F; UNSAFE_componentWillReceiveProps()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%83%E7%94%A8%EF%BC%9AcomponentWillMount-UNSAFE-componentWillMount"><span class="nav-number">1.1.4.</span> <span class="nav-text">弃用：componentWillMount() &#x2F; UNSAFE_componentWillMount()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%83%E7%94%A8%EF%BC%9AcomponentWillUpdate-UNSAFE-componentWillUpdate"><span class="nav-number">1.1.5.</span> <span class="nav-text">弃用：componentWillUpdate() &#x2F; UNSAFE_componentWillUpdate()</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Official-Context-API"><span class="nav-number">1.2.</span> <span class="nav-text">Official Context API</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A8%E6%80%81Context"><span class="nav-number">1.3.</span> <span class="nav-text">动态Context</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#createRef-API"><span class="nav-number">1.4.</span> <span class="nav-text">createRef API</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#forwardRef-API"><span class="nav-number">1.5.</span> <span class="nav-text">forwardRef API</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#StrictMode-Component-%EF%BC%88%E4%B8%A5%E6%A0%BC%E6%A8%A1%E5%BC%8F%EF%BC%89"><span class="nav-number">1.6.</span> <span class="nav-text">StrictMode Component （严格模式）</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ninnka</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">41</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ninnka</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

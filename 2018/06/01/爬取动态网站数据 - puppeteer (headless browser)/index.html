@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="我在之前有提到过pixiv用React重写了部分页面，导致以前的方法不能爬取那部分的页面了。熟悉 React&#x2F;Vue&#x2F;Angular 开发的同学应该很清楚，这类框架开发的Web应用有个很明显的特征，web应用的原始页面的DOM只有简单body和一个id为root的节点（当然，其他人为加入的也会存在）。如果用以前的superagent配合request只能把这部分下载下来，如果pixiv使用了se">
+<meta property="og:type" content="article">
+<meta property="og:title" content="爬取动态网站数据 - puppeteer (headless browser)">
+<meta property="og:url" content="http://yoursite.com/2018/06/01/%E7%88%AC%E5%8F%96%E5%8A%A8%E6%80%81%E7%BD%91%E7%AB%99%E6%95%B0%E6%8D%AE%20-%20puppeteer%20(headless%20browser)/index.html">
+<meta property="og:site_name" content="NinnkaStack">
+<meta property="og:description" content="我在之前有提到过pixiv用React重写了部分页面，导致以前的方法不能爬取那部分的页面了。熟悉 React&#x2F;Vue&#x2F;Angular 开发的同学应该很清楚，这类框架开发的Web应用有个很明显的特征，web应用的原始页面的DOM只有简单body和一个id为root的节点（当然，其他人为加入的也会存在）。如果用以前的superagent配合request只能把这部分下载下来，如果pixiv使用了se">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-06-01T10:22:04.000Z">
+<meta property="article:modified_time" content="2021-05-17T05:21:34.052Z">
+<meta property="article:author" content="Ninnka">
+<meta property="article:tag" content="Nodejs">
+<meta property="article:tag" content="命令行工具">
+<meta property="article:tag" content="爬虫">
+<meta property="article:tag" content="headless browser">
+<meta property="article:tag" content="puppeteer">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2018/06/01/%E7%88%AC%E5%8F%96%E5%8A%A8%E6%80%81%E7%BD%91%E7%AB%99%E6%95%B0%E6%8D%AE%20-%20puppeteer%20(headless%20browser)/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>爬取动态网站数据 - puppeteer (headless browser) | NinnkaStack</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">NinnkaStack</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/01/%E7%88%AC%E5%8F%96%E5%8A%A8%E6%80%81%E7%BD%91%E7%AB%99%E6%95%B0%E6%8D%AE%20-%20puppeteer%20(headless%20browser)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          爬取动态网站数据 - puppeteer (headless browser)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-06-01 18:22:04" itemprop="dateCreated datePublished" datetime="2018-06-01T18:22:04+08:00">2018-06-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-17 13:21:34" itemprop="dateModified" datetime="2021-05-17T13:21:34+08:00">2021-05-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>我在之前有提到过pixiv用React重写了部分页面，导致以前的方法不能爬取那部分的页面了。<br>熟悉 <code>React/Vue/Angular</code> 开发的同学应该很清楚，这类框架开发的Web应用有个很明显的特征，web应用的原始页面的DOM只有简单body和一个id为root的节点（当然，其他人为加入的也会存在）。如果用以前的superagent配合request只能把这部分下载下来，如果pixiv使用了service-side rendering的还好，但是pixiv并没有使用（我觉得以后pixiv可能大概会用上）。</p>
+</blockquote>
+<p>说回正题，因为pixiv的部分页面改为“动态加载”后，直接获取文档不能获取到DOM，那么有没有什么办法能够获取代码然后执行js生成DOM，再获取页面的内容呢？<br>仔细想想这种行为不就像是一个浏览器了吗？<br>其实这种情况我之前就遇到过，当时是因为有要求爬取京东和淘宝的部分页面，但是京东和淘宝的首页出了靠近顶部部分以外的都是懒加载。顺着上面所说的思路，我很快想到了以前看到过的 <code>headless browser</code>，然后找到了 <code>puppeteer</code>，中文名是木偶戏</p>
+<blockquote>
+<p>Puppeteer 是一个提供了高集成API，通过开发者工具协议来控制无页面Chrome或者Chromium的 node 库. 它同样能用来控制正常的 Chrome 和 Chromium。<br>我们可以用 Puppeteer 做什么？</p>
+<ul>
+<li>生成一个快照或者PDF。</li>
+<li>爬取SPA（单页应用）并生成预渲染的内容 (比如： “SSR”)。</li>
+<li>自动化提交，输入，UI测试等。</li>
+<li>创建一个最新的，全自动测试的环境。在最新Chrome上使用最新的javascript和浏览器特性运行测试代码。</li>
+<li>按照时间线来跟踪捕获网站的运行，用来帮助诊断性能问题。</li>
+</ul>
+</blockquote>
+<p>Bingo，这正是我在这次爬虫中要用到的，接下来将使用它爬取pixiv的React App。</p>
+<p><strong><a target="_blank" rel="noopener" href="https://github.com/Rennzh/node-pixiv-crawler">源代码</a>，源代码已经是最新的，如果想看以前的方法的可以 <code>git checkout</code> 到以前的仓库节点。</strong></p>
+<a id="more"></a>
+
+<h2 id="初始化puppeteer-browser实例"><a href="#初始化puppeteer-browser实例" class="headerlink" title="初始化puppeteer browser实例"></a>初始化puppeteer browser实例</h2><p>在处理接收的参数后，应该立即创建一个puppeteer的browser实例，并保存起来，接下来的操作都使用这一个实例，如果不小心创建太多browser，会有超过最大emitterListener的警告。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> program = <span class="built_in">require</span>(<span class="string">&#x27;commander&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> colors = <span class="built_in">require</span>(<span class="string">&#x27;colors&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> puppeteer = <span class="built_in">require</span>(<span class="string">&#x27;puppeteer&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> parseUrl = <span class="built_in">require</span>(<span class="string">&#x27;../reptile/parseUrl&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> pathController = <span class="built_in">require</span>(<span class="string">&#x27;../reptile/PathController&#x27;</span>);</span><br><span class="line"><span class="comment">// 用来保存路径相关的对象（单例）</span></span><br><span class="line"><span class="keyword">const</span> userController = <span class="built_in">require</span>(<span class="string">&#x27;../reptile/UserController&#x27;</span>);</span><br><span class="line"><span class="comment">// 用来保存一些爬取信息相关的变量的对象（单例）</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ... 处理参数</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">finishProcess</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 关闭browser</span></span><br><span class="line">    <span class="keyword">await</span> userController.closeBrowser();</span><br><span class="line">  &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;closeBrowser catch err&#x27;</span>, err);</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="comment">// 成功或失败都需要结束进程</span></span><br><span class="line">    process.exit(<span class="number">0</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">initBrowser</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="keyword">async</span> (resolve) =&gt; &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">let</span> browser = <span class="literal">null</span>;</span><br><span class="line">      <span class="keyword">if</span> (!userController.browser) &#123;</span><br><span class="line">        <span class="comment">// 如果browser不存在的话就创建一个并保存</span></span><br><span class="line">        browser = <span class="keyword">await</span> puppeteer.launch();</span><br><span class="line">        userController.setBrowser(browser);</span><br><span class="line">      &#125;</span><br><span class="line">      resolve();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">      resolve();</span><br><span class="line">      <span class="built_in">console</span>.error(<span class="string">&#x27;launch browser failed&#x27;</span>);</span><br><span class="line">      <span class="comment">// 启动browser失败也结束node进程</span></span><br><span class="line">      process.exit(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">FetchingData</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">await</span> initBrowser();</span><br><span class="line">  <span class="keyword">const</span> paramList = params.split(<span class="string">&#x27;,&#x27;</span>);</span><br><span class="line">  <span class="keyword">let</span> targetPList = [];</span><br><span class="line">  paramList.forEach(<span class="function">(<span class="params">item</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (item) &#123;</span><br><span class="line">      <span class="keyword">const</span> res = parseUrl.fetchMediumUrl(item.trim());</span><br><span class="line">      targetPList.push(res);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">&#x27;url或id不能为空&#x27;</span>.red);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">Promise</span>.all(targetPList)</span><br><span class="line">    .then(<span class="keyword">async</span> (res) =&gt; &#123;</span><br><span class="line">      <span class="comment">// 所有流程结束后结束node进程</span></span><br><span class="line">      finishProcess();</span><br><span class="line">    &#125;)</span><br><span class="line">    .catch(<span class="function"><span class="params">err</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// 捕捉到错误后结束node进程</span></span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">&#x27;paramList forEach Promise all catch err&#x27;</span>, err);</span><br><span class="line">      finishProcess();</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">FetchingData();</span><br></pre></td></tr></table></figure>
+
+<p>通过以上的方法，可以创建一个单例的puppeteer browser实例。</p>
+<h2 id="使用-puppeteer-打开新页面"><a href="#使用-puppeteer-打开新页面" class="headerlink" title="使用 puppeteer 打开新页面"></a>使用 puppeteer 打开新页面</h2><p><code>headless browser</code> 本质上就是一个浏览器，只是没有可视化的界面，但它的操作逻辑是一样，获取一个页面的数据必须打开指定的页面。<br>除此之外，在打开页面前，我们应该为页面填充好Cookie，因为pixiv需要Cookie来验证登录态，当然不用也可以，那么你需要打开登录页面，并填写好数据然后登录。登录成功后，页面就有cookie了，这个时候你可以把Cookie提取出来并保存好方便后续使用。（pixiv验证你是否登录只需要知道<code>PHPSESSID</code>）</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 解析传入的url，打开单个页面</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;String&#125;</span> <span class="variable">mediumUrl</span></span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">fetchMediumUrl</span> (<span class="params">mediumUrl, pageAttemptTimes = <span class="number">0</span></span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 转换地址，详细部分可以看源码</span></span><br><span class="line">  mediumUrl = transformMediumUrl(<span class="built_in">String</span>(mediumUrl));</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="keyword">async</span> (resolve, reject) =&gt; &#123;</span><br><span class="line">    <span class="keyword">let</span> page = <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">let</span> browser = <span class="literal">null</span>;</span><br><span class="line">      <span class="comment">// 还是先判断是否已有单例的browser，没有的话先创建</span></span><br><span class="line">      <span class="keyword">if</span> (!userController.browser) &#123;</span><br><span class="line">        browser = <span class="keyword">await</span> puppeteer.launch();</span><br><span class="line">        userController.setBrowser(browser);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">// 创建一个新的页面</span></span><br><span class="line">      page = <span class="keyword">await</span> userController.browser.newPage();</span><br><span class="line">      <span class="comment">// 获取页面的cookie</span></span><br><span class="line">      <span class="keyword">const</span> cookies = <span class="keyword">await</span> page.cookies(mediumUrl);</span><br><span class="line">      <span class="comment">// 判断是否有cookie存在，没有的话就将准备好的cookie填充进page，详细部分看源码</span></span><br><span class="line">      <span class="keyword">if</span> (cookies.length &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">        page = <span class="keyword">await</span> Cookie.setCookie(page);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        userController.spinner.stop();</span><br><span class="line">        userController.spinner.color = <span class="string">&#x27;yellow&#x27;</span>;</span><br><span class="line">        userController.spinner.text = <span class="string">&#x27;进入页面中...&#x27;</span>;</span><br><span class="line">        userController.spinner.start();</span><br><span class="line">        <span class="comment">// 跳转到目标地址，失败的话会被catch到</span></span><br><span class="line">        <span class="keyword">await</span> page.goto(mediumUrl);</span><br><span class="line">        userController.spinner.text = <span class="string">&#x27;进入页面成功&#x27;</span>;</span><br><span class="line">        userController.spinner.succeed();</span><br><span class="line">        <span class="comment">// 跳转成功后等待页面加载完成并获取页面数据</span></span><br><span class="line">        <span class="keyword">const</span> content = <span class="keyword">await</span> page.content();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="comment">// 执行解析页面数据的方法。成功的流程便到此为止。</span></span><br><span class="line">          <span class="keyword">await</span> parseMediumPage(content);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">          <span class="comment">// 如果解析出错被catch到则直接运行finall部分，结束promise流程。</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">        userController.spinner.text = <span class="string">&#x27;进入页面失败&#x27;</span>;</span><br><span class="line">        userController.spinner.fail();</span><br><span class="line">        <span class="comment">// 跳转页面或者获取内容失败时或尝试重新连接，默认次数是5次。</span></span><br><span class="line">        <span class="keyword">if</span> (pageAttemptTimes &lt; userController.pageAttemptTimes) &#123;</span><br><span class="line">          <span class="comment">// 重连之前需要关闭当前这个页面，因为接下来会重新创建一个</span></span><br><span class="line">          <span class="keyword">await</span> page.close();</span><br><span class="line">          <span class="keyword">const</span> newAttempt = pageAttemptTimes + <span class="number">1</span>;</span><br><span class="line">          <span class="built_in">console</span>.log(<span class="string">&#x27;--------&#x27;</span>);</span><br><span class="line">          <span class="built_in">console</span>.log(<span class="string">`重连<span class="subst">$&#123;mediumUrl&#125;</span>`</span>.yellow.bgBlack);</span><br><span class="line">          <span class="built_in">console</span>.log(<span class="string">`次数<span class="subst">$&#123;newAttempt&#125;</span>`</span>.yellow.bgBlack);</span><br><span class="line">          <span class="built_in">console</span>.log(<span class="string">&#x27;--------&#x27;</span>);</span><br><span class="line">          resolve(<span class="keyword">await</span> fetchMediumUrl(mediumUrl, newAttempt));</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="comment">// 如果重连失败到一定次数后（默认5次），会关闭页面</span></span><br><span class="line">          <span class="built_in">console</span>.log(<span class="string">`跳转到目标页面失败:<span class="subst">$&#123;mediumUrl&#125;</span>`</span>.yellow);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">&#x27;[async fetchMediumUrl catch err in promise]&#x27;</span>, err);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">      page &amp;&amp; !page.isClosed() &amp;&amp; <span class="keyword">await</span> page.close();</span><br><span class="line">      resolve();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="解析内容"><a href="#解析内容" class="headerlink" title="解析内容"></a>解析内容</h2><p>获取页面的内容后，还需要解析。解析的方法有多种，比如说常用的 <code>cheerio</code>，使用这个的话，解析跟以前没什么不同，还有一种方法是直接使用 <code>puppeteer</code> 的 <code>document.querySelector</code> ，相信大家都很熟悉，这是JS DOM的原生API。</p>
+<ol>
+<li>使用 cheerio：<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;String&#125;</span> <span class="variable">pageContent</span></span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">parseMediumPage</span> (<span class="params">pageContent</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="keyword">async</span> (resolve, reject) =&gt; &#123;</span><br><span class="line">    userController.spinner.stop();</span><br><span class="line">    userController.spinner.color = <span class="string">&#x27;yellow&#x27;</span>;</span><br><span class="line">    userController.spinner.text = <span class="string">&#x27;解析页面内容中...&#x27;</span>;</span><br><span class="line">    userController.spinner.start();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> $ = cheerio.load(pageContent);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// * 图源</span></span><br><span class="line">    <span class="keyword">const</span> _illust_modal$ = $(<span class="string">&#x27;div[role=presentation] &gt; a&#x27;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (_illust_modal$) &#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> dataSrc = _illust_modal$.attr(<span class="string">&#x27;href&#x27;</span>);</span><br><span class="line">        <span class="keyword">if</span> (dataSrc &amp;&amp; dataSrc.includes(<span class="string">&#x27;http&#x27;</span>)) &#123;</span><br><span class="line">          <span class="comment">// 图片只有一张的时候</span></span><br><span class="line">          <span class="keyword">await</span> pureImg.getPureImg(dataSrc);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (dataSrc) &#123;</span><br><span class="line">          <span class="comment">// 图片有多张的时候</span></span><br><span class="line">          <span class="keyword">await</span> fetchMultipleHref(dataSrc);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="comment">// 没有找到图片链接的时候</span></span><br><span class="line">          userController.spinner.stop();</span><br><span class="line">          userController.spinner.color = <span class="string">&#x27;yellow&#x27;</span>;</span><br><span class="line">          userController.spinner.text = <span class="string">&#x27;没有内容&#x27;</span>;</span><br><span class="line">          userController.spinner.warn();</span><br><span class="line">        &#125;</span><br><span class="line">      &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">        resolve();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      userController.spinner.stop();</span><br><span class="line">      userController.spinner.color = <span class="string">&#x27;yellow&#x27;</span>;</span><br><span class="line">      userController.spinner.text = <span class="string">&#x27;没有找到节点&#x27;</span>;</span><br><span class="line">      userController.spinner.fail();</span><br><span class="line">    &#125;</span><br><span class="line">    resolve();</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ol>
+<ol start="2">
+<li>使用原生API：<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Puppeteer.Page&#125;</span> <span class="variable">page</span></span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">parseMediumPage</span> (<span class="params">page</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="keyword">async</span> (resolve, reject) =&gt; &#123;</span><br><span class="line">    <span class="comment">// ... cheerio 部分</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// * 图源</span></span><br><span class="line">    <span class="keyword">const</span> _illust_modal$ = <span class="keyword">await</span> page.evaluate(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">document</span>.querySelector(<span class="string">&#x27;div[role=presentation] &gt; a&#x27;</span>);</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (_illust_modal$) &#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> dataSrc = _illust_modal$.getAttribute(<span class="string">&#x27;href&#x27;</span>);</span><br><span class="line">        <span class="comment">// ... cheerio 部分</span></span><br><span class="line">      &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">        resolve();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// ... cheerio 部分</span></span><br><span class="line">    &#125;</span><br><span class="line">    resolve();</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<p>以上两种方法都能根据选择出对应DOM节点。</p>
+<h2 id="获取图片"><a href="#获取图片" class="headerlink" title="获取图片"></a>获取图片</h2><p>前面已经拿到了DOM节点并且得到了图片下载地址，那么接下来就是如果获取图片了，这里可能有同学发现了，既然只有图片，那么是不是不需要pupeteer呢？我认为是的，图片是静态资源，与动态加载无关，这里是直接获取资源。那么用以前的方法是可行的。还有一点就是，浏览器的页面在创建，跳转，加载和销毁的消耗比superagent直接获取资源要大得多，所以使用puppeteer爬取是会慢一点，但是无可厚非，毕竟能直接爬取SPA，还能创建PDF和快照之类的也是极好的。</p>
+<p>因为puppeteer的API几乎都是异步的，我这里也对原来的获取图片方法小小的改造了以下。其实为了适应异步，所有步骤都已经改成了异步（返回Promise）。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;String&#125;</span> <span class="variable">illustUrl</span></span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">fetchPureImg</span> (<span class="params">illustUrl, filename, pageAttemptTimes = <span class="number">0</span></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="keyword">async</span> (resolve, reject) =&gt; &#123;</span><br><span class="line">    userController.spinner.stop();</span><br><span class="line">    userController.spinner.color = <span class="string">&#x27;yellow&#x27;</span>;</span><br><span class="line">    userController.spinner.text = <span class="string">`下载图片中:<span class="subst">$&#123;filename&#125;</span>`</span>.gray;</span><br><span class="line">    userController.spinner.start();</span><br><span class="line">    superagent</span><br><span class="line">      .get(illustUrl)</span><br><span class="line">      <span class="comment">// .set(&#x27;Cookie&#x27;, cookiesStr)</span></span><br><span class="line">      .set(<span class="string">&#x27;Referer&#x27;</span>, referer)</span><br><span class="line">      .timeout(<span class="number">60</span> * <span class="number">1000</span>)</span><br><span class="line">      .end(<span class="keyword">async</span> (err, res) =&gt; &#123;</span><br><span class="line">        <span class="keyword">if</span> (err) &#123;</span><br><span class="line">          userController.spinner.text = <span class="string">`下载图片失败:<span class="subst">$&#123;filename&#125;</span>`</span>.red;</span><br><span class="line">          userController.spinner.fail();</span><br><span class="line">          <span class="comment">// console.log(err);</span></span><br><span class="line">          <span class="comment">// * 重新连接下载</span></span><br><span class="line">          <span class="keyword">if</span> (pageAttemptTimes &lt; userController.pageAttemptTimes) &#123;</span><br><span class="line">            <span class="keyword">const</span> newAttempt = pageAttemptTimes + <span class="number">1</span>;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">`重连次数<span class="subst">$&#123;newAttempt&#125;</span>`</span>.yellow.bgBlack);</span><br><span class="line">            resolve(<span class="keyword">await</span> fetchPureImg(illustUrl, filename, newAttempt));</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            resolve();</span><br><span class="line">          &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          userController.spinner.text = <span class="string">`下载图片成功:<span class="subst">$&#123;filename&#125;</span>`</span>.green;</span><br><span class="line">          userController.spinner.succeed();</span><br><span class="line">          <span class="keyword">if</span> (res.body) &#123;</span><br><span class="line">            <span class="keyword">await</span> writeBufferPureImg(res.body, filename);</span><br><span class="line">          &#125;</span><br><span class="line">          resolve();</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在控制异步流程时，有人会有疑问：会什么 catch 到错误时仍然 resolve，而不是 reject 呢？<br>其实这个疑问是对的，只不过在这里，我只希望在合适的时机 <code>fulfilled</code> 掉 Promise，无论是 resolve 还是 reject，当有Error被catch时，该如何应对会在这个函数内处理，例如输出error信息等。（如果 catch 到 error 时，使用 resolve(error) 或者 reject(error) 都可以将错误传递到上级，只是使用 resolve(error) 时需要进一步判断，使用 reject(error) 则可以被catch到）<br>当然，如果这个错误的信息不希望在正式使用中看到，那么可以加入<code>debug</code> 变量控制错误信息的显示。</p>
+<h2 id="保存图片"><a href="#保存图片" class="headerlink" title="保存图片"></a>保存图片</h2><p>保存图片就是将图片写入到硬盘内，核心代码与上一个版本没有区别，只不过流程改为了异步。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Buffer&#125;</span> <span class="variable">buffer</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;String&#125;</span> <span class="variable">filename</span></span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">writeBufferPureImg</span> (<span class="params">buffer, filename</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> dirPath = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">    <span class="keyword">if</span> (pathController.output) &#123;</span><br><span class="line">      dirPath = path.resolve(process.cwd(), pathController.output);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> dateFormated = moment().format(<span class="string">&#x27;YYYY-MM-DD&#x27;</span>);</span><br><span class="line">      dirPath = path.join(process.cwd(), <span class="string">`<span class="subst">$&#123;dateFormated&#125;</span> pixiv`</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (!fsExistsSync(dirPath)) &#123;</span><br><span class="line">      fs.mkdirSync(<span class="string">`<span class="subst">$&#123;dirPath&#125;</span>`</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">const</span> filenameList = filename.split(<span class="string">&#x27;.&#x27;</span>);</span><br><span class="line">    filename = userController.cFilenamePrefix + filenameList[<span class="number">0</span>] + userController.cFilenameSuffix + <span class="string">`.<span class="subst">$&#123;filenameList[<span class="number">1</span>]&#125;</span>`</span>;</span><br><span class="line">    <span class="keyword">const</span> filenameFull = path.join(dirPath, filename);</span><br><span class="line"></span><br><span class="line">    userController.spinner.color = <span class="string">&#x27;yellow&#x27;</span>;</span><br><span class="line">    userController.spinner.text = <span class="string">`保存图片中...`</span>;</span><br><span class="line">    userController.spinner.start();</span><br><span class="line"></span><br><span class="line">    fs.writeFile(filenameFull, buffer, <span class="function">(<span class="params">err</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (err) &#123;</span><br><span class="line">        userController.spinner.text = <span class="string">`保存失败`</span>.red;</span><br><span class="line">        userController.spinner.fail();</span><br><span class="line">        <span class="comment">// console.log(err);</span></span><br><span class="line">        resolve();</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        userController.spinner.text = <span class="string">`保存成功:<span class="subst">$&#123;filenameFull&#125;</span>`</span>.cyan;</span><br><span class="line">        userController.spinner.succeed();</span><br><span class="line">        resolve();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="保存和读取Cookie"><a href="#保存和读取Cookie" class="headerlink" title="保存和读取Cookie"></a>保存和读取Cookie</h2><p>pixiv 会验证cookie来判断是否登录，具体cookie名称是 <code>PHPSESSID</code></p>
+<ul>
+<li>增加保存 cookie 的参数<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">program</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  .option(<span class="string">&#x27;--set-cookie [cookie]&#x27;</span>, <span class="string">&#x27;storage cookie in local file&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">  .parse(process.argv);</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> Cookie = <span class="built_in">require</span>(<span class="string">&#x27;../utils/cookies&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">main</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (program.setCookie) &#123;</span><br><span class="line">    <span class="keyword">await</span> Cookie.storageCookieToLocal(program.setCookie);</span><br><span class="line">    process.exit(<span class="number">0</span>);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">await</span> Cookie.readCookieFromLocal();</span><br><span class="line">      FetchingData();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">      process.exit(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">main();</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> cookiesObj = &#123;</span><br><span class="line">  PHPSESSID: &#123;</span><br><span class="line">    value: <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">    domain: <span class="string">&#x27;.pixiv.net&#x27;</span>,</span><br><span class="line">    path: <span class="string">&#x27;/&#x27;</span>,</span><br><span class="line">    expires: <span class="string">&#x27;2018-07-12T06:19:27.371Z&#x27;</span>,</span><br><span class="line">    httpOnly: <span class="literal">true</span>,</span><br><span class="line">    secure: <span class="literal">true</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">storageCookieToLocal</span> (<span class="params">cookie</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> &#123;</span><br><span class="line">    fs.writeFile(<span class="string">&#x27;pixiv-cookie&#x27;</span>, cookie, <span class="function">(<span class="params">err</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (err) &#123;</span><br><span class="line">        <span class="comment">// console.log(`保存失败`.red);</span></span><br><span class="line">        userController.spinner.text = <span class="string">`保存失败`</span>.red;</span><br><span class="line">        userController.spinner.fail();</span><br><span class="line">        <span class="comment">// console.log(err);</span></span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// console.log(`保存成功`.cyan);</span></span><br><span class="line">        userController.spinner.text = <span class="string">`保存成功`</span>.cyan;</span><br><span class="line">        userController.spinner.succeed();</span><br><span class="line">      &#125;</span><br><span class="line">      resolve();</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">readCookieFromLocal</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> &#123;</span><br><span class="line">    fs.readFile(<span class="string">&#x27;pixiv-cookie&#x27;</span>,<span class="string">&#x27;utf-8&#x27;</span>, <span class="function">(<span class="params">err, data</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (err) &#123;</span><br><span class="line">        userController.spinner.text = <span class="string">`读取 Cookie 失败`</span>.red;</span><br><span class="line">        userController.spinner.fail();</span><br><span class="line">        reject();</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        userController.spinner.text = <span class="string">`读取 Cookie 成功`</span>.cyan;</span><br><span class="line">        userController.spinner.succeed();</span><br><span class="line">        setCookiesObjAttr(<span class="string">&#x27;PHPSESSID&#x27;</span>, <span class="string">&#x27;value&#x27;</span>, data.toString());</span><br><span class="line">        resolve();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">setCookiesObjAttr</span> (<span class="params">cookieType, key, value</span>) </span>&#123;</span><br><span class="line">  cookiesObj[cookieType][key] = value;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Nodejs/" rel="tag"># Nodejs</a>
+              <a href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7/" rel="tag"># 命令行工具</a>
+              <a href="/tags/%E7%88%AC%E8%99%AB/" rel="tag"># 爬虫</a>
+              <a href="/tags/headless-browser/" rel="tag"># headless browser</a>
+              <a href="/tags/puppeteer/" rel="tag"># puppeteer</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/05/01/React%20v16-3%20%E6%96%B0API%E6%B5%85%E8%B0%88/" rel="prev" title="React v16.3 新API浅谈">
+      <i class="fa fa-chevron-left"></i> React v16.3 新API浅谈
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/08/23/TypeScript%E6%8A%80%E5%B7%A7%E4%B9%8B%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%A3%85%E9%80%BC/" rel="next" title="TypeScript技巧之从入门到装逼">
+      TypeScript技巧之从入门到装逼 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96puppeteer-browser%E5%AE%9E%E4%BE%8B"><span class="nav-number">1.</span> <span class="nav-text">初始化puppeteer browser实例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-puppeteer-%E6%89%93%E5%BC%80%E6%96%B0%E9%A1%B5%E9%9D%A2"><span class="nav-number">2.</span> <span class="nav-text">使用 puppeteer 打开新页面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E6%9E%90%E5%86%85%E5%AE%B9"><span class="nav-number">3.</span> <span class="nav-text">解析内容</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E5%9B%BE%E7%89%87"><span class="nav-number">4.</span> <span class="nav-text">获取图片</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%9D%E5%AD%98%E5%9B%BE%E7%89%87"><span class="nav-number">5.</span> <span class="nav-text">保存图片</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%9D%E5%AD%98%E5%92%8C%E8%AF%BB%E5%8F%96Cookie"><span class="nav-number">6.</span> <span class="nav-text">保存和读取Cookie</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ninnka</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">41</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ninnka</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

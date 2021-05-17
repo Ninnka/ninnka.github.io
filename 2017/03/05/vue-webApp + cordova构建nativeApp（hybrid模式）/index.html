@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Vue.js 作为一套构建用户界面的渐进式框架，经常被用作开发webApp，但是运行在不同系统的浏览器中总会遇到不少兼容性问题，尤其是Android下的各种魔改内核，而且没办法与native组件进行交互也是很大的遗憾。综上所述，我们决定将vue-webApp通过cordova打包为nativeApp，也是一种hybrid app。  准备开发环境及工具 安装Java SDKJava SDK的安装">
+<meta property="og:type" content="article">
+<meta property="og:title" content="vue-webApp + cordova构建nativeApp（hybrid模式）">
+<meta property="og:url" content="http://yoursite.com/2017/03/05/vue-webApp%20+%20cordova%E6%9E%84%E5%BB%BAnativeApp%EF%BC%88hybrid%E6%A8%A1%E5%BC%8F%EF%BC%89/index.html">
+<meta property="og:site_name" content="NinnkaStack">
+<meta property="og:description" content="Vue.js 作为一套构建用户界面的渐进式框架，经常被用作开发webApp，但是运行在不同系统的浏览器中总会遇到不少兼容性问题，尤其是Android下的各种魔改内核，而且没办法与native组件进行交互也是很大的遗憾。综上所述，我们决定将vue-webApp通过cordova打包为nativeApp，也是一种hybrid app。  准备开发环境及工具 安装Java SDKJava SDK的安装">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-03-05T06:24:57.000Z">
+<meta property="article:modified_time" content="2021-05-17T05:21:34.050Z">
+<meta property="article:author" content="Ninnka">
+<meta property="article:tag" content="Vue">
+<meta property="article:tag" content="cordova">
+<meta property="article:tag" content="打包">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2017/03/05/vue-webApp%20+%20cordova%E6%9E%84%E5%BB%BAnativeApp%EF%BC%88hybrid%E6%A8%A1%E5%BC%8F%EF%BC%89/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>vue-webApp + cordova构建nativeApp（hybrid模式） | NinnkaStack</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">NinnkaStack</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/03/05/vue-webApp%20+%20cordova%E6%9E%84%E5%BB%BAnativeApp%EF%BC%88hybrid%E6%A8%A1%E5%BC%8F%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          vue-webApp + cordova构建nativeApp（hybrid模式）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-03-05 14:24:57" itemprop="dateCreated datePublished" datetime="2017-03-05T14:24:57+08:00">2017-03-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-17 13:21:34" itemprop="dateModified" datetime="2021-05-17T13:21:34+08:00">2021-05-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>Vue.js 作为一套构建用户界面的渐进式框架，经常被用作开发webApp，但是运行在不同系统的浏览器中总会遇到不少兼容性问题，尤其是Android下的各种魔改内核，而且没办法与native组件进行交互也是很大的遗憾。综上所述，我们决定将vue-webApp通过cordova打包为nativeApp，也是一种hybrid app。</p>
+</blockquote>
+<h2 id="准备开发环境及工具"><a href="#准备开发环境及工具" class="headerlink" title="准备开发环境及工具"></a>准备开发环境及工具</h2><ul>
+<li><p>安装Java SDK<br>Java SDK的安装可以通过官网下载的安装包进行安装，推荐1.8版本，安装完后记得设置 <code>classPath</code> 和 <code>path</code>。具体步骤这里不做复述，可以自行google解决。</p>
+</li>
+<li><p>Android SDK<br>Android SDK的安装最好通过下载最新的稳定版Android Studio安装。<br>安装成功后记得在系统变量添加ANDROID_HOME的路径（右键点击我的电脑–&gt;属性–&gt;高级–&gt;环境变量–&gt;系统变量–&gt;新建）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ANDROID_HOME&#x3D;android sdk所在目录</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>安装cordova</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm i cordova -g</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>其他工具</p>
+<ol>
+<li>Nodejs（不做复述）</li>
+<li>Npm（不做复述）</li>
+<li>Xcode（MacOS）</li>
+</ol>
+</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="建立Cordova项目"><a href="#建立Cordova项目" class="headerlink" title="建立Cordova项目"></a>建立Cordova项目</h2><ul>
+<li><p>使用命令行建立cordova项目</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cordova create project-name</span><br><span class="line"><span class="built_in">cd</span> project-name</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>添加需要支持的平台（Android和IOS，二选一或者两者都选）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cordova platform add android --save // 添加Android平台</span><br><span class="line">cordova platform add ios --save // 添加IOS平台</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>添加 Android 平台时你可能会遇到这样的问题<br>进度卡在<code>&gt; Configuring &gt; 0/2 projects</code><br>解决办法：</p>
+</li>
+</ul>
+<ol>
+<li>最简单的解决方法是使用科学上网工具进行全局代理。</li>
+<li>修改下载地址：</li>
+</ol>
+<ul>
+<li>找到你的 gradle 目录</li>
+<li>修改，解压gradle，找到<code>src/core/org/gradle/api/artifacts/ArtifactRepositoryContainer.java</code> 文件，把 <code>MAVEN_CENTRAL_URL</code> 变量修改为 <code>repo1.maven.org/maven2</code></li>
+<li>修改 <code>src/core/org/gradle/api/internal/artifacts/dsl/DefaultRepositoryHandler.java</code> 文件，把 <code>BINTRAY_JCENTER_URL</code> 变量修改为 <code>jcenter.bintray.com/</code></li>
+<li>运行<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cordova platform remove android &amp;&amp; cordova platform add android</span><br></pre></td></tr></table></figure>
+重新添加Android平台和就成功了。</li>
+</ul>
+<h2 id="打包vue-webApp到cordova项目下"><a href="#打包vue-webApp到cordova项目下" class="headerlink" title="打包vue-webApp到cordova项目下"></a>打包vue-webApp到cordova项目下</h2><blockquote>
+<p>cordova打包web时是将cordova项目目录下的www内的文件，所以我们打包vue的webApp时需要把打包的dist位置直接指定到www目录下。</p>
+</blockquote>
+<p>这里我们直接使用vue-cli2.x.x作为脚手架</p>
+<ul>
+<li><p>将项目移动到cordova项目根目录下</p>
+</li>
+<li><p>修改build/prod.env.js</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&#x27;use strict&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> BUILD_TYPE = process.env.BUILD_TYPE ? process.env.BUILD_TYPE : <span class="string">&#x27;&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  NODE_ENV: <span class="string">&#x27;&quot;production&quot;&#x27;</span>,</span><br><span class="line">  BUILD_TYPE: <span class="string">`&#x27;<span class="subst">$&#123;BUILD_TYPE&#125;</span>&#x27;`</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们指定了一个环境变量<code>BUILD_TYPE</code>，打包vue-webApp时传入<code>BUILD_TYPE=app</code>就可以将打包模式指定为app。</p>
+</li>
+<li><p>修改build/index.js<br>添加以下代码</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">&#x27;path&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> BUILD_APP = process.env.NODE_ENV === <span class="string">&#x27;production&#x27;</span> &amp;&amp; process.env.BUILD_TYPE === <span class="string">&#x27;app&#x27;</span>;</span><br><span class="line"></span><br><span class="line">BUILD_APP &amp;&amp; <span class="built_in">console</span>.log(<span class="string">&#x27;BUILD_TYPE is app&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> BUILD_INDEX = BUILD_APP ?</span><br><span class="line">  path.resolve(__dirname, <span class="string">&#x27;../../www/index.html&#x27;</span>) :</span><br><span class="line">  path.resolve(__dirname, <span class="string">&#x27;../dist/index.html&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> BUILD_ASSETS_ROOT = BUILD_APP ?</span><br><span class="line">  path.resolve(__dirname, <span class="string">&#x27;../../www&#x27;</span>) :</span><br><span class="line">  path.resolve(__dirname, <span class="string">&#x27;../dist&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> BUILD_ASSETS_PUBLIC_PATH = BUILD_APP ?</span><br><span class="line">  <span class="string">&#x27;./&#x27;</span> :</span><br><span class="line">  <span class="string">&#x27;/&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>修改build对象下的部分代码</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">build: &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="comment">// index: path.resolve(__dirname, &#x27;../dist/index.html&#x27;)</span></span><br><span class="line">  index: BUILD_INDEX,</span><br><span class="line">  <span class="comment">// assetsRoot: path.resolve(__dirname, &#x27;../dist&#x27;)</span></span><br><span class="line">  assetsRoot: BUILD_ASSETS_ROOT,</span><br><span class="line">  <span class="comment">// assetsPublicPath: &#x27;/&#x27;,</span></span><br><span class="line">  assetsPublicPath: BUILD_ASSETS_PUBLIC_PATH,</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>修改完后就可以通过环境变量的方式选择打包的方式。</p>
+<ul>
+<li>处理<code>css</code>的<code>background-image</code>属性在<code>BUILD_TYPE</code>为app时，路径错误的问题<br>处理的方法有两种：</li>
+</ul>
+<ol>
+<li>将所有背景图片移动到static文件夹，这个目录在vue-cli中默认不会被webpack处理，打包时直接移动到dist/statis目录，路径不会变。</li>
+<li>修改webpack配置</li>
+<li>1 修改build/utils.js，找到<code>generateLoaders</code>方法<br>有这样一段注释（<a href="mailto:&#118;&#x75;&#101;&#45;&#99;&#108;&#x69;&#x40;&#x32;&#46;&#x78;&#x2e;&#120;">&#118;&#x75;&#101;&#45;&#99;&#108;&#x69;&#x40;&#x32;&#46;&#x78;&#x2e;&#120;</a>）<blockquote>
+<p> // Extract CSS when that option is specified<br> // (which is the case during production build)</p>
+</blockquote>
+</li>
+</ol>
+<p>修改注释下的那段代码</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (options.extract) &#123;</span><br><span class="line">  <span class="keyword">const</span> params = &#123;</span><br><span class="line">    use: loaders,</span><br><span class="line">    fallback: <span class="string">&#x27;vue-style-loader&#x27;</span>,</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (process.env.NODE_ENV === <span class="string">&#x27;production&#x27;</span> &amp;&amp; config.build.assetsPublicPath !== <span class="string">&#x27;/&#x27;</span>) &#123;</span><br><span class="line">    params.publicPath = <span class="string">&#x27;../../&#x27;</span>;</span><br><span class="line">  &#125;</span><br><span class="line">    <span class="keyword">return</span> ExtractTextPlugin.extract(params)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> [<span class="string">&#x27;vue-style-loader&#x27;</span>].concat(loaders)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>修改后可以解决背景图片引用的路径问题。</p>
+<h2 id="添加Cordova-js"><a href="#添加Cordova-js" class="headerlink" title="添加Cordova.js"></a>添加Cordova.js</h2><blockquote>
+<p>可以在index.html直接以script的方式加入cordova.js，但是这种方式在以普通网页的形式打开时会报错，所以我们在<code>main.js</code>中加入以下代码</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// * 判断是否以原生APP的形式运行</span></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">window</span>.location.protocol === <span class="string">&#x27;file:&#x27;</span> || <span class="built_in">window</span>.location.port === <span class="string">&#x27;3000&#x27;</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> cordovaScript = <span class="built_in">document</span>.createElement(<span class="string">&#x27;script&#x27;</span>);</span><br><span class="line">  cordovaScript.setAttribute(<span class="string">&#x27;type&#x27;</span>, <span class="string">&#x27;text/javascript&#x27;</span>);</span><br><span class="line">  cordovaScript.setAttribute(<span class="string">&#x27;src&#x27;</span>, <span class="string">&#x27;cordova.js&#x27;</span>);</span><br><span class="line">  <span class="built_in">document</span>.body.appendChild(cordovaScript);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>需要调用 Cordova 的插件但是不清楚 cordova 和设备是否加载完毕时</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">document</span>.addEventListener(<span class="string">&quot;deviceready&quot;</span>, yourCallbackFunction, <span class="literal">false</span>);</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">yourCallbackFunction</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="添加Cross-walk-webview插件"><a href="#添加Cross-walk-webview插件" class="headerlink" title="添加Cross-walk webview插件"></a>添加Cross-walk webview插件</h2><ul>
+<li>进入cordova项目根目录<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cordova plugin add cordova-plugin-crosswalk-webview@latest --save</span><br></pre></td></tr></table></figure>
+这里必须加上<code>@latest</code> 后缀或者<code>^2.2.0</code>，安装 2.2.0+ 版本，否则会遇到 <a target="_blank" rel="noopener" href="https://crosswalk-project.org/jira/browse/XWALK-7422">#XWALK-7422</a> 的问题。</li>
+</ul>
+<p><strong>加入Cross-walk webview后，打包时默认有两个apk，分别对应arm平台和x86平台，arm为手机用，体积会比原来增加20MB+，多的体积就是cross-walk的runtime</strong></p>
+<ul>
+<li><p>如果想打包后合并到到一个文件，可以修改cordova项目根目录的<code>config.xml</code></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span> <span class="attr">name</span>=<span class="string">&quot;cordova-plugin-crosswalk-webview&quot;</span> <span class="attr">spec</span>=<span class="string">&quot;~2.2.0&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">variable</span> <span class="attr">name</span>=<span class="string">&quot;XWALK_VERSION&quot;</span> <span class="attr">value</span>=<span class="string">&quot;22+&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">variable</span> <span class="attr">name</span>=<span class="string">&quot;XWALK_LITEVERSION&quot;</span> <span class="attr">value</span>=<span class="string">&quot;xwalk_core_library_canary:17+&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">variable</span> <span class="attr">name</span>=<span class="string">&quot;XWALK_COMMANDLINE&quot;</span> <span class="attr">value</span>=<span class="string">&quot;--disable-pull-to-refresh-effect&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">variable</span> <span class="attr">name</span>=<span class="string">&quot;XWALK_MODE&quot;</span> <span class="attr">value</span>=<span class="string">&quot;embedded&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">variable</span> <span class="attr">name</span>=<span class="string">&quot;XWALK_MULTIPLEAPK&quot;</span> <span class="attr">value</span>=<span class="string">&quot;true&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>ios系统的<code>UIWebView</code> 替换为 <code>WKWebView</code></p>
+</li>
+</ul>
+<ol>
+<li><p>安装</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cordova plugin add cordova-plugin-wkwebview-engine@latest --save</span><br></pre></td></tr></table></figure>
+<p>WKWebView目的是给出一个新的高性能的 Web View 解决方案，摆脱过去 UIWebView的旧笨重慢等问题，针对ios8前的系统。</p>
+</li>
+<li><p>修改<code>config.xml</code><br>在<code>&lt;platform name=&quot;ios&quot;&gt;</code>添加</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">feature</span> <span class="attr">name</span>=<span class="string">&quot;CDVWKWebViewEngine&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">param</span> <span class="attr">name</span>=<span class="string">&quot;ios-package&quot;</span> <span class="attr">value</span>=<span class="string">&quot;CDVWKWebViewEngine&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">feature</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<ul>
+<li>调试Cross-walk webview</li>
+</ul>
+<p><code>Cross-walk webview</code> 基于 <code>Chromium</code>，可以使用 <code>Chrome</code> 远程调试的功能。 PC连接 Android 手机并开启 USB 调试模式，开启 Cordova 项目，在 Chrome 地址栏中输入 <code>chrome://inspect</code> ，即可打开远程控制台。Vue Devtool 同理。</p>
+<h2 id="Cordova-plugin-whitelist-与-CSP-安全策略"><a href="#Cordova-plugin-whitelist-与-CSP-安全策略" class="headerlink" title="Cordova-plugin-whitelist 与 CSP 安全策略"></a>Cordova-plugin-whitelist 与 CSP 安全策略</h2><blockquote>
+<p>Cordova 4.0 以上环境中，需要安装cordova-plugin-whitelist插件并 对 config.xml 中的 <access origin="your-policy" /> 标签和 index.html 中的 META 标签做一定设置，防止出现共享 Webview 模式下的跨站攻击等安全问题。新的cordova项目创建时默认安装Cordova-plugin-whitelist，可以通过查看<code>config.xml</code>知道安装了哪些插件，插件的字段名为<code>plugin</code>，<code>name</code>是插件名，<code>spec</code>是版本号。</p>
+</blockquote>
+<ul>
+<li>打包时在<code>index.html</code>的<code>header</code>添加<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">&quot;Content-Security-Policy&quot;</span> <span class="attr">content</span>=<span class="string">&quot;default-src &#x27;self&#x27; data: gap: cdvfile: https://ssl.gstatic.com &#x27;unsafe-eval&#x27;; style-src &#x27;self&#x27; &#x27;unsafe-inline&#x27;; media-src *; font-src * data:; img-src *; script-src *;&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h2 id="添加-CodePush-热更新"><a href="#添加-CodePush-热更新" class="headerlink" title="添加 CodePush 热更新"></a>添加 <a target="_blank" rel="noopener" href="https://microsoft.github.io/code-push/">CodePush</a> 热更新</h2><blockquote>
+<p><code>CodePush</code>是微软开发的用于 <code>Cordova</code> 和 <code>React Native</code> 开发者热更新他们的APP到用户的设备上的一款开发工具。</p>
+</blockquote>
+<ul>
+<li><p>安装</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cordova plugin add cordova-plugin-code-push@latest --save</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>安装 code-push，需要注册一个账号，用于开发测试，正式部署时需要专门的账号</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">npm install -g code-push-cli</span><br><span class="line">code-push -v // 查看 code-push 版本，有输出说明成功</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">code-push register // 通过 Github 或者 微软帐号登录</span><br><span class="line">code-push login // 登录后会在本地生成 `session` 文件用来验证你的发布权限</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>添加app</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">code-push app add &lt;appName&gt;</span><br></pre></td></tr></table></figure>
+<p>添加后会生成key，复制好 staging 中的 key。</p>
+</li>
+<li><p>在 app 的 config.xml 中粘贴上一步复制的 key</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">platform</span> <span class="attr">name</span>=<span class="string">&quot;android&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">preference</span> <span class="attr">name</span>=<span class="string">&quot;CodePushDeploymentKey&quot;</span> <span class="attr">value</span>=<span class="string">&quot;YOUR-ANDROID-DEPLOYMENT-KEY&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">platform</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">platform</span> <span class="attr">name</span>=<span class="string">&quot;ios&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">preference</span> <span class="attr">name</span>=<span class="string">&quot;CodePushDeploymentKey&quot;</span> <span class="attr">value</span>=<span class="string">&quot;YOUR-IOS-DEPLOYMENT-KEY&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">platform</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在 <code>index.html</code> 中的安全策略 <code>meta</code> 中添加域名</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">&quot;Content-Security-Policy&quot;</span> <span class="attr">content</span>=<span class="string">&quot;default-src https://codepush.azurewebsites.net ... /&gt;</span></span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>添加热更新处理</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> app = &#123;</span><br><span class="line">    <span class="comment">// Application Constructor</span></span><br><span class="line">    initialize: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="built_in">document</span>.addEventListener(<span class="string">&#x27;deviceready&#x27;</span>, <span class="built_in">this</span>.onDeviceReady.bind(<span class="built_in">this</span>), <span class="literal">false</span>);</span><br><span class="line">    &#125;,</span><br><span class="line"></span><br><span class="line">    onDeviceReady: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="keyword">const</span> downloadProgress = <span class="function">(<span class="params">progress</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">`Downloaded <span class="subst">$&#123;progress.receivedBytes&#125;</span> of <span class="subst">$&#123;progress.totalBytes&#125;</span>`</span>); &#125;</span><br><span class="line">        codePush.sync( <span class="literal">null</span>, &#123;<span class="attr">updateDialog</span>: <span class="literal">true</span>, <span class="attr">installMode</span>:InstallMode.IMMEDIATE, <span class="attr">mandatoryInstallMode</span>: InstallMode.IMMEDIATE&#125;, downloadProgress );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line">app.initialize();</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>重新打包app，并发布app</p>
+</li>
+</ul>
+<blockquote>
+<p>CodePush 发布更新的方式是通过 <code>code-push release-cordova</code> 命令</p>
+</blockquote>
+<p>通过code-push release-cordova发布更新</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">code-push release-cordova &lt;appName&gt; &lt;platform&gt;</span><br></pre></td></tr></table></figure>
+<p>比如说：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">code-push release-cordova MyApp-Android android  --t 1.0.0 --dev <span class="literal">false</span> --d Production --des <span class="string">&quot;1.优化操作流程&quot;</span> --m <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>其中参数–t为二进制(.ipa与apk)安装包的的版本；–dev为是否启用开发者模式(默认为false)；–d是要发布更新的环境分Production与Staging(默认为Staging)；–des为更新说明；–m 是强制更新。<br>关于code-push release更多可选的参数，可以在终端输入code-push release进行查看。</p>
+</blockquote>
+<h2 id="Android-协议认证问题和生成签名"><a href="#Android-协议认证问题和生成签名" class="headerlink" title="Android 协议认证问题和生成签名"></a>Android 协议认证问题和生成签名</h2><ul>
+<li>同意协议</li>
+<li></li>
+</ul>
+<ol>
+<li><p>MacOS</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/Library/Android/sdk/tools/bin</span><br><span class="line">./sdkmanager --licenses</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>window</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> &lt;SDK目录&gt;/tools/bin</span><br><span class="line">./sdkmanager --licenses</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<p>一路同意到最后就可以了。</p>
+<ul>
+<li><p>生成签名</p>
+</li>
+<li><p>打开 Android Studio 的 <code>&quot;File&quot;-&gt;&quot;Open&quot;</code></p>
+</li>
+<li><p>定位到 cordova 项目下的<code>/platforms/android</code></p>
+</li>
+<li><p>选择”Build”-&gt;”Generate Signed APK”</p>
+</li>
+<li><p>选择一个已有的签名，或者新建一个</p>
+</li>
+<li><p>选择release生产版本，点击finish完成</p>
+</li>
+</ul>
+<h2 id="IOS-开发者证书"><a href="#IOS-开发者证书" class="headerlink" title="IOS 开发者证书"></a>IOS 开发者证书</h2><ul>
+<li>在苹果开发者网 <code>developer.apple.com/account/</code> 站生成了需要的appid,证书和profile文件</li>
+<li>在Display Name 修改应用名称</li>
+<li>用Xcode打开工程，注意是.xcworkspace(白颜色)的工程，不是.xcodeproj(蓝颜色)的工程</li>
+<li>在Resources/Images.xcassets里修改启动图片和应用图标，AppIcon是对应平台的图标，LaunchImage是启动图片</li>
+<li>选择“Product”-&gt;”Edit Scheme…”，在“Build Configuration”中选择“Release”,单击”Close”</li>
+<li>选择菜单栏中的”Product”-&gt;”Archive”，选择刚刚的工程，选择“Export…”，选择第一个(Save for iOS App Store Deployment)，点击Export。然后会生成一个文件夹，里面是ipa包</li>
+<li>打开 Application Loader，选择“交付您的应用程序”，选取之前生成的ipa包，然后下一步</li>
+<li>去 <code>itunesconnect.apple.com/WebObjects/…</code> 完成app相关信息的填写</li>
+</ul>
+<h2 id="添加极光推送"><a href="#添加极光推送" class="headerlink" title="添加极光推送"></a>添加极光推送</h2><blockquote>
+<p>地址：<a target="_blank" rel="noopener" href="https://github.com/jpush/jpush-phonegap-plugin">极光推送</a></p>
+</blockquote>
+<ul>
+<li><p>安装</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cordova plugin add jpush-phonegap-plugin --variable API_KEY=your_jpush_appkey</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>极光推送的相关事件</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">document</span>.addEventListener(<span class="string">&quot;deviceready&quot;</span>, onDeviceReady, <span class="literal">false</span>); </span><br><span class="line"><span class="built_in">document</span>.addEventListener(<span class="string">&quot;jpush.openNotification&quot;</span>, onOpenNotification, <span class="literal">false</span>);</span><br><span class="line"><span class="built_in">document</span>.addEventListener(<span class="string">&quot;jpush.receiveNotification&quot;</span>, onReceiveNotification, <span class="literal">false</span>);</span><br><span class="line"><span class="built_in">document</span>.addEventListener(<span class="string">&quot;jpush.backgroundNotification&quot;</span>, onBackgroundNotification, <span class="literal">false</span>);</span><br><span class="line"><span class="built_in">document</span>.addEventListener(<span class="string">&quot;jpush.receiveMessage&quot;</span>, onReceiveMessage, <span class="literal">false</span>);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>更多使用方法和信息可以去仓库地址查看</p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Vue/" rel="tag"># Vue</a>
+              <a href="/tags/cordova/" rel="tag"># cordova</a>
+              <a href="/tags/%E6%89%93%E5%8C%85/" rel="tag"># 打包</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/12/16/%E8%A7%84%E8%8C%83%E4%BD%A0%E7%9A%84git-commit-message/" rel="prev" title="规范你的git-commit-message">
+      <i class="fa fa-chevron-left"></i> 规范你的git-commit-message
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/04/12/%E4%BB%8E%E9%9B%B6%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E5%9F%BA%E4%BA%8Enodejs%E7%9A%84%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7/" rel="next" title="从零创建基于nodejs的命令行工具">
+      从零创建基于nodejs的命令行工具 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%86%E5%A4%87%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E5%8F%8A%E5%B7%A5%E5%85%B7"><span class="nav-number">1.</span> <span class="nav-text">准备开发环境及工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BB%BA%E7%AB%8BCordova%E9%A1%B9%E7%9B%AE"><span class="nav-number">2.</span> <span class="nav-text">建立Cordova项目</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%93%E5%8C%85vue-webApp%E5%88%B0cordova%E9%A1%B9%E7%9B%AE%E4%B8%8B"><span class="nav-number">3.</span> <span class="nav-text">打包vue-webApp到cordova项目下</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0Cordova-js"><span class="nav-number">4.</span> <span class="nav-text">添加Cordova.js</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0Cross-walk-webview%E6%8F%92%E4%BB%B6"><span class="nav-number">5.</span> <span class="nav-text">添加Cross-walk webview插件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cordova-plugin-whitelist-%E4%B8%8E-CSP-%E5%AE%89%E5%85%A8%E7%AD%96%E7%95%A5"><span class="nav-number">6.</span> <span class="nav-text">Cordova-plugin-whitelist 与 CSP 安全策略</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0-CodePush-%E7%83%AD%E6%9B%B4%E6%96%B0"><span class="nav-number">7.</span> <span class="nav-text">添加 CodePush 热更新</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Android-%E5%8D%8F%E8%AE%AE%E8%AE%A4%E8%AF%81%E9%97%AE%E9%A2%98%E5%92%8C%E7%94%9F%E6%88%90%E7%AD%BE%E5%90%8D"><span class="nav-number">8.</span> <span class="nav-text">Android 协议认证问题和生成签名</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IOS-%E5%BC%80%E5%8F%91%E8%80%85%E8%AF%81%E4%B9%A6"><span class="nav-number">9.</span> <span class="nav-text">IOS 开发者证书</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0%E6%9E%81%E5%85%89%E6%8E%A8%E9%80%81"><span class="nav-number">10.</span> <span class="nav-text">添加极光推送</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ninnka</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">41</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ninnka</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

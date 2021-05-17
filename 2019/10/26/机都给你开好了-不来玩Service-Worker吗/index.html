@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文主要讲 service worker 的主要基本特性以及使用方法，从实际开发的 PWA 中学习 service worker。  Service Worker 是什么Service Worker 是一个运行在在浏览器后台，独立于网页运行的由事件驱动的脚本。本质上是 Web Worker 的一种具体实现，通常与 Cache API 相结合使用，因为 Worker 线程执行的脚本与网页脚本相独立">
+<meta property="og:type" content="article">
+<meta property="og:title" content="机都给你开好了，来玩Service Worker呀！">
+<meta property="og:url" content="http://yoursite.com/2019/10/26/%E6%9C%BA%E9%83%BD%E7%BB%99%E4%BD%A0%E5%BC%80%E5%A5%BD%E4%BA%86-%E4%B8%8D%E6%9D%A5%E7%8E%A9Service-Worker%E5%90%97/index.html">
+<meta property="og:site_name" content="NinnkaStack">
+<meta property="og:description" content="本文主要讲 service worker 的主要基本特性以及使用方法，从实际开发的 PWA 中学习 service worker。  Service Worker 是什么Service Worker 是一个运行在在浏览器后台，独立于网页运行的由事件驱动的脚本。本质上是 Web Worker 的一种具体实现，通常与 Cache API 相结合使用，因为 Worker 线程执行的脚本与网页脚本相独立">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2020/01/21/ISGNLpAicBjsDWO.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/21/ltMkrZxgoPsEcFR.png">
+<meta property="og:image" content="https://i.loli.net/2019/09/10/LkbuedToJ4aMOUi.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/21/PQL3sMfTwUpz8aA.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/21/j1ZzdR9vE3co7ON.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/21/7AOREUeg26M9jpI.png">
+<meta property="article:published_time" content="2019-10-26T06:55:38.000Z">
+<meta property="article:modified_time" content="2021-05-17T05:31:30.036Z">
+<meta property="article:author" content="Ninnka">
+<meta property="article:tag" content="Service Worker">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2020/01/21/ISGNLpAicBjsDWO.png">
+
+<link rel="canonical" href="http://yoursite.com/2019/10/26/%E6%9C%BA%E9%83%BD%E7%BB%99%E4%BD%A0%E5%BC%80%E5%A5%BD%E4%BA%86-%E4%B8%8D%E6%9D%A5%E7%8E%A9Service-Worker%E5%90%97/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>机都给你开好了，来玩Service Worker呀！ | NinnkaStack</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">NinnkaStack</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/26/%E6%9C%BA%E9%83%BD%E7%BB%99%E4%BD%A0%E5%BC%80%E5%A5%BD%E4%BA%86-%E4%B8%8D%E6%9D%A5%E7%8E%A9Service-Worker%E5%90%97/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          机都给你开好了，来玩Service Worker呀！
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-10-26 14:55:38" itemprop="dateCreated datePublished" datetime="2019-10-26T14:55:38+08:00">2019-10-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-17 13:31:30" itemprop="dateModified" datetime="2021-05-17T13:31:30+08:00">2021-05-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/Service-Worker/" itemprop="url" rel="index"><span itemprop="name">Service Worker</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>本文主要讲 service worker 的主要基本特性以及使用方法，从实际开发的 PWA 中学习 service worker。</p>
+</blockquote>
+<h2 id="Service-Worker-是什么"><a href="#Service-Worker-是什么" class="headerlink" title="Service Worker 是什么"></a>Service Worker 是什么</h2><p>Service Worker 是一个运行在在浏览器后台，独立于网页运行的由事件驱动的脚本。<br>本质上是 Web Worker 的一种具体实现，通常与 Cache API 相结合使用，因为 Worker 线程执行的脚本与网页脚本相独立的缘故，<br>Worker 线程内不能访问到 window 以及 dom 相关的数据。同时，在 Service Worker 中处理大量数据时也不会阻塞的主线程。所以通常可以在 Service Worker 线程中拦截浏览器的请求，读取和存储请求内容，进而实现离线应用。</p>
+<h2 id="Service-Worker-能做什么"><a href="#Service-Worker-能做什么" class="headerlink" title="Service Worker 能做什么"></a>Service Worker 能做什么</h2><ul>
+<li><p><img src="https://i.loli.net/2020/01/21/ISGNLpAicBjsDWO.png" alt="网络优先"><br>当客户端发起请求时，<code>Service worker</code>会先请求对应的资源，并把结果返回，同时在<code>cache storage</code>中存储一份。</p>
+<p>在出现网络不可访问或服务出错时可以从缓存中获取相同的资源做容灾处理。</p>
+</li>
+<li><p><img src="https://i.loli.net/2020/01/21/ltMkrZxgoPsEcFR.png" alt="缓存优先.png"><br>当客户端发起请求时，<code>Service worker</code>会先从<code>cache storage</code>中读取资源，并把结果返回，同时请求一份资源，成功的话更新到缓存中。</p>
+<p>  这样可以保持极快的响应速度，适用于更新频率不高的资源。</p>
+</li>
+</ul>
+<h2 id="Service-Worker-的基本架构"><a href="#Service-Worker-的基本架构" class="headerlink" title="Service Worker 的基本架构"></a>Service Worker 的基本架构</h2><ul>
+<li>独立的声明周期</li>
+<li>基于 <code>Web Worker</code> 的事件机制</li>
+</ul>
+<a id="more"></a>
+
+<h3 id="Service-Worker-的生命周期"><a href="#Service-Worker-的生命周期" class="headerlink" title="Service Worker 的生命周期"></a>Service Worker 的生命周期</h3><p><img src="https://i.loli.net/2019/09/10/LkbuedToJ4aMOUi.png" alt="service_worker_lifecycle.png"></p>
+<h4 id="Service-Worker-生命周期的目的："><a href="#Service-Worker-生命周期的目的：" class="headerlink" title="Service Worker 生命周期的目的："></a>Service Worker 生命周期的目的：</h4><ul>
+<li>实现离线优先。</li>
+<li>允许新 Service Worker 自行做好运行准备，无需中断当前的 Service Worker。</li>
+<li>确保整个过程中作用域页面由同一个 Service Worker（或者没有 Service Worker）控制。</li>
+<li>确保每次只运行网站的一个版本。</li>
+</ul>
+<h4 id="Service-Worker-有独立的一套生命周期，生命周期主要分为"><a href="#Service-Worker-有独立的一套生命周期，生命周期主要分为" class="headerlink" title="Service Worker 有独立的一套生命周期，生命周期主要分为"></a>Service Worker 有独立的一套生命周期，生命周期主要分为</h4><p><code>注册</code></p>
+<blockquote>
+<p>注册是指浏览器下载<code>Service Worker</code>文件并确认其作用域的过程。<br>简单的理解就是浏览器去下载你指定的js，然后解析运行<br>那么作用域是什么呢？<br>作用域是指<code>Service Worker</code>能够访问的的资源范围。</p>
+</blockquote>
+<p>举个栗子</p>
+<ul>
+<li>域名A：<a target="_blank" rel="noopener" href="https://mei.youzan.com/a/b">https://mei.youzan.com/a/b</a><br>注册 SW 时 sw 文件在A域名下，则 SW 的作用域为 /a/b，那么这个 SW 只能处理 /a/b/xxx.png 这一类资源</li>
+<li>域名B：<a target="_blank" rel="noopener" href="https://mei.youzan.com/">https://mei.youzan.com</a><br>注册 SW 时 sw文件在B域名下，则 SW 的作用域为 /，那么这个 SW 能处理 根路径 下的所有静态资源</li>
+</ul>
+<p><code>安装</code></p>
+<blockquote>
+<p>JS 文件下载解析完后运行，然后开始安装过程，这个过程会触发一个 install 事件。</p>
+</blockquote>
+<p>通常安装阶段会分为三部分：</p>
+<ol>
+<li>install 安装阶段刚开始，使用 event.waitUntil() 可以使状态流转进 installing，否则直接进入 installed</li>
+<li>installing 安装中，这是时候一般会进行静态资源的缓存。缓存过程中状态会在 installing 中等待直到缓存结束</li>
+<li>installed 安装完毕，从 installing 状态流转而来</li>
+</ol>
+<p><img src="https://i.loli.net/2020/01/21/PQL3sMfTwUpz8aA.png" alt="image.png"></p>
+<p><strong>举些栗子</strong></p>
+<p><code>监听install事件</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** servie-worker.js */</span></span><br><span class="line"><span class="comment">// sw 文件中不能访问 window，可以用 this 或 self</span></span><br><span class="line"><span class="built_in">this</span>.addEventListener(<span class="string">&#x27;install&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">event</span>) </span>&#123;</span><br><span class="line">	<span class="built_in">console</span>.log(event);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><code>监听install事件，并缓存静态资源</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** servie-worker.js */</span></span><br><span class="line"><span class="comment">// sw 文件中不能访问 window，可以用 this 或 self</span></span><br><span class="line"><span class="built_in">this</span>.addEventListener(<span class="string">&#x27;install&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">event</span>) </span>&#123;</span><br><span class="line">  event.waitUntil(</span><br><span class="line">    caches.open(cacheName).then(<span class="function"><span class="keyword">function</span>(<span class="params">cache</span>) </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> cache.addAll(</span><br><span class="line">        [</span><br><span class="line">					<span class="string">&#x27;/js/index.js&#x27;</span>,</span><br><span class="line">          <span class="string">&#x27;/css/index.css&#x27;</span>,</span><br><span class="line">          <span class="string">&#x27;/offline.html&#x27;</span></span><br><span class="line">        ]</span><br><span class="line">      );</span><br><span class="line">    &#125;)</span><br><span class="line">  );</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><code>激活</code></p>
+<blockquote>
+<p>安装完成后，<code>Service Worker</code>还未开始真正运行，激活过程就是<code>Service Worker</code>启动的过程</p>
+</blockquote>
+<p>通常安装阶段会分为三部分：</p>
+<ol>
+<li>activate 安装阶段结束后流转的状态，使用 event.waitUntil() 可以使状态流转进 activating，否则直接进入 activated</li>
+<li>activating 激活中，这是时候一般会进行客户端页面控制权的交换，以及静态资源的迭代</li>
+<li>activated 激活完毕，从 activating 状态流转而来</li>
+</ol>
+<p><img src="https://i.loli.net/2020/01/21/j1ZzdR9vE3co7ON.png" alt="image.png"></p>
+<p><strong>举些栗子</strong></p>
+<p><code>监听active事件</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** servie-worker.js */</span></span><br><span class="line"><span class="comment">// sw 文件中不能访问 window，可以用 this 或 self</span></span><br><span class="line"><span class="built_in">this</span>.addEventListener(<span class="string">&#x27;active&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">event</span>) </span>&#123;</span><br><span class="line">	<span class="built_in">console</span>.log(event);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><code>监听active事件，删除旧的资源</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** servie-worker.js */</span></span><br><span class="line"><span class="comment">// sw 文件中不能访问 window，可以用 this 或 self</span></span><br><span class="line"><span class="built_in">this</span>.addEventListener(<span class="string">&#x27;activate&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">event</span>) </span>&#123;</span><br><span class="line">  event.waitUntil(</span><br><span class="line">    caches.keys().then(<span class="function"><span class="keyword">function</span>(<span class="params">cacheNames</span>) </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">Promise</span>.all(</span><br><span class="line">        cacheNames.filter(<span class="function"><span class="keyword">function</span>(<span class="params">cacheName</span>) </span>&#123;</span><br><span class="line">					<span class="comment">/** 过滤出符合条件的缓存 */</span></span><br><span class="line">        &#125;).map(<span class="function"><span class="keyword">function</span>(<span class="params">cacheName</span>) </span>&#123;</span><br><span class="line">          <span class="keyword">return</span> caches.delete(cacheName);</span><br><span class="line">        &#125;)</span><br><span class="line">      );</span><br><span class="line">    &#125;)</span><br><span class="line">  );</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>这里涉及到一个更新的流程<br><code>更新</code><br>以下情况下会触发更新：</p>
+<ul>
+<li>导航到一个<code>Service Worker</code>作用域内的页面。</li>
+<li>更新 push 和 sync 等功能事件，除非在前 24 小时内已进行更新检查。</li>
+<li>调用 .register()，仅在 Service Worker 网址已发生变化时。</li>
+</ul>
+<p><code>活跃状态</code></p>
+<blockquote>
+<p>激活后，<code>Service worker</code>启动成功并进入活跃状态 <code>IDLE</code>，这个时候可以通过它独立的事件机制去为所欲为。</p>
+</blockquote>
+<h3 id="Service-Worker-的事件机制"><a href="#Service-Worker-的事件机制" class="headerlink" title="Service Worker 的事件机制"></a>Service Worker 的事件机制</h3><blockquote>
+<p><code>Service Worker</code>基于 <code>Web Worker</code>，可以通过 <code>message</code>事件实现基本的 <code>Worker</code>和主线程间通信。</p>
+</blockquote>
+<ul>
+<li>fetch 加载资源</li>
+<li>sync 同步</li>
+<li>push 服务端消息推送</li>
+<li>message worker和主线程的消息监听</li>
+</ul>
+<h4 id="fetch事件"><a href="#fetch事件" class="headerlink" title="fetch事件"></a><code>fetch</code>事件</h4><blockquote>
+<p>浏览器发起任何请求都会被<code>fetch</code>事件监听到。</p>
+</blockquote>
+<p><img src="https://i.loli.net/2020/01/21/7AOREUeg26M9jpI.png" alt="image.png"></p>
+<p><strong>举些栗子</strong></p>
+<p><code>仅限网络请求</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** servie-worker.js */</span></span><br><span class="line"><span class="comment">// sw 文件中不能访问 window，可以用 this 或 self</span></span><br><span class="line"><span class="built_in">this</span>.addEventListener(<span class="string">&#x27;fetch&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">event</span>) </span>&#123;</span><br><span class="line">	<span class="built_in">console</span>.log(event);</span><br><span class="line">	event.respondWith(fetch(event.request));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><code>仅限缓存</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** servie-worker.js */</span></span><br><span class="line"><span class="comment">// sw 文件中不能访问 window，可以用 this 或 self</span></span><br><span class="line"><span class="built_in">this</span>.addEventListener(<span class="string">&#x27;fetch&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">event</span>) </span>&#123;</span><br><span class="line">  event.respondWith(caches.match(event.request));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><code>缓存优先，网络备用</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** servie-worker.js */</span></span><br><span class="line"><span class="comment">// sw 文件中不能访问 window，可以用 this 或 self</span></span><br><span class="line"><span class="built_in">this</span>.addEventListener(<span class="string">&#x27;fetch&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">event</span>) </span>&#123;</span><br><span class="line">  event.respondWith(</span><br><span class="line">    caches.match(event.request).then(<span class="function"><span class="keyword">function</span>(<span class="params">response</span>) </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> response || fetch(event.request);</span><br><span class="line">    &#125;)</span><br><span class="line">  );</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><code>网络优先，缓存备用</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** servie-worker.js */</span></span><br><span class="line"><span class="comment">// sw 文件中不能访问 window，可以用 this 或 self</span></span><br><span class="line"><span class="built_in">this</span>.addEventListener(<span class="string">&#x27;fetch&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">event</span>) </span>&#123;</span><br><span class="line">  event.respondWith(</span><br><span class="line">    fetch(event.request).catch(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> caches.match(event.request);</span><br><span class="line">    &#125;)</span><br><span class="line">  );</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><code>缓存优先，网络备用，更新缓存</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** servie-worker.js */</span></span><br><span class="line"><span class="comment">// sw 文件中不能访问 window，可以用 this 或 self</span></span><br><span class="line"><span class="built_in">this</span>.addEventListener(<span class="string">&#x27;fetch&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">event</span>) </span>&#123;</span><br><span class="line">  event.respondWith(</span><br><span class="line">    caches.open(<span class="string">&#x27;dynamic&#x27;</span>).then(<span class="function"><span class="keyword">function</span>(<span class="params">cache</span>) </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> cache.match(event.request).then(<span class="function"><span class="keyword">function</span> (<span class="params">response</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> response || fetch(event.request).then(<span class="function"><span class="keyword">function</span>(<span class="params">response</span>) </span>&#123;</span><br><span class="line">          cache.put(event.request, response.clone());</span><br><span class="line">          <span class="keyword">return</span> response;</span><br><span class="line">        &#125;);</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;)</span><br><span class="line">  );</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><code>网络异常或错误处理</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** servie-worker.js */</span></span><br><span class="line"><span class="comment">// sw 文件中不能访问 window，可以用 this 或 self</span></span><br><span class="line"><span class="built_in">this</span>.addEventListener(<span class="string">&#x27;fetch&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">event</span>) </span>&#123;</span><br><span class="line">  event.respondWith(</span><br><span class="line">    caches.match(event.request).then(<span class="function"><span class="keyword">function</span>(<span class="params">response</span>) </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (response) &#123;</span><br><span class="line">        <span class="keyword">return</span> response;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> fetch(event.request).then(<span class="function"><span class="keyword">function</span>(<span class="params">response</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (response.status === <span class="number">404</span>) &#123;</span><br><span class="line">          <span class="keyword">return</span> caches.match(<span class="string">&#x27;pages/404.html&#x27;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> response</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;).catch(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> caches.match(<span class="string">&#x27;/offline.html&#x27;</span>);</span><br><span class="line">    &#125;)</span><br><span class="line">  );</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h4 id="sync事件"><a href="#sync事件" class="headerlink" title="sync事件"></a><code>sync</code>事件</h4><blockquote>
+<p>TODO</p>
+</blockquote>
+<h4 id="push事件"><a href="#push事件" class="headerlink" title="push事件"></a><code>push</code>事件</h4><blockquote>
+<p>TODO</p>
+</blockquote>
+<h2 id="有没有一劳永逸的工具"><a href="#有没有一劳永逸的工具" class="headerlink" title="有没有一劳永逸的工具"></a>有没有一劳永逸的工具</h2><blockquote>
+<p><a target="_blank" rel="noopener" href="https://github.com/GoogleChrome/workbox">WorkBox</a></p>
+</blockquote>
+<blockquote>
+<p><code>Workbox</code> 是 <code>GoogleChrome</code> 团队推出的一套 Web App 静态资源本地存储的解决方案，该解决方案包含一些 Js 库和构建工具，在 Chrome Submit 2017 上首次隆重面世。而在 <code>Workbox</code> 背后则是 <code>Service Worker</code> 和 <code>Cache API</code> 等技术和标准在驱动。在 <code>Workebox</code> 之前，<code>GoogleChrome</code> 团队较早时间推出过 <code>sw-precache</code> 和 <code>sw-toolbox</code> 库，但是在 <code>GoogleChrome</code> 工程师们看来，<code>Workbox</code> 才是真正能方便统一的处理离线能力的更完美的方案，所以停止了对 <code>sw-precache</code> 和 <code>sw-toolbox</code> 的维护。</p>
+</blockquote>
+<p>从上前面介绍的 Service Worker 特性上看，我们主要是想利用它的 Cache API 操作缓存数据，比如 Precaching（预缓存）、Runtime caching（运行时缓存），但是又不想写太多模板式的代码。<br>Workbox 则是提供了恰到好处的支持，并且提供多种 Strategies（缓存策略）优化缓存。</p>
+<h2 id="推荐阅读"><a href="#推荐阅读" class="headerlink" title="推荐阅读"></a>推荐阅读</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/TalAter/awesome-service-workers/">awesome-service-workers</a></li>
+<li><a target="_blank" rel="noopener" href="https://developers.google.com/web/fundamentals/primers/service-workers">service-worker</a></li>
+<li><a target="_blank" rel="noopener" href="https://developers.google.com/web/fundamentals/instant-and-offline/offline-cookbook/#stale-while-revalidate">stale-while-revalidate</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Service-Worker/" rel="tag"># Service Worker</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/08/23/TypeScript%E6%8A%80%E5%B7%A7%E4%B9%8B%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%A3%85%E9%80%BC/" rel="prev" title="TypeScript技巧之从入门到装逼">
+      <i class="fa fa-chevron-left"></i> TypeScript技巧之从入门到装逼
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/05/15/%E6%89%8B%E6%92%95%E6%BA%90%E7%A0%81-%E6%89%8B%E5%86%99%E5%AE%9E%E7%8E%B0Koa%E6%B4%8B%E8%91%B1%E6%A8%A1%E5%9E%8B%E4%B8%AD%E9%97%B4%E4%BB%B6/" rel="next" title="手撕源码-手写实现Koa洋葱模型中间件">
+      手撕源码-手写实现Koa洋葱模型中间件 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Service-Worker-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">1.</span> <span class="nav-text">Service Worker 是什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Service-Worker-%E8%83%BD%E5%81%9A%E4%BB%80%E4%B9%88"><span class="nav-number">2.</span> <span class="nav-text">Service Worker 能做什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Service-Worker-%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%9E%B6%E6%9E%84"><span class="nav-number">3.</span> <span class="nav-text">Service Worker 的基本架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Service-Worker-%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-number">3.1.</span> <span class="nav-text">Service Worker 的生命周期</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Service-Worker-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E7%9A%84%E7%9B%AE%E7%9A%84%EF%BC%9A"><span class="nav-number">3.1.1.</span> <span class="nav-text">Service Worker 生命周期的目的：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Service-Worker-%E6%9C%89%E7%8B%AC%E7%AB%8B%E7%9A%84%E4%B8%80%E5%A5%97%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%EF%BC%8C%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E4%B8%BB%E8%A6%81%E5%88%86%E4%B8%BA"><span class="nav-number">3.1.2.</span> <span class="nav-text">Service Worker 有独立的一套生命周期，生命周期主要分为</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Service-Worker-%E7%9A%84%E4%BA%8B%E4%BB%B6%E6%9C%BA%E5%88%B6"><span class="nav-number">3.2.</span> <span class="nav-text">Service Worker 的事件机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#fetch%E4%BA%8B%E4%BB%B6"><span class="nav-number">3.2.1.</span> <span class="nav-text">fetch事件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sync%E4%BA%8B%E4%BB%B6"><span class="nav-number">3.2.2.</span> <span class="nav-text">sync事件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#push%E4%BA%8B%E4%BB%B6"><span class="nav-number">3.2.3.</span> <span class="nav-text">push事件</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%89%E6%B2%A1%E6%9C%89%E4%B8%80%E5%8A%B3%E6%B0%B8%E9%80%B8%E7%9A%84%E5%B7%A5%E5%85%B7"><span class="nav-number">4.</span> <span class="nav-text">有没有一劳永逸的工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%A8%E8%8D%90%E9%98%85%E8%AF%BB"><span class="nav-number">5.</span> <span class="nav-text">推荐阅读</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ninnka</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">41</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ninnka</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

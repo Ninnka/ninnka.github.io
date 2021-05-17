@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="以vue-cli2作为开发脚手架为前提，虽然内部做了不少的打包优化来减少文件体积，但是仍然有提升的空间。提升的方向大致就为两种：1. 代码结构；2. webpack的打包配置  调整代码结构配合vue-router使用异步加载如何配合vue-router使用异步加载在官方文档中已有说明，简单的来说就是在需要的时候再加载特定的js，这部分js在打包的时候会被单独打包到一个js中，以此达到减少bun">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vue2加载优化">
+<meta property="og:url" content="http://yoursite.com/2017/08/05/Vue2%E9%A6%96%E5%B1%8F%E5%8A%A0%E8%BD%BD%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="NinnkaStack">
+<meta property="og:description" content="以vue-cli2作为开发脚手架为前提，虽然内部做了不少的打包优化来减少文件体积，但是仍然有提升的空间。提升的方向大致就为两种：1. 代码结构；2. webpack的打包配置  调整代码结构配合vue-router使用异步加载如何配合vue-router使用异步加载在官方文档中已有说明，简单的来说就是在需要的时候再加载特定的js，这部分js在打包的时候会被单独打包到一个js中，以此达到减少bun">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-08-05T09:39:37.000Z">
+<meta property="article:modified_time" content="2021-05-17T05:21:34.049Z">
+<meta property="article:author" content="Ninnka">
+<meta property="article:tag" content="Vue">
+<meta property="article:tag" content="首屏">
+<meta property="article:tag" content="性能">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2017/08/05/Vue2%E9%A6%96%E5%B1%8F%E5%8A%A0%E8%BD%BD%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Vue2加载优化 | NinnkaStack</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">NinnkaStack</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/08/05/Vue2%E9%A6%96%E5%B1%8F%E5%8A%A0%E8%BD%BD%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Vue2加载优化
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-08-05 17:39:37" itemprop="dateCreated datePublished" datetime="2017-08-05T17:39:37+08:00">2017-08-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-17 13:21:34" itemprop="dateModified" datetime="2021-05-17T13:21:34+08:00">2021-05-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>以vue-cli2作为开发脚手架为前提，虽然内部做了不少的打包优化来减少文件体积，但是仍然有提升的空间。提升的方向大致就为两种：1. 代码结构；2. webpack的打包配置</p>
+</blockquote>
+<h2 id="调整代码结构"><a href="#调整代码结构" class="headerlink" title="调整代码结构"></a>调整代码结构</h2><h3 id="配合vue-router使用异步加载"><a href="#配合vue-router使用异步加载" class="headerlink" title="配合vue-router使用异步加载"></a>配合vue-router使用异步加载</h3><p>如何配合vue-router使用异步加载在官方文档中已有说明，简单的来说就是在需要的时候再加载特定的js，这部分js在打包的时候会被单独打包到一个js中，以此达到减少bundle的体积的目的。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> TestView = <span class="function">() =&gt;</span> <span class="keyword">import</span>(<span class="string">&#x27;@/views/test-view&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> routerOptions = &#123;</span><br><span class="line">  routes: [</span><br><span class="line">    &#123;</span><br><span class="line">      path: <span class="string">&#x27;/&#x27;</span>,</span><br><span class="line">      component: TestView,</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  ],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<a id="more"></a>
+
+<h3 id="框架的按需加载"><a href="#框架的按需加载" class="headerlink" title="框架的按需加载"></a>框架的按需加载</h3><p>通常我们诸如element-ui，mint-ui，iview等框架时，有可能会直接在main.js中直接导入整个框架，这会造成打包后的体积多出不少，并且使用中有绝大部分的组件用不到。这个时候就需要按需加载。</p>
+<p>以element-ui为例：<a target="_blank" rel="noopener" href="https://element.faas.ele.me/#/zh-CN/component/quickstart">官方文档案例</a></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> Vue <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; Button, Select &#125; <span class="keyword">from</span> <span class="string">&#x27;element-ui&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> App <span class="keyword">from</span> <span class="string">&#x27;./App.vue&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Vue.component(Button.name, Button);</span><br><span class="line">Vue.component(Select.name, Select);</span><br><span class="line"><span class="comment">/* 或写为</span></span><br><span class="line"><span class="comment"> * Vue.use(Button)</span></span><br><span class="line"><span class="comment"> * Vue.use(Select)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> Vue(&#123;</span><br><span class="line">  el: <span class="string">&#x27;#app&#x27;</span>,</span><br><span class="line">  render: <span class="function"><span class="params">h</span> =&gt;</span> h(App)</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="取消外链css"><a href="#取消外链css" class="headerlink" title="取消外链css"></a>取消外链css</h3><p>vue-cli在打包时默认会抽取css到css文件，然后以外链的方式插入到index.html。这里会产生额外的http请求，所以这里可以考虑 <code>css in js</code>，不抽取css到单独的文件。</p>
+<p>找到 <code>build/webpack.prod.conf.js</code> 文件，将 <code>module</code> 对象修改为以下的代码</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> webpackConfig = merge(baseWebpackConfig, &#123;</span><br><span class="line">  <span class="built_in">module</span>: &#123;</span><br><span class="line">    rules: utils.styleLoaders(&#123;</span><br><span class="line">      sourceMap: config.build.productionSourceMap,</span><br><span class="line">      extract: <span class="literal">false</span>,</span><br><span class="line">      usePostCSS: <span class="literal">true</span></span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><strong>重点是 <code>extract</code> 属性改为 <code>false</code> 即可</strong></p>
+<h3 id="页面加载期间的loading动画"><a href="#页面加载期间的loading动画" class="headerlink" title="页面加载期间的loading动画"></a>页面加载期间的loading动画</h3><blockquote>
+<p>即使做了以上种种优化，在网络状况不理想的情况下，用户在网页加载的期间仍然能够看到一小段时间的白屏。</p>
+</blockquote>
+<p>针对这种情况，我们可以手动index.html中加点动画元素，一张图片，或者svg等等。</p>
+<p>但是这种做法每次打包都需要手动复制粘贴，显然很不优雅。</p>
+<p>我们可以利用 <code>html-webpack-plugin</code> 将自定义的 loading 的对象带入到index.html</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&#x27;fs&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> loading = &#123;</span><br><span class="line">  html: fs.readFileSync(path.join(__dirname, <span class="string">&#x27;../loading.html&#x27;</span>)),</span><br><span class="line">  css: <span class="string">&#x27;&lt;style&gt;&#x27;</span> + fs.readFileSync(path.join(__dirname, <span class="string">&#x27;../loading.css&#x27;</span>)) + <span class="string">&#x27;&lt;/style&gt;&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> webpackConfig = merge(baseWebpackConfig, &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="keyword">new</span> HtmlWebpackPlugin(&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    loading: loading,</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;),</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">		<span class="comment">&lt;!-- ... --&gt;</span></span><br><span class="line">    &lt;%= htmlWebpackPlugin.options.loading.css %&gt;</span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;app&quot;</span>&gt;</span></span><br><span class="line">      &lt;%= htmlWebpackPlugin.options.loading.html %&gt;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- built files will be auto injected --&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="prerender-spa-plugin-预渲染首屏"><a href="#prerender-spa-plugin-预渲染首屏" class="headerlink" title="prerender-spa-plugin 预渲染首屏"></a><code>prerender-spa-plugin</code> 预渲染首屏</h3><p>在某些项目中，loading本身就可能被设计成一个组件，这个时候就需要先渲染出组件的真实DOM。首先用 <code>headless browser</code> （比如：<a target="_blank" rel="noopener" href="https://github.com/GoogleChrome/puppeteer">puppeteer</a>）执行js，渲染完成后，读取html插入到我们的<code>index.html</code>。</p>
+<p>以上的步骤都已经集成在了 <code>prerender-spa-plugin</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">&#x27;path&#x27;</span>)</span><br><span class="line"><span class="keyword">const</span> PrerenderSPAPlugin = <span class="built_in">require</span>(<span class="string">&#x27;prerender-spa-plugin&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  plugins: [</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="keyword">new</span> PrerenderSPAPlugin(&#123;</span><br><span class="line">      <span class="comment">// Required - The path to the webpack-outputted app to prerender.</span></span><br><span class="line">      staticDir: path.join(__dirname, <span class="string">&#x27;dist&#x27;</span>),</span><br><span class="line">      <span class="comment">// Required - Routes to render.</span></span><br><span class="line">      routes: [ <span class="string">&#x27;/&#x27;</span>, <span class="string">&#x27;/about&#x27;</span>, <span class="string">&#x27;/some/deep/nested/route&#x27;</span> ],</span><br><span class="line">    &#125;)</span><br><span class="line">  ],</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>更多的高级用法可以去访问仓库的文档查看。</p>
+<blockquote>
+<p>预渲染使用方法参考：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/31954853">Vue单页面骨架屏实践</a></p>
+</blockquote>
+<h3 id="本地静态资源（图片等）的预加载"><a href="#本地静态资源（图片等）的预加载" class="headerlink" title="本地静态资源（图片等）的预加载"></a>本地静态资源（图片等）的预加载</h3><blockquote>
+<p>如果有不少图片使用的频率较高，使用的范围比较广，可以考虑在 app mounted 后延时一小段时间，将那些图片做一个预加载。</p>
+</blockquote>
+<p>// app.vue (template)</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span><br><span class="line">	<span class="comment">&lt;!-- ... --&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;preload-imgs&quot;</span> <span class="attr">v-if</span>=<span class="string">&quot;preloadImg&quot;</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">&quot;/path/to/img/...&quot;</span> <span class="attr">alt</span>=<span class="string">&quot;&quot;</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>// app.vue</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">	<span class="comment">// ...</span></span><br><span class="line">	data () &#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">      preloadImg: <span class="literal">false</span>,</span><br><span class="line">    &#125;;</span><br><span class="line">	&#125;,</span><br><span class="line">  mounted () &#123;</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="built_in">this</span>.preloadImg = <span class="literal">true</span>;</span><br><span class="line">    &#125;, <span class="number">500</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上述方法需要人肉添加图片到模板中，显然很不优雅</p>
+<p>那有没有优雅又高效的方法呢？答案是肯定有的。</p>
+<p>假设我们的 <code>assets</code> 文件夹是这样的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">- assets</span><br><span class="line">  |- images</span><br><span class="line">    |- bg_home.png</span><br><span class="line">    |- bg-tab.png</span><br><span class="line">    |- bg-nav.png</span><br><span class="line">    |- ...</span><br></pre></td></tr></table></figure>
+
+<p>我们在 <code>images</code> 的文件夹中加入 <code>index.js</code>，并添加以下代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  <span class="comment">// 路径也可以写成&#x27;@/assets/images/bg_home.png&#x27;的形式，只要是会经过webpack处理的文件，都可以使用这种方法，可以在webpack中根据需要进行其他的配置。</span></span><br><span class="line">  bgHome: <span class="built_in">require</span>(<span class="string">&#x27;./bg_home.png&#x27;</span>), </span><br><span class="line">  bgTab: <span class="built_in">require</span>(<span class="string">&#x27;./bg_tab.png&#x27;</span>),</span><br><span class="line">  bgNav: <span class="built_in">require</span>(<span class="string">&#x27;./bg_nav.png&#x27;</span>),</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>然后在 <code>assets</code> 文件夹在添加 <code>index.js</code>，代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> images <span class="keyword">from</span> <span class="string">&#x27;./images&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> &#123;</span><br><span class="line">  images,</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>这是，文件目录应该是这样的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">- assets</span><br><span class="line">  |- images</span><br><span class="line">    |- bg_home.png</span><br><span class="line">    |- bg-tab.png</span><br><span class="line">    |- bg-nav.png</span><br><span class="line">    |- index.js</span><br><span class="line">    |- ...</span><br><span class="line">  |- index.js</span><br></pre></td></tr></table></figure>
+
+<p>使用起来也很简单，我们回到 <code>App.vue</code><br>在 <code>Vue</code> 的实例 <code>created</code>时：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// App.vue &lt;script&gt;</span></span><br><span class="line"><span class="keyword">import</span> &#123; images &#125; <span class="keyword">from</span> <span class="string">&#x27;@/assets&#x27;</span>;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">	data () &#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">      preloadImg: <span class="literal">false</span>,</span><br><span class="line">      imageAssets: []</span><br><span class="line">    &#125;;</span><br><span class="line">	&#125;,</span><br><span class="line">	</span><br><span class="line">  <span class="keyword">async</span> created () &#123;</span><br><span class="line">    <span class="built_in">this</span>.imageAssets = images;</span><br><span class="line">  &#125;,</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">async</span> mounted () &#123;</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="built_in">this</span>.preloadImg = <span class="literal">true</span>;</span><br><span class="line">    &#125;, <span class="number">500</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- App.vue template --&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- ... --&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;preload-imgs&quot;</span> <span class="attr">v-if</span>=<span class="string">&quot;preloadImg&quot;</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">img</span> <span class="attr">v-for</span>=<span class="string">&quot;(src, index) of imageAssets&quot;</span> <span class="attr">:key</span>=<span class="string">&quot;index&quot;</span> <span class="attr">:src</span>=<span class="string">&quot;src&quot;</span> <span class="attr">:alt</span>=<span class="string">&quot;`preload: $&#123;index&#125;`&quot;</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- ... --&gt;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>关于 webpack 如何处理静态资源路径，这里有个<a target="_blank" rel="noopener" href="http://hq5544.github.io/vue-webpack/static.html">中文文档</a></p>
+</blockquote>
+<h3 id="使用动态-polyfill"><a href="#使用动态-polyfill" class="headerlink" title="使用动态 polyfill"></a>使用动态 <code>polyfill</code></h3><blockquote>
+<p><code>polyfill</code> 为不支持ES2015+的老旧浏览器提供了一个完整的 ES2015+ 环境，这样就可以使用新的内置对象比如 Promise 或者 WeakMap, 静态方法比如 Array.from 或者 Object.assign, 实例方法比如 Array.prototype.includes 和生成器函数（提供给你使用 regenerator 插件）。为了达到这一点， polyfill 添加到了全局范围，就像原生类型比如 String 一样。</p>
+</blockquote>
+<p>但是 <code>polyfill</code> 的体积通常都很大，而且几乎所有的现代浏览器都已经能运行绝大部分的ES2015+环境，<code>polyfill</code> 只是为那一小部分用户提供的’垫片’。</p>
+<p>为了只在需要 <code>polyfill</code> 的时候加载特定的一部分，我们可以使用<a target="_blank" rel="noopener" href="https://polyfill.io/v2/docs/">polyfill.io</a></p>
+<ul>
+<li>引入polyfill</li>
+</ul>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;https://cdn.polyfill.io/v2/polyfill.min.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>引入特定部分的polyfill</li>
+</ul>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;https://cdn.polyfill.io/v2/polyfill.min.js?features=Map&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>polyfill.io会根据浏览器的UserAgent判断浏览器需要哪些polyfill，然后只再返回需要的那部分。</li>
+</ul>
+<p>你可以使用 Chrome 和 Edge，IE 访问 <a target="_blank" rel="noopener" href="https://cdn.polyfill.io/v2/polyfill.min.js">https://cdn.polyfill.io/v2/polyfill.min.js</a> 试试。</p>
+<h3 id="在生产环境中部署ES2015"><a href="#在生产环境中部署ES2015" class="headerlink" title="在生产环境中部署ES2015+"></a>在生产环境中部署ES2015+</h3><blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://jdc.jd.com/archives/4911">【译】如何在生产环境中部署ES2015+</a></p>
+</blockquote>
+<blockquote>
+<p>我们在打包时通常会了兼容老旧浏览器，使用babel将es2015+代码转译成es5（语法部分），代价就是js体积会变大不少。<br>如果能让浏览器自动加载他们能够识别的那部分 <code>JavaScript</code> 岂不美哉？是的，有这种方案了。<br>虽然说目前并没有一个非常好的解决方案，但是我们可以通过 <code>&lt;script type=&quot;module&quot;&gt;</code> 过滤出能够运行整个es2015+环境的浏览器。</p>
+</blockquote>
+<p>能够识别出 type=module 的浏览器同样支持 async 和 await 函数， Class 类，arrow functions，fetch 、Promises、Map、Set 等更多 ES2015+ 语法。</p>
+<p>我们可以单独打包出一份 <code>es2015+</code> 的代码，然后另外打包一份降级到 es5 的代码。</p>
+<p><strong>以下说明摘自原文[译]</strong></p>
+<ul>
+<li>实现方式</li>
+</ul>
+<p>例如，假设你使用了 webpack 并且 JS 的入口文件是 ./path/to/main.js ，你当前的 ES5 版本的配置应该如下所示（注意，由于使用 ES5 语法书写，我给该代码包命名为 main-legacy ）</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  entry: &#123;</span><br><span class="line">    <span class="string">&#x27;main-legacy&#x27;</span>: <span class="string">&#x27;./path/to/main.js&#x27;</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">  output: &#123;</span><br><span class="line">    filename: <span class="string">&#x27;[name].js&#x27;</span>,</span><br><span class="line">    path: path.resolve(__dirname, <span class="string">&#x27;public&#x27;</span>),</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="built_in">module</span>: &#123;</span><br><span class="line">    rules: [&#123;</span><br><span class="line">      test: <span class="regexp">/\.js$/</span>,</span><br><span class="line">      use: &#123;</span><br><span class="line">        loader: <span class="string">&#x27;babel-loader&#x27;</span>,</span><br><span class="line">        options: &#123;</span><br><span class="line">          presets: [</span><br><span class="line">            [<span class="string">&#x27;env&#x27;</span>, &#123;</span><br><span class="line">              modules: <span class="literal">false</span>,</span><br><span class="line">              useBuiltIns: <span class="literal">true</span>,</span><br><span class="line">              targets: &#123;</span><br><span class="line">                browsers: [</span><br><span class="line">                  <span class="string">&#x27;&gt; 1%&#x27;</span>,</span><br><span class="line">                  <span class="string">&#x27;last 2 versions&#x27;</span>,</span><br><span class="line">                  <span class="string">&#x27;Firefox ESR&#x27;</span>,</span><br><span class="line">                ],</span><br><span class="line">              &#125;,</span><br><span class="line">            &#125;],</span><br><span class="line">          ],</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;],</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>为了支持 ES2015+ 版本，你需要做的是生成第二个配置文件，该配置文件的使用环境是支持 <code>&lt;script type=&quot;module&quot;&gt;</code> 的浏览器， 如下面所示：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  entry: &#123;</span><br><span class="line">    <span class="string">&#x27;main&#x27;</span>: <span class="string">&#x27;./path/to/main.js&#x27;</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">  output: &#123;</span><br><span class="line">    filename: <span class="string">&#x27;[name].js&#x27;</span>,</span><br><span class="line">    path: path.resolve(__dirname, <span class="string">&#x27;public&#x27;</span>),</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="built_in">module</span>: &#123;</span><br><span class="line">    rules: [&#123;</span><br><span class="line">      test: <span class="regexp">/\.js$/</span>,</span><br><span class="line">      use: &#123;</span><br><span class="line">        loader: <span class="string">&#x27;babel-loader&#x27;</span>,</span><br><span class="line">        options: &#123;</span><br><span class="line">          presets: [</span><br><span class="line">            [<span class="string">&#x27;env&#x27;</span>, &#123;</span><br><span class="line">              modules: <span class="literal">false</span>,</span><br><span class="line">              useBuiltIns: <span class="literal">true</span>,</span><br><span class="line">              targets: &#123;</span><br><span class="line">                browsers: [</span><br><span class="line">                  <span class="string">&#x27;Chrome &gt;= 60&#x27;</span>,</span><br><span class="line">                  <span class="string">&#x27;Safari &gt;= 10.1&#x27;</span>,</span><br><span class="line">                  <span class="string">&#x27;iOS &gt;= 10.3&#x27;</span>,</span><br><span class="line">                  <span class="string">&#x27;Firefox &gt;= 54&#x27;</span>,</span><br><span class="line">                  <span class="string">&#x27;Edge &gt;= 15&#x27;</span>,</span><br><span class="line">                ],</span><br><span class="line">              &#125;,</span><br><span class="line">            &#125;],</span><br><span class="line">          ],</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;],</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>接下来的步骤就是修改 HTML 代码，有条件的加载浏览器中支持 ES2015+ 的模块。你可以使用下面两个标签 <code>&lt;script type=&quot;module&quot;&gt;</code>  和 <code>&lt;script nomodule&gt;</code>  :</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- Browsers with ES module support load this file. --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;module&quot;</span> <span class="attr">src</span>=<span class="string">&quot;main.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- Older browsers load this file (and module-supporting --&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- browsers know *not* to load this file). --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">nomodule</span> <span class="attr">src</span>=<span class="string">&quot;main-legacy.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>注意：这里唯一的问题是 Safari 10 并不支持 <code>nomodule</code> 属性，但是为了解决这一问题，你可以在使用 <code>&lt;script nomodule&gt;</code> 标签前，在 HTML 中使用内联JavaScript代码片段（注意：这个插件已经安装在 Safari11 版本中了）。</p>
+<h3 id="添加骨架屏"><a href="#添加骨架屏" class="headerlink" title="添加骨架屏"></a>添加骨架屏</h3><blockquote>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://xiaoiver.github.io/coding/2017/07/30/%E4%B8%BAvue%E9%A1%B9%E7%9B%AE%E6%B7%BB%E5%8A%A0%E9%AA%A8%E6%9E%B6%E5%B1%8F.html">为vue项目添加骨架屏</a></p>
+</blockquote>
+<blockquote>
+<p>相关库：<a target="_blank" rel="noopener" href="https://github.com/michalsnik/vue-content-placeholders">vue-content-placeholders</a></p>
+</blockquote>
+<p><strong>具体用法和相关概念可以查看上面列出的链接</strong></p>
+<h2 id="优化webpack打包配置"><a href="#优化webpack打包配置" class="headerlink" title="优化webpack打包配置"></a>优化webpack打包配置</h2><h3 id="禁用-sourceMap"><a href="#禁用-sourceMap" class="headerlink" title="禁用 sourceMap"></a>禁用 sourceMap</h3><p>找到<code>build/index.js</code><br>修改 <code>build</code> 对象的 <code>productionSourceMap</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">	<span class="comment">// ...</span></span><br><span class="line">  build: &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    productionSourceMap: <span class="literal">false</span>,</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>禁用 <code>sourceMap</code> 可以有效减小体积，但是线上出问题时没有办法定位问题所在的代码。是否禁用看需求。</strong></p>
+<h3 id="升级到webpack4，-使用-SplitChunksPlugin"><a href="#升级到webpack4，-使用-SplitChunksPlugin" class="headerlink" title="升级到webpack4， 使用 SplitChunksPlugin"></a>升级到webpack4， 使用 SplitChunksPlugin</h3><p>webpack4默认使用 <code>SplitChunksPlugin</code> 分割代码，比起 <code>CommonChunksPlugin</code>，<code>SplitChunksPlugin</code> 采用不同的方法分割代码，默认规则是：</p>
+<ul>
+<li>模块被重复引用或者来自node_modules中的模块</li>
+<li>在压缩前最小为30kb</li>
+<li>在按需加载时，请求数量小于等于5</li>
+<li>在初始化加载时，请求数量小于等于3</li>
+</ul>
+<blockquote>
+<p>小于30kb的模块不值得再单独发送一次请求，在很小的模块的前提下，相比与多次打包，减少请求次数成本要低。</p>
+</blockquote>
+<p>自定义配置参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_26733915/article/details/79458533">webpack4——SplitChunksPlugin使用指南</a></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> webpack.optimize.SplitChunksPlugin(&#123;</span><br><span class="line">    chunks: <span class="string">&quot;all&quot;</span>,</span><br><span class="line">    minSize: <span class="number">20000</span>,</span><br><span class="line">    minChunks: <span class="number">1</span>,</span><br><span class="line">    maxAsyncRequests: <span class="number">5</span>,</span><br><span class="line">    maxInitialRequests: <span class="number">3</span>,</span><br><span class="line">    name: <span class="literal">true</span></span><br><span class="line">)&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>此外，需要注意的是，如果用到了 <code>html-webpack-plugin</code>, 则需要安装 <code>html-webpack-plugin@next</code>。</p>
+<h3 id="其他优化"><a href="#其他优化" class="headerlink" title="其他优化"></a>其他优化</h3><ul>
+<li>网上有不少资料都会提到DllPlugin 和 DllReferencePlugin，使用cdn等手段进行优化打包，但是这些方法其实都只是加快build的速度，对Vue的首屏加载性能没有起到作用。</li>
+</ul>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><ul>
+<li>配合vue-router使用异步加载</li>
+<li>框架的按需加载</li>
+<li>取消外链css</li>
+<li>页面加载期间的loading动画</li>
+<li><code>prerender-spa-plugin</code> 预渲染首屏</li>
+<li>本地静态资源（图片等）的预加载</li>
+<li>使用动态 <code>polyfill</code></li>
+<li>在生产环境中部署ES2015+</li>
+<li>添加骨架屏</li>
+<li>打包时禁用 <code>sourceMap</code></li>
+<li>升级到webpack4， 使用 SplitChunksPlugin</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Vue/" rel="tag"># Vue</a>
+              <a href="/tags/%E9%A6%96%E5%B1%8F/" rel="tag"># 首屏</a>
+              <a href="/tags/%E6%80%A7%E8%83%BD/" rel="tag"># 性能</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/06/05/Vue2%E7%9A%84%E7%BB%84%E4%BB%B6%E7%BB%A7%E6%89%BF/" rel="prev" title="Vue2的组件继承">
+      <i class="fa fa-chevron-left"></i> Vue2的组件继承
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/12/05/%E9%AD%94%E6%94%B9%E7%89%88TCP%E5%8A%A0%E9%80%9F%E7%AE%97%E6%B3%95BBR%E5%AE%89%E8%A3%85%E8%84%9A%E6%9C%ACDebian_Ubuntu%EF%BC%88%E6%94%B6%E9%9B%86%E7%B1%BB%EF%BC%89%EF%BC%88%E8%BD%AC%E8%BD%BD%EF%BC%89/" rel="next" title="魔改版TCP加速算法BBR安装脚本:Debian_Ubuntu（收集类）（转载）">
+      魔改版TCP加速算法BBR安装脚本:Debian_Ubuntu（收集类）（转载） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B0%83%E6%95%B4%E4%BB%A3%E7%A0%81%E7%BB%93%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">调整代码结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E5%90%88vue-router%E4%BD%BF%E7%94%A8%E5%BC%82%E6%AD%A5%E5%8A%A0%E8%BD%BD"><span class="nav-number">1.1.</span> <span class="nav-text">配合vue-router使用异步加载</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A1%86%E6%9E%B6%E7%9A%84%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD"><span class="nav-number">1.2.</span> <span class="nav-text">框架的按需加载</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%96%E6%B6%88%E5%A4%96%E9%93%BEcss"><span class="nav-number">1.3.</span> <span class="nav-text">取消外链css</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%A1%B5%E9%9D%A2%E5%8A%A0%E8%BD%BD%E6%9C%9F%E9%97%B4%E7%9A%84loading%E5%8A%A8%E7%94%BB"><span class="nav-number">1.4.</span> <span class="nav-text">页面加载期间的loading动画</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#prerender-spa-plugin-%E9%A2%84%E6%B8%B2%E6%9F%93%E9%A6%96%E5%B1%8F"><span class="nav-number">1.5.</span> <span class="nav-text">prerender-spa-plugin 预渲染首屏</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%AC%E5%9C%B0%E9%9D%99%E6%80%81%E8%B5%84%E6%BA%90%EF%BC%88%E5%9B%BE%E7%89%87%E7%AD%89%EF%BC%89%E7%9A%84%E9%A2%84%E5%8A%A0%E8%BD%BD"><span class="nav-number">1.6.</span> <span class="nav-text">本地静态资源（图片等）的预加载</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%8A%A8%E6%80%81-polyfill"><span class="nav-number">1.7.</span> <span class="nav-text">使用动态 polyfill</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%A8%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E4%B8%AD%E9%83%A8%E7%BD%B2ES2015"><span class="nav-number">1.8.</span> <span class="nav-text">在生产环境中部署ES2015+</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0%E9%AA%A8%E6%9E%B6%E5%B1%8F"><span class="nav-number">1.9.</span> <span class="nav-text">添加骨架屏</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%98%E5%8C%96webpack%E6%89%93%E5%8C%85%E9%85%8D%E7%BD%AE"><span class="nav-number">2.</span> <span class="nav-text">优化webpack打包配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A6%81%E7%94%A8-sourceMap"><span class="nav-number">2.1.</span> <span class="nav-text">禁用 sourceMap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%87%E7%BA%A7%E5%88%B0webpack4%EF%BC%8C-%E4%BD%BF%E7%94%A8-SplitChunksPlugin"><span class="nav-number">2.2.</span> <span class="nav-text">升级到webpack4， 使用 SplitChunksPlugin</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E4%BC%98%E5%8C%96"><span class="nav-number">2.3.</span> <span class="nav-text">其他优化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-number">3.</span> <span class="nav-text">结论</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ninnka</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">41</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ninnka</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

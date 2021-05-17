@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="原文地址: https:&#x2F;&#x2F;blog.liyuans.com&#x2F;archives&#x2F;altered-bbr-onekey-script-collection.html这里我仅做一个文档保存备份  雨落无声版本脚本 来源雨落无声：魔改版 BBR 一键安装脚本 For Debian8 &#x2F; Ubuntu16 +  注意：内核固定切换为 4.10.15，成功率高。 简介 在 Debian 8 和 Ubunt">
+<meta property="og:type" content="article">
+<meta property="og:title" content="魔改版TCP加速算法BBR安装脚本:Debian_Ubuntu（收集类）（转载）">
+<meta property="og:url" content="http://yoursite.com/2017/12/05/%E9%AD%94%E6%94%B9%E7%89%88TCP%E5%8A%A0%E9%80%9F%E7%AE%97%E6%B3%95BBR%E5%AE%89%E8%A3%85%E8%84%9A%E6%9C%ACDebian_Ubuntu%EF%BC%88%E6%94%B6%E9%9B%86%E7%B1%BB%EF%BC%89%EF%BC%88%E8%BD%AC%E8%BD%BD%EF%BC%89/index.html">
+<meta property="og:site_name" content="NinnkaStack">
+<meta property="og:description" content="原文地址: https:&#x2F;&#x2F;blog.liyuans.com&#x2F;archives&#x2F;altered-bbr-onekey-script-collection.html这里我仅做一个文档保存备份  雨落无声版本脚本 来源雨落无声：魔改版 BBR 一键安装脚本 For Debian8 &#x2F; Ubuntu16 +  注意：内核固定切换为 4.10.15，成功率高。 简介 在 Debian 8 和 Ubunt">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-12-05T06:53:00.000Z">
+<meta property="article:modified_time" content="2021-05-17T05:21:34.052Z">
+<meta property="article:author" content="Ninnka">
+<meta property="article:tag" content="BBR">
+<meta property="article:tag" content="转载">
+<meta property="article:tag" content="收藏">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2017/12/05/%E9%AD%94%E6%94%B9%E7%89%88TCP%E5%8A%A0%E9%80%9F%E7%AE%97%E6%B3%95BBR%E5%AE%89%E8%A3%85%E8%84%9A%E6%9C%ACDebian_Ubuntu%EF%BC%88%E6%94%B6%E9%9B%86%E7%B1%BB%EF%BC%89%EF%BC%88%E8%BD%AC%E8%BD%BD%EF%BC%89/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>魔改版TCP加速算法BBR安装脚本:Debian_Ubuntu（收集类）（转载） | NinnkaStack</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">NinnkaStack</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/05/%E9%AD%94%E6%94%B9%E7%89%88TCP%E5%8A%A0%E9%80%9F%E7%AE%97%E6%B3%95BBR%E5%AE%89%E8%A3%85%E8%84%9A%E6%9C%ACDebian_Ubuntu%EF%BC%88%E6%94%B6%E9%9B%86%E7%B1%BB%EF%BC%89%EF%BC%88%E8%BD%AC%E8%BD%BD%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          魔改版TCP加速算法BBR安装脚本:Debian_Ubuntu（收集类）（转载）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-12-05 14:53:00" itemprop="dateCreated datePublished" datetime="2017-12-05T14:53:00+08:00">2017-12-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-17 13:21:34" itemprop="dateModified" datetime="2021-05-17T13:21:34+08:00">2021-05-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>原文地址: <a target="_blank" rel="noopener" href="https://blog.liyuans.com/archives/altered-bbr-onekey-script-collection.html">https://blog.liyuans.com/archives/altered-bbr-onekey-script-collection.html</a><br>这里我仅做一个文档保存备份</p>
+</blockquote>
+<h1 id="雨落无声版本脚本"><a href="#雨落无声版本脚本" class="headerlink" title="雨落无声版本脚本"></a>雨落无声版本脚本</h1><blockquote>
+<p>来源<a target="_blank" rel="noopener" href="http://www.hostloc.com/thread-372361-1-1.html">雨落无声：魔改版 BBR 一键安装脚本 For Debian8 / Ubuntu16 +</a></p>
+</blockquote>
+<p>注意：内核固定切换为 4.10.15，成功率高。</p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
+<li>在 Debian 8 和 Ubuntu16 + 系统上一键部署魔改版 BBR，自动换内核成 4.10.15 ，自动安装 Headers。</li>
+<li>用户只需要将系统安装成 Debian 8 或者 Ubuntu 16 即可，剩下的交给脚本来吧。</li>
+</ul>
+<h2 id="提醒"><a href="#提醒" class="headerlink" title="提醒"></a>提醒</h2><p><strong>部分商家的 VPS 可能会遇到换内核之后无法启动系统的情况，所以请运行脚本前一定要备份好重要数据！！</strong></p>
+<h2 id="一键脚本"><a href="#一键脚本" class="headerlink" title="一键脚本"></a>一键脚本</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -N --no-check-certificate https://raw.githubusercontent.com/FunctionClub/YankeeBBR/master/bbr.sh &amp;&amp; bash bbr.sh install</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>然后根据提示重启系统。重启完成后，运行</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash bbr.sh start</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>查看魔改 BBR 状态，运行下面的命令，如果看到有 tsunami 就表示开启成功！</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sysctl net.ipv4.tcp_available_congestion_control</span><br></pre></td></tr></table></figure>
+
+<a id="more"></a>
+
+<h1 id="Vicer-版本脚本"><a href="#Vicer-版本脚本" class="headerlink" title="Vicer 版本脚本"></a>Vicer 版本脚本</h1><blockquote>
+<p>来源萌咖：<a target="_blank" rel="noopener" href="https://moeclub.org/2017/06/24/278/">Debian/Ubuntu TCP BBR 改进版 / 增强版</a></p>
+</blockquote>
+<p>注意：内核自动获取最新版，但是可能失败。</p>
+<h2 id="一键脚本-1"><a href="#一键脚本-1" class="headerlink" title="一键脚本"></a>一键脚本</h2><ul>
+<li>注意: 执行此命令会自动重启<br>本脚本在 Debian8，Ubuntu16.04 上通过测试</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget --no-check-certificate -qO <span class="string">&#x27;BBR_POWERED.sh&#x27;</span> <span class="string">&#x27;https://moeclub.org/attachment/LinuxShell/BBR_POWERED.sh&#x27;</span> &amp;&amp; chmod a+x BBR_POWERED.sh &amp;&amp; bash BBR_POWERED.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="说明"><a href="#说明" class="headerlink" title="说明:"></a>说明:</h3><ul>
+<li>执行过程中会重新编译模块</li>
+<li>模块默认为开机自动加载</li>
+<li>模块名称: <code>tcp_bbr_powered</code></li>
+<li>可用 <code>modprobe tcp_bbr_powered</code> 命令进行加载模块</li>
+<li>可执行 <code>lsmod |grep &#39;bbr_powered&#39;</code></li>
+<li>结果不为空, 则加载模块成功</li>
+<li>可执行 <code>sysctl -w net.ipv4.tcp_congestion_control=bbr_powered</code> 使用此模块</li>
+</ul>
+<h3 id="注意"><a href="#注意" class="headerlink" title="注意:"></a>注意:</h3><ul>
+<li>如遇报错: <code>Error! Header not be matched by Linux Kernel</code>，请用使用本博客提供的脚本重新开启 BBR</li>
+<li>如遇报错: <code>Error! Install gcc-4.9</code>，首先尝试 <code>apt-get update</code>，再次执行此脚本</li>
+<li>如果未解决，请自行想办法安装 <code>gcc-4.9</code>，或切换系统后再试</li>
+</ul>
+<h1 id="91-云一键脚本"><a href="#91-云一键脚本" class="headerlink" title="91 云一键脚本"></a>91 云一键脚本</h1><blockquote>
+<p>来源 91yun: <a target="_blank" rel="noopener" href="https://www.91yun.org/archives/16781">修改版 BBR 安装，转载自 hostloc @Yankee</a></p>
+</blockquote>
+<p><strong>仅支持 Debian 8 &amp; Ubuntu 16.04</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wget https://raw.githubusercontent.com/singhigh/502newbbr/master/502newbbr.sh</span><br><span class="line">chmod +x 502newbbr.sh</span><br><span class="line">./502newbbr.sh</span><br></pre></td></tr></table></figure>
+
+<h1 id="cxcool-版本（针对老系统）"><a href="#cxcool-版本（针对老系统）" class="headerlink" title="cxcool 版本（针对老系统）"></a>cxcool 版本（针对老系统）</h1><blockquote>
+<p>来源 Hostloc: <a target="_blank" rel="noopener" href="http://www.hostloc.com/thread-372335-1-1.html">[萌新教程] 如何在 Ubuntu 14.04 和 Debain 7 老系统上装 BBR 魔改版</a></p>
+</blockquote>
+<ul>
+<li><p>给萌新和渣新指点一下如何 上 <code>TSUNAMI BBR</code><br>只有 <code>DEBIAN 7</code> 和 <code>UBUNTU 14.04</code> 的地方应该怎么办呢 ？ 请看如下 。。。</p>
+</li>
+<li><p>开 BBR 的教程表示只要装 内核的 image 即可 ，header 没要求 。。然后魔改版的需要 。。<br>那应该怎么办呢 -3-。。。</p>
+</li>
+<li><p>还是到老地方，选择你 安装的对应内核 - -。。WHAT？ 对应内核找不到了 - - 输入： <code>uname -r</code><br>查找内核地址：<a target="_blank" rel="noopener" href="http://kernel.ubuntu.com/~kernel-ppa/mainline/">http://kernel.ubuntu.com/~kernel-ppa/mainline/</a><br>或者自己谷歌：site:centos.org 内核版本</p>
+</li>
+<li><p>以这个 4.10.15 内核为例：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wget http://kernel.ubuntu.com/~kernel-ppa/mainline/v4.10.15/linux-headers-4.10.15-041015_4.10.15-041015.201705080411_all.deb</span><br><span class="line">wget http://kernel.ubuntu.com/~kernel-ppa/mainline/v4.10.15/linux-headers-4.10.15-041015-generic_4.10.15-041015.201705080411_amd64.deb</span><br><span class="line">dpkg -i linux-headers-4.10.*.deb    ---- 这里你是 4.10.xx 就这么写 如果是 4.11 和 4.12 那么自己改别无脑复制 -3-</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>好了对应的内核装好之后, 老系统要装 <code>gcc 4.9 +</code> 很多新人可能卡在这个步骤 。。。<br>老的系统通常 <code>ubuntu</code> 默认的 <code>apt-get</code> 库里没 <code>4.9 +</code> 或者就是你装了还是识别不到 这种奇葩问题 。。。那么接下来就来解决：<br>先是 UBUNTU 14.04 安装方法</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">apt-get update</span><br><span class="line">apt-get install software-properties-common</span><br><span class="line">add-apt-repository ppa:ubuntu-toolchain-r/<span class="built_in">test</span>              ----这一步可能提示你要按个回车 继续安装。。</span><br><span class="line">apt-get update</span><br><span class="line">apt-get upgrade</span><br><span class="line">apt-get install gcc-4.9 g++-4.9</span><br><span class="line">updatedb</span><br><span class="line">ldconfig</span><br><span class="line">locate gcc</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>再是 <code>DEBIAN7</code>：<br><code>apt-get update</code><br><code>apt-get upgrade</code><br><code>nano /etc/apt/sources.list</code>    —把里面的<code>wheezy</code> 这个词全部替换成<code> jessie ,CTRL O ,CTRL X</code> 退出。<br><code>apt-get update</code><br><code>apt-get install gcc-4.9 g++-4.9</code><br><code>nano /etc/apt/sources.list</code>   —把<code>jessie</code> 换回<code>wheezy</code></p>
+</li>
+<li><p>这些步骤好了之后 gcc -v ，如果你发觉他显示的 gcc 版本还是 4.8X 的话 。继续如下步骤，注意一行一行的复制 。。回车进行下一行，当最后一行输入完毕之后会提示你 gcc 安装位置更新成功 - -。。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 49 \</span><br><span class="line">--slave /usr/bin/g++ g++ /usr/bin/g++-4.9 \</span><br><span class="line">--slave /usr/bin/gcc-ar gcc-ar /usr/bin/gcc-ar-4.9 \</span><br><span class="line">--slave /usr/bin/gcc-nm gcc-nm /usr/bin/gcc-nm-4.9 \</span><br><span class="line">--slave /usr/bin/gcc-ranlib gcc-ranlib /usr/bin/gcc-ranlib-4.9</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>那么再来一次 <code>gcc -v</code> 看到是 4.9x 之后你就可以愉快的进行安装了 。。。<br>安装完毕之后，附上小白专用 <code>sysctl</code> 预设置文件。。自己用 <code>SSHFTP</code> 上传到 <code>/etc/</code> 目录下 。。替代原有文件。。<code>sysctl.conf (2.64 KB)</code></p>
+</li>
+<li><p>然后来一发 <code>sysctl -p</code><br>OK 了 ，保存好了 - - 重启也不会掉存档了 。。。。但是模块不会自己启动，等我过个 1-2 天再更新傻瓜教程。。。。<br>于是这个很 LOW 的 菜鸟专用教程结束了 -3-。。。<br>再次给大佬跪安</p>
+</li>
+</ul>
+<h2 id="原帖-Yankee"><a href="#原帖-Yankee" class="headerlink" title="原帖 @Yankee"></a>原帖 @Yankee</h2><blockquote>
+<p>来源 Hostloc：<a target="_blank" rel="noopener" href="http://www.hostloc.com/thread-372277-1-2.html">魔改版 BBR 一键安装脚本 For Debian8 / Ubuntu16 +</a></p>
+</blockquote>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git/plain/net/ipv4/tcp_bbr.c">初版 BBR</a></li>
+<li><a target="_blank" rel="noopener" href="https://gist.github.com/anonymous/ba338038e799eafbba173215153a7f3a/raw/55ff1e45c97b46f12261e07ca07633a9922ad55d/tcp_tsunami.c">魔改 BBR</a></li>
+</ul>
+<h3 id="注意-1"><a href="#注意-1" class="headerlink" title="注意"></a>注意</h3><ul>
+<li>编译时系统必须安装 <code>4.10</code> 以上版本的 kernel 及对应的 <code>linux-header</code>，<code>gcc</code> 版本应在 <code>4.9</code> 以上<br>以 <code>4.10.9</code> 为例，需先更换内核，再先后安装：<br>（<a target="_blank" rel="noopener" href="http://kernel.ubuntu.com/~kernel-ppa/mainline/v4.10.9/%EF%BC%89">http://kernel.ubuntu.com/~kernel-ppa/mainline/v4.10.9/）</a><br><code>linux-headers-4.10.9-041009_4.10.9-041009.201704080516_all.deb</code><br><code>linux-headers-4.10.9-041009-generic_4.10.9-041009.201704080516_amd64.deb</code></li>
+</ul>
+<h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><ul>
+<li><p>以下步骤在 debian 8 及 ubuntu 16 上测试通过：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">apt-get install make gcc-4.9</span><br><span class="line">wget -O ./tcp_tsunami.c https://gist.github.com/anonymous/ba338038e799eafbba173215153a7f3a/raw/55ff1e45c97b46f12261e07ca07633a9922ad55d/tcp_tsunami.c</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;obj-m:=tcp_tsunami.o&quot;</span> &gt; Makefile</span><br><span class="line">make -C /lib/modules/$(uname -r)/build M=`<span class="built_in">pwd</span>` modules CC=/usr/bin/gcc-4.9</span><br><span class="line">install tcp_tsunami.ko /lib/modules/$(uname -r)/kernel</span><br><span class="line">depmod -a</span><br><span class="line">insmod tcp_tsunami.ko</span><br><span class="line">sysctl -w net.ipv4.tcp_congestion_control=tsunami</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>关键参数：<code>bbr_bw_rtts</code>, <code>bbr_min_rtt_win_sec</code>, <code>bbr_probe_rtt_mode_ms</code>, <code>bbr_cwnd_min_target</code>, <code>bbr_drain_gain</code></p>
+</li>
+<li><p>关键数组：<code>bbr_pacing_gain</code></p>
+</li>
+</ul>
+<p>经过一个月的测试，魔改 BBR 比起正常版的 BBR 确实强上不少，最起码以前看 y2b 4k 断断续续的远东 ss 现在能流畅播放了。<br>以上版本的 BBR 不保证普适性，建议自行修改参数测试</p>
+<ul>
+<li>参考链接：<ol>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/dog250/article/details/52939004">http://blog.csdn.net/dog250/article/details/52939004</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/dog250/article/details/52879298">http://blog.csdn.net/dog250/article/details/52879298</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/dog250/article/details/52972502">http://blog.csdn.net/dog250/article/details/52972502</a></li>
+<li><a target="_blank" rel="noopener" href="https://patchwork.ozlabs.org/patch/671069/">https://patchwork.ozlabs.org/patch/671069/</a></li>
+</ol>
+</li>
+</ul>
+<h3 id="补充"><a href="#补充" class="headerlink" title="补充"></a>补充</h3><ul>
+<li><p>关于自启动 (optional)<br>由于自定义的模块没有直接编译入 debian 内核，现阶段系统重启后必须动态加载模块，并重新设定拥塞控制算法，建议将启动指令写入 startup，范例如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">PATH_EXEC=<span class="string">&quot;/etc/init.d/tsunami_up&quot;</span></span><br><span class="line">cat&gt;&gt;<span class="variable">$PATH_EXEC</span>&lt;<span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">modprobe tcp_tsunami</span><br><span class="line">sysctl -w net.ipv4.tcp_congestion_control=tsunami</span><br><span class="line"><span class="built_in">exit</span> 0</span><br><span class="line">EOF</span><br><span class="line">sudo chmod +x <span class="variable">$PATH_EXEC</span></span><br><span class="line"><span class="built_in">echo</span> -e <span class="string">&quot;`cat /etc/rc.local|grep -v -E &#x27;(<span class="variable">$PATH_EXEC</span>|exit 0)&#x27;`\n<span class="variable">$PATH_EXEC</span>\n\nexit 0&quot;</span> &gt; /etc/rc.local</span><br><span class="line"><span class="variable">$PATH_EXEC</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Additional Optimization (recommended)<br>参考：<br><a target="_blank" rel="noopener" href="https://github.com/shadowsocks/shadowsocks/wiki/Optimizing-Shadowsocks">https://github.com/shadowsocks/shadowsocks/wiki/Optimizing-Shadowsocks</a><br><a target="_blank" rel="noopener" href="https://github.com/breakwa11/shadowsocks-rss/wiki/ulimit">https://github.com/breakwa11/shadowsocks-rss/wiki/ulimit</a></p>
+</li>
+<li><p>Experimental Optimization (optional)<br>实验性调优，通过对 fq 参数的进阶设定，以期提高 BBR 的发包能力上限<br><a target="_blank" rel="noopener" href="https://www.systutorials.com/docs/linux/man/8-tc-fq/">https://www.systutorials.com/docs/linux/man/8-tc-fq/</a></p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/BBR/" rel="tag"># BBR</a>
+              <a href="/tags/%E8%BD%AC%E8%BD%BD/" rel="tag"># 转载</a>
+              <a href="/tags/%E6%94%B6%E8%97%8F/" rel="tag"># 收藏</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/08/05/Vue2%E9%A6%96%E5%B1%8F%E5%8A%A0%E8%BD%BD%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" rel="prev" title="Vue2加载优化">
+      <i class="fa fa-chevron-left"></i> Vue2加载优化
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/03/17/mint-ui%E7%9A%84loadmore%EF%BC%88%E4%B8%8A%E6%BB%91%EF%BC%8C%E4%B8%8B%E6%8B%89%EF%BC%89%E7%BB%84%E4%BB%B6%E7%9A%84%E9%9D%9E%E4%BE%B5%E5%85%A5%E5%BC%8F%EF%BC%88%E4%B8%8D%E4%BF%AE%E6%94%B9%E6%BA%90%E7%A0%81%EF%BC%89%E4%BC%98%E5%8C%96/" rel="next" title="mint-ui的loadmore（上滑，下拉）组件的非侵入式（不修改源码）优化">
+      mint-ui的loadmore（上滑，下拉）组件的非侵入式（不修改源码）优化 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%9B%A8%E8%90%BD%E6%97%A0%E5%A3%B0%E7%89%88%E6%9C%AC%E8%84%9A%E6%9C%AC"><span class="nav-number">1.</span> <span class="nav-text">雨落无声版本脚本</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8F%90%E9%86%92"><span class="nav-number">1.2.</span> <span class="nav-text">提醒</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E9%94%AE%E8%84%9A%E6%9C%AC"><span class="nav-number">1.3.</span> <span class="nav-text">一键脚本</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Vicer-%E7%89%88%E6%9C%AC%E8%84%9A%E6%9C%AC"><span class="nav-number">2.</span> <span class="nav-text">Vicer 版本脚本</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E9%94%AE%E8%84%9A%E6%9C%AC-1"><span class="nav-number">2.1.</span> <span class="nav-text">一键脚本</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%B4%E6%98%8E"><span class="nav-number">2.1.1.</span> <span class="nav-text">说明:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B3%A8%E6%84%8F"><span class="nav-number">2.1.2.</span> <span class="nav-text">注意:</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#91-%E4%BA%91%E4%B8%80%E9%94%AE%E8%84%9A%E6%9C%AC"><span class="nav-number">3.</span> <span class="nav-text">91 云一键脚本</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#cxcool-%E7%89%88%E6%9C%AC%EF%BC%88%E9%92%88%E5%AF%B9%E8%80%81%E7%B3%BB%E7%BB%9F%EF%BC%89"><span class="nav-number">4.</span> <span class="nav-text">cxcool 版本（针对老系统）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E5%B8%96-Yankee"><span class="nav-number">4.1.</span> <span class="nav-text">原帖 @Yankee</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B3%A8%E6%84%8F-1"><span class="nav-number">4.1.1.</span> <span class="nav-text">注意</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">4.1.2.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%A5%E5%85%85"><span class="nav-number">4.1.3.</span> <span class="nav-text">补充</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ninnka</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">41</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ninnka</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

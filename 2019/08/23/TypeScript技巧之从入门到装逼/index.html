@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="预备动作 阅读本篇之前你可能需要一定的TypeScript基础，如果还没开始上手建议从这里开始   以下是传送门  TypeScript Document 官方文档 TypeScript HandBook 小手册 TypeScript Playground 旧版练习场 TypeScript Playground 新版练习场 (比上面那个高级，写作期间是beta版)   正片开始 主要介绍 Type">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TypeScript技巧之从入门到装逼">
+<meta property="og:url" content="http://yoursite.com/2019/08/23/TypeScript%E6%8A%80%E5%B7%A7%E4%B9%8B%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%A3%85%E9%80%BC/index.html">
+<meta property="og:site_name" content="NinnkaStack">
+<meta property="og:description" content="预备动作 阅读本篇之前你可能需要一定的TypeScript基础，如果还没开始上手建议从这里开始   以下是传送门  TypeScript Document 官方文档 TypeScript HandBook 小手册 TypeScript Playground 旧版练习场 TypeScript Playground 新版练习场 (比上面那个高级，写作期间是beta版)   正片开始 主要介绍 Type">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-08-23T06:55:08.000Z">
+<meta property="article:modified_time" content="2021-05-17T05:30:17.251Z">
+<meta property="article:author" content="Ninnka">
+<meta property="article:tag" content="TypeScript">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2019/08/23/TypeScript%E6%8A%80%E5%B7%A7%E4%B9%8B%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%A3%85%E9%80%BC/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>TypeScript技巧之从入门到装逼 | NinnkaStack</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">NinnkaStack</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/23/TypeScript%E6%8A%80%E5%B7%A7%E4%B9%8B%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%A3%85%E9%80%BC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          TypeScript技巧之从入门到装逼
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-08-23 14:55:08" itemprop="dateCreated datePublished" datetime="2019-08-23T14:55:08+08:00">2019-08-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-17 13:30:17" itemprop="dateModified" datetime="2021-05-17T13:30:17+08:00">2021-05-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/TypeScript/" itemprop="url" rel="index"><span itemprop="name">TypeScript</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="预备动作"><a href="#预备动作" class="headerlink" title="预备动作"></a>预备动作</h2><blockquote>
+<p>阅读本篇之前你可能需要一定的TypeScript基础，如果还没开始上手建议从这里开始</p>
+</blockquote>
+<blockquote>
+<p>以下是传送门</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="http://www.typescriptlang.org/docs/home.html">TypeScript Document 官方文档</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhongsp.gitbooks.io/typescript-handbook/content/">TypeScript HandBook 小手册</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.typescriptlang.org/play/index.html">TypeScript Playground 旧版练习场</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.typescriptlang.org/v2/en/play">TypeScript Playground 新版练习场 (比上面那个高级，写作期间是beta版)</a></li>
+</ol>
+</blockquote>
+<h2 id="正片开始"><a href="#正片开始" class="headerlink" title="正片开始"></a>正片开始</h2><blockquote>
+<p>主要介绍 TypeScript 的常用和不常用的各种技巧，包括用这些技巧创建一些高级类型函数，会附上 Playground 的链接。</p>
+</blockquote>
+<h3 id="关键词"><a href="#关键词" class="headerlink" title="关键词"></a>关键词</h3><blockquote>
+<p>用于更加细粒度的处理接口和类型别名**</p>
+</blockquote>
+<blockquote>
+<ul>
+<li>@scope <em>runtime</em> 运行时</li>
+<li>@scope <em>lexical</em> 静态分析/词法分析</li>
+</ul>
+</blockquote>
+<p><strong>类型断言 / 类型守卫 / 类型约束</strong></p>
+<blockquote>
+<p>可以获取，确定，约束变量类型</p>
+</blockquote>
+<h4 id="typeof-scope-runtime"><a href="#typeof-scope-runtime" class="headerlink" title="typeof @scope runtime"></a><code>typeof</code> @scope <em>runtime</em></h4><blockquote>
+<p>获取变量的类型，常用于一些需要确认变量的类型然后进行不同操作的场景</p>
+</blockquote>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> AOrB = &#123; <span class="attr">s</span>: <span class="built_in">string</span>; &#125; | <span class="built_in">string</span>;</span><br><span class="line"><span class="keyword">const</span> val: AOrB = &#123; <span class="attr">s</span>: <span class="string">&#x27;a&#x27;</span> &#125;;</span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">typeof</span> val === <span class="string">&#x27;object&#x27;</span>) &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(val.s);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(val);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="http://www.typescriptlang.org/v2/en/play#code/C4TwDgpgBAgg8gJwEJQLxQN5QM4C4fAICWAdgOYDcUAvlAD4HHkUCwAUAMYD2J2wUANwCGAG3zxkaTDnwByIbJqs2RAGZQAFKEhd1wkWlTpZXAEYArCB2CyAlJnZQo3XlxEQAdCK5kN+j9i2yrQQItjQGI7OPNhunt6++kHs1EA">Playground Link</a></p>
+<h4 id="extends-scope-lexical"><a href="#extends-scope-lexical" class="headerlink" title="extends @scope lexical"></a><code>extends</code> @scope <em>lexical</em></h4><blockquote>
+<p>类型约束，通常用在泛型传参时约束参数范围</p>
+</blockquote>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> Gen &#123;</span><br><span class="line">    s: <span class="built_in">string</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> Others &#123;</span><br><span class="line">    d: <span class="built_in">number</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">BaseFunc</span>&lt;<span class="title">P</span> <span class="title">extends</span> <span class="title">Gen</span>&gt;(<span class="params">p: P</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(p);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> s1: Gen = &#123;</span><br><span class="line">    s: <span class="string">&#x27;something&#x27;</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> s2: Others = &#123;</span><br><span class="line">    d: <span class="number">1</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">BaseFunc(s1); <span class="comment">// good</span></span><br><span class="line"></span><br><span class="line">BaseFunc(s2); <span class="comment">// bad, error</span></span><br></pre></td></tr></table></figure>
+
+<p><a href="http://www.typescriptlang.org/v2/en/play?target=7#code/JYOwLgpgTgZghgYwgAgOIRMg3gWAFDKHIDOAXCWFKAOYDc+AvvvqJLIigPJgAW0x2fEWQATciACuAWwBG0eniZ58MCSARhgAe0wAhOMQgAxNQgA8ABWQQAHpBAiB6EAD4AFAAdyFgJSCCRAg6xFoANhAAdKFa1J4+Ckr4QSDEYCQAjOTOyAC8-sJkyADkIVIQvDRFADSMCknBacQATOTcfFACebgBhGLI6TWKdXj6hibqbsTp8cgA9LPI1FpaIswjBsamk00z88gycCJV1lBQWlBAA">Playground Link</a></p>
+<h4 id="instanceof-scope-runtime"><a href="#instanceof-scope-runtime" class="headerlink" title="instanceof @scope runtime"></a><code>instanceof</code> @scope <em>runtime</em></h4><blockquote>
+<p>确认目标是是否在指定对象的原型链上</p>
+</blockquote>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Animal</span> </span>&#123;</span><br><span class="line">    name: <span class="built_in">string</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params">name: <span class="built_in">string</span></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Dog</span> <span class="keyword">extends</span> <span class="title">Animal</span> </span>&#123;</span><br><span class="line">    wang: <span class="built_in">number</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params">name: (<span class="keyword">typeof</span> Animal)[<span class="string">&#x27;name&#x27;</span>], wang: <span class="built_in">number</span></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(name);</span><br><span class="line">        <span class="built_in">this</span>.wang = wang;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">wangwang</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">&#x27;wangwang&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Cat</span> <span class="keyword">extends</span> <span class="title">Animal</span> </span>&#123;</span><br><span class="line">    miao: <span class="built_in">number</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params">name: (<span class="keyword">typeof</span> Animal)[<span class="string">&#x27;name&#x27;</span>], miao: <span class="built_in">number</span></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(name);</span><br><span class="line">        <span class="built_in">this</span>.miao = miao;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">miaomiao</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">&#x27;miaomiao&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> dog: Dog = <span class="keyword">new</span> Dog(<span class="string">&#x27;dog&#x27;</span>, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> cat: Cat = <span class="keyword">new</span> Cat(<span class="string">&#x27;cat&#x27;</span>, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">doS</span>&lt;<span class="title">C</span> <span class="title">extends</span> <span class="title">Animal</span>&gt;(<span class="params">cls: C</span>) </span>&#123;</span><br><span class="line">    <span class="comment">/** bad */</span></span><br><span class="line">    cls.wangwang(); <span class="comment">// error</span></span><br><span class="line">    cls.miaomiao(); <span class="comment">// error</span></span><br><span class="line">    <span class="comment">/** good */</span></span><br><span class="line">    <span class="comment">/** 函数已经限制了 cls 的约束范围 */</span></span><br><span class="line">    <span class="keyword">if</span> (cls <span class="keyword">instanceof</span> Dog) &#123;</span><br><span class="line">        <span class="comment">/** 通过 instanceof 类型守卫 进一步确认类型 */</span></span><br><span class="line">        cls.wangwang();</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (cls <span class="keyword">instanceof</span> Cat)  &#123;</span><br><span class="line">        <span class="comment">/** 同上 */</span></span><br><span class="line">        cls.miaomiao();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><a href="http://www.typescriptlang.org/v2/en/play?target=7#code/MYGwhgzhAECCB2BLAtmE0DeBYAUNf08YyApgFzQQAuATovAOYDcuuB0wA9vNTQK7AqnGgAoipCr3oMAlJjbsCVABaIIAOnEloAXkLESLPAQC+uMzlyhIMACKcG0EgA8qJeABMYCFGnnH8AHcwRgp4PmQAIxIaIwV8Lh5aASFRLQoRKgBPAAcSTgAzOCRUEBkAbQByLUqAXQAaaGDQwgjomjlsAMUIPjy0gxkjRSVVDWbHPQnh01ZuiYmRTvjFRIhOEBJ1EAcRSoWQhkqhlYsLK3AoaABhMConV3cvYt90LvZkRDBOMLaYuO6a2SgmEYgMGWyeUKL1KFWqBjqjU+31+URiy267F6-TBpBOmNGanUyM4umgJJm+HO3RJJKW-hGCW4602212lVpX04x0p0DOcyB0A8Dgo9kmhBIgWgYr2wqOjQAjPirMz7sA7hRbvc9PBJTc7nt1VRKorlTgCnx4IJENwhZwAMoAHmuDzcnm8JTQAD4RKAIJqMewAPQAKhD0EiYA80BDQZWfvUB0YSyY0CDQacNBownjIA0nO+KbTGZi2ZoK1D4YYnE40djFbD0EAv4qAB1NAE+6gHm-QAKaYA2JUAYXIcPPQQAhboAyv0A+uaAYGDAC9qMbj3UQRV9Q-o1BCwHyRTFgcZleggCwEwDj8dBV1R15voIBvH0A0eqACO1ANbK0EA2-GAADlAKbWgDsPQAl0Te5yt2AmSYMCmpxOHm2iLtAy4wKe57QlqcgMrujaADAqgBQcn+BIJHmxJcnS+LsGcQA">Playground Link</a></p>
+<a id="more"></a>
+
+<h4 id="is-scope-lexical"><a href="#is-scope-lexical" class="headerlink" title="is @scope lexical"></a><code>is</code> @scope <em>lexical</em></h4><blockquote>
+<p>利用函数返回值确认类型</p>
+</blockquote>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">enum</span> CUSTOM_ENUM &#123;</span><br><span class="line">    A = <span class="string">&#x27;a&#x27;</span>,</span><br><span class="line">    B = <span class="string">&#x27;b&#x27;</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> Base &#123;</span><br><span class="line">    <span class="keyword">type</span>: CUSTOM_ENUM;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> A <span class="keyword">extends</span> Base &#123;</span><br><span class="line">    <span class="keyword">type</span>: CUSTOM_ENUM.A;</span><br><span class="line">    a?: <span class="built_in">number</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> B <span class="keyword">extends</span> Base &#123;</span><br><span class="line">    <span class="keyword">type</span>: CUSTOM_ENUM.B;</span><br><span class="line">    b?: <span class="built_in">number</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">isA</span>(<span class="params">val: Base</span>): <span class="title">val</span> <span class="title">is</span> <span class="title">A</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> val?.type === CUSTOM_ENUM.A;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 假设你不知道是啥类型 */</span></span><br><span class="line"><span class="keyword">const</span> a: <span class="built_in">any</span> = &#123;</span><br><span class="line">    <span class="keyword">type</span>: CUSTOM_ENUM.A,</span><br><span class="line">    a: <span class="number">1</span>,</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">const</span> b: <span class="built_in">any</span> = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(a.a); <span class="comment">// 恰好没有出错</span></span><br><span class="line"><span class="keyword">if</span> (isA(a)) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(a.a) <span class="comment">// good</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(b.a); <span class="comment">// 潜在的运行时错误</span></span><br><span class="line"><span class="keyword">if</span> (isA(b)) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(b.a) <span class="comment">// 避免了出错</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><a href="http://www.typescriptlang.org/v2/en/play?target=7#code/KYOwrgtgBAwgqgZQCoHkCyB9AogOTmqAbwFgAoKCqAQSgF4oByAQwYBozKoAhOxgIzZkAvmTIBLEABdgAJwBmTAMbBuTAM4qS5SpICeAB2AAuWIlSZc+ANzDRpCdPlKVNYAA9pIACZrVGohw6BsamyOjYeGgAdFQ22hRMAPwm4BB8snEipOJSsgrK3FDunj5+moEUeoYm8GEWkVFccZx8yVCp6TKZdnJgIIqSYgD2IFBialQAFABuTAA2JlzqwACUJrNzY740WpwywJJgMqMbiVFVKrRXoeYR+DHd2aQA9ABUr1CA4gqAfdGABvKAsHKAU-dAMoJgHozQCmqoBvH0A0epQV7PMiKEZqSRQJgmJggXS8XZBao3cKWaJUdjxNEmACMpKEcSRIBRUD4GKxvApcTsdLUQzmwCicyGAHNJkwokwVlYoM9nlBAA4GgF9NQCFNoBIc0AX4qATFTxHIoJNxlMxSsAmTOdzefyhSKxZLpQKhkMvLYnsaeXzBZM+KLxVaoIAde0AFOqAELdAAvxgBkIwBvpmrAPfRmu1urdKwNuIoTtNrvdlqlUEA-gmAWUVAGFy6uEQA">Playground Link</a></p>
+<h4 id="as-scope-lexical"><a href="#as-scope-lexical" class="headerlink" title="as @scope lexical"></a><code>as</code> @scope <em>lexical</em></h4><blockquote>
+<p>类型断言</p>
+</blockquote>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">double</span>(<span class="params">s: <span class="built_in">number</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Number</span>(s) * <span class="number">2</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> a: unknown = <span class="string">&#x27;1&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(double(a <span class="keyword">as</span> <span class="built_in">number</span>));</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><a href="http://www.typescriptlang.org/v2/en/play?target=7#code/GYVwdgxgLglg9mABAEziARgGwKYAoDOAXImCALbrYBOAlIgN4CwAUIm4ldlCFUgHLlKVAnQBUiAEwBuFgF8WLCAnxREAQ2LgA1mDgB3JAF5EAcgCMJmc0XK4OAHSY4Ac1yoMOXGvX4Sg6jQ0VkA">Playground Link</a></p>
+<h4 id="in-scope-runtime"><a href="#in-scope-runtime" class="headerlink" title="in @scope runtime"></a><code>in</code> @scope <em>runtime</em></h4><blockquote>
+<p>es标准中的 <code>in</code> 标识符</p>
+</blockquote>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> B &#123;</span><br><span class="line">    b: <span class="built_in">string</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">interface</span> A &#123;</span><br><span class="line">    a: <span class="built_in">string</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params">x: A | B</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// good</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="string">&#x27;a&#x27;</span> <span class="keyword">in</span> x) &#123;</span><br><span class="line">        <span class="keyword">return</span> x.a;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> x.b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> a: A = &#123;</span><br><span class="line">    a: <span class="string">&#x27;a&#x27;</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> b: B = &#123;</span><br><span class="line">    b: <span class="string">&#x27;b&#x27;</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(foo(a));</span><br></pre></td></tr></table></figure>
+
+<p><a href="http://www.typescriptlang.org/v2/en/play?target=7#code/JYOwLgpgTgZghgYwgAgELIN4FgBQz-IBGAXMgM5hSgDmA3LgL66iSyIoCCmuBycpFKiDqNcYnDACuIBGGAB7EMhjz5ACgAepLgB80ASm54CAehPJqqgCY8CwGMjUByOE+ShkGw9mO98UCDBJKCUNADo4el9kJmiAoJDPMMIo2NwERQo+bWQAXiNefmQXJwAaURx0zLAiUnR8n14SYsIyiqqQMnkAGwgw7vlqNRV1OH19WiA">Playground Link</a></p>
+<h4 id="scope-runtime"><a href="#scope-runtime" class="headerlink" title="! @scope runtime"></a><code>!</code> @scope <em>runtime</em></h4><blockquote>
+<p>可以绕过严格空判断，TypeScript 会认为该属性一定存在</p>
+</blockquote>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> A &#123;</span><br><span class="line">  s?: &#123;</span><br><span class="line">    t: <span class="built_in">string</span>;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">const</span> a: A = &#123;</span><br><span class="line">  s: &#123;</span><br><span class="line">    t: <span class="string">&#x27;something&#x27;</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"><span class="built_in">console</span>.log(a.s.t); <span class="comment">// error，s 可能为空</span></span><br><span class="line"><span class="built_in">console</span>.log(a.s!.t); <span class="comment">// 不会报错，s 被认为一定存在</span></span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="http://www.typescriptlang.org/v2/en/play#code/JYOwLgpgTgZghgYwgAgILIN4FgBQzkDOA-AFya775hkFhSgDmA3BcgL4s5u4ID2ItZHDLoAvOTyEy2SVTIByArwC2EMAAtG8gDSs2urpz4DeAGwgA6U7wYAKOBYIWwASibIA9B+TQovKIAw-wTIgPfKgL8BgFxygF5ePPxK5lY29o4AhM5unt6AsHKAWPKApUaAmKlByIDVEYAl0RGAAHKAWdqAGtqAFOpAA">Playground Link</a></p>
+<hr>
+<p><strong>类型索引</strong></p>
+<blockquote>
+<p>获取 interface / type 中的某个属性</p>
+</blockquote>
+<h4 id="T-K-scope-lexical"><a href="#T-K-scope-lexical" class="headerlink" title="T[K] @scope lexical"></a><code>T[K]</code> @scope <em>lexical</em></h4><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> PersonStruct &#123;</span><br><span class="line">    name: <span class="built_in">string</span>;</span><br><span class="line">    age: <span class="built_in">number</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> <span class="title">implements</span> <span class="title">PersonStruct</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 通过 T[K] 的模式设置属性类型</span></span><br><span class="line">    name: PersonStruct[<span class="string">&#x27;name&#x27;</span>];</span><br><span class="line">    age: PersonStruct[<span class="string">&#x27;age&#x27;</span>];</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params">&#123; name, age &#125;: PersonStruct</span>)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.name = name;</span><br><span class="line">        <span class="built_in">this</span>.age = age;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><a href="http://www.typescriptlang.org/v2/en/play?target=7#code/JYOwLgpgTgZghgYwgAgArQM4HsQGUxQCuCYyA3gLABQytyIcAthAFzIYGgDmA3NXcjhdW9QowBG0PlQC+1aggA2cDBjSYcyYIwAOiiM3Br0UbHgLFSlGnQD0t5ICwEwOPxyACoBtANIBdZIBC3QEIrQHh9QD7owDt-QD0dQHIDQG8fQGj1fjoGZjYTM3wiEg8AchSIHJ9pASERdJxMy1zSwukk2gQcDiywLCgACjJ6JggAGkFhZBk0jXMWgEpyeoFkMAALYAwAOnzkAF5u5mKZ2nnFpdL1gYht2jlZaiA">Playground Link</a></p>
+<hr>
+<p><strong>类型属性枚举</strong></p>
+<blockquote>
+<p>列举 interface 中的子属性</p>
+</blockquote>
+<h4 id="keyof-scope-lexical"><a href="#keyof-scope-lexical" class="headerlink" title="keyof @scope lexical"></a><code>keyof</code> @scope <em>lexical</em></h4><blockquote>
+<p>枚举 interface 中的成员</p>
+</blockquote>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> PersonStruct &#123;</span><br><span class="line">    name: <span class="built_in">string</span>;</span><br><span class="line">    age: <span class="built_in">number</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> PersonKeys = keyof PersonStruct; <span class="comment">// name | age</span></span><br></pre></td></tr></table></figure>
+
+<p><a href="http://www.typescriptlang.org/v2/en/play?target=7#code/JYOwLgpgTgZghgYwgAgArQM4HsQGUxQCuCYyA3gLABQytyIcAthAFzIYGgDmA3NXcjhdW9QowBG0PlQC+1amACeABxToo2EAGkIijMgC8yANa6sMNJhz4iJHsgD0D+kxQAfQcOpA">Playground Link</a></p>
+<hr>
+<p><strong>属性赋值</strong></p>
+<blockquote>
+<p>把枚举的到的属性赋值到目标上</p>
+</blockquote>
+<h4 id="in-scope-lexical"><a href="#in-scope-lexical" class="headerlink" title="in @scope lexical"></a><code>in</code> @scope <em>lexical</em></h4><blockquote>
+<p>这个 <code>in</code> 与类型守卫中的 <code>in</code> 的含义是不一样的<br>静态分析中的 <code>in</code> 是赋值</p>
+</blockquote>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> PersonStruct &#123;</span><br><span class="line">    name: <span class="built_in">string</span>;</span><br><span class="line">    age: <span class="built_in">number</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Mapper = &#123;</span><br><span class="line">    [k <span class="keyword">in</span> keyof PersonStruct]: <span class="built_in">string</span>; <span class="comment">// &#123; name: string; age: string; &#125;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><a href="http://www.typescriptlang.org/v2/en/play?target=7#code/JYOwLgpgTgZghgYwgAgArQM4HsQGUxQCuCYyA3gLABQytyIcAthAFzIYGgDmA3NXcjhdW9QowBG0PlQC+1amACeABxQBZOMtVRkAXnL86AbQDWyUMhMRFWGGkw58REgF02HKNx7IA9D-L0TCIeXoLC7pwgvMhyskA">Playground Link</a></p>
+<hr>
+<p><strong>属性状态</strong></p>
+<blockquote>
+<p>描述一个属性的状态</p>
+</blockquote>
+<h4 id="readonly-scope-lexical"><a href="#readonly-scope-lexical" class="headerlink" title="readonly @scope lexical"></a><code>readonly</code> @scope <em>lexical</em></h4><blockquote>
+<p>被标记的属性无法被修改/赋值</p>
+</blockquote>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> PersonStruct &#123;</span><br><span class="line">    <span class="keyword">readonly</span> name: <span class="built_in">string</span>;</span><br><span class="line">    <span class="keyword">readonly</span> age: <span class="built_in">number</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> person: PersonStruct = &#123;</span><br><span class="line">    name: <span class="string">&#x27;xxx&#x27;</span>,</span><br><span class="line">    age: <span class="number">19</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">person.age = <span class="number">1</span>; <span class="comment">// error</span></span><br><span class="line">person.name = <span class="string">&#x27;yyy&#x27;</span>; <span class="comment">// error</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line">    <span class="keyword">readonly</span> name: <span class="built_in">string</span>;</span><br><span class="line">    <span class="keyword">readonly</span> age: <span class="built_in">number</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params">&#123; name, age &#125;: PersonStruct</span>)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.name = name;</span><br><span class="line">        <span class="built_in">this</span>.age = age;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> p = <span class="keyword">new</span> Person(&#123; <span class="attr">name</span>: <span class="string">&#x27;xxx&#x27;</span>, <span class="attr">age</span>: <span class="number">198</span> &#125;);</span><br><span class="line">p.age = <span class="number">1</span>; <span class="comment">// error</span></span><br><span class="line">p.name = <span class="string">&#x27;yyy&#x27;</span>; <span class="comment">// error</span></span><br></pre></td></tr></table></figure>
+
+<p><a href="http://www.typescriptlang.org/v2/en/play?target=7#code/JYOwLgpgTgZghgYwgAgArQM4HsQGUxQCuCYyA3gLABQytyUEcAJjgDYCeyIcAthAFzIMBUAHMA3NTr1GLEB2RxRAroR4AjaJKoBfatQQ5hyAA6Ycg9FGx4CxUgF5yUutz6CA5AA8fHgDQutEoqAIwAnAG6+lRm1jgAdMHITiHiyAD06cjQUFhQ1LE28W4oTh7sFR5pmdlQuflUBqxwGBho5iDONHQMzGycJYLCUGLa0r1yCsGCIGqaUNqByIYgw-Z5ABRkXLwQforKyDqWHfhEJACUXdLSYAAWwBjFu8k7fGM3tPePiYdOwR9aHooo0qCtjCZXiAIAB3dpxEBbN4qby+fbTZDhAAcRwu2hMv1KmOqWRyeQKzz4r3KlRJtXq1CAA">Playground Link</a></p>
+<h4 id="scope-lexical"><a href="#scope-lexical" class="headerlink" title="? @scope lexical"></a><code>?</code> @scope <em>lexical</em></h4><blockquote>
+<p>属性状态-可选属性</p>
+</blockquote>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> PersonStruct &#123;</span><br><span class="line">    name: <span class="built_in">string</span>;</span><br><span class="line">    age?: <span class="built_in">number</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// good, age可以有也可以没有</span></span><br><span class="line"><span class="keyword">const</span> person: PersonStruct = &#123;</span><br><span class="line">    name: <span class="string">&#x27;xxx&#x27;</span>,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><a href="http://www.typescriptlang.org/v2/en/play?target=7&ssl=1&ssc=1&pln=10&pc=1#code/JYOwLgpgTgZghgYwgAgArQM4HsQGUxQCuCYyA3gLABQytyIcAthAFzIYGgDmA3NXcjhcIAfjYhCjAEbQ+VAL7VqAemXIuWLABMANIOGB75UCncoEhzQPpyxwIU2J6ghwdkAB0w426KNjwFipALzl+OgZmNgByAA9I0J1qRSogA">Playground Link</a></p>
+<h4 id="scope-lexical-1"><a href="#scope-lexical-1" class="headerlink" title="- @scope lexical"></a><code>-</code> @scope <em>lexical</em></h4><blockquote>
+<p>移除属性状态的标记</p>
+</blockquote>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> PersonStruct &#123;</span><br><span class="line">    <span class="keyword">readonly</span> name: <span class="built_in">string</span>;</span><br><span class="line">    age?: <span class="built_in">number</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Remove = &#123;</span><br><span class="line">    -<span class="keyword">readonly</span> [k <span class="keyword">in</span> keyof PersonStruct]-?: PersonStruct[k]; <span class="comment">// &#123; name: string; age: number &#125;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><a href="http://www.typescriptlang.org/v2/en/play?target=7#code/JYOwLgpgTgZghgYwgAgArQM4HsQGUxQCuCYyA3gLABQytyUEcAJjgDYCeyIcAthAFzIMBUAHMA3NTrI4oiAH5BIQjwBG0SVQC+1amHYAHFACUIPLADcUAXnJS6AWgbM2nANoBrZKGQeI7LBg0TBx8IhIAXQdFYKhsPAJiME8I8WQAenTyLl4BIREQCRk5JRV1KGQdbWogA">Playground Link</a></p>
+<hr>
+<p><strong>类型推导</strong></p>
+<blockquote>
+<p>提供一个类型（不需要具体实现），通过推导的方式得到其类型或其子属性类型</p>
+</blockquote>
+<h4 id="infer-scope-lexical"><a href="#infer-scope-lexical" class="headerlink" title="infer @scope lexical"></a><code>infer</code> @scope <em>lexical</em></h4><blockquote>
+<p>推导出某个类型中的某个属性类型</p>
+</blockquote>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> PersonStruct &#123;</span><br><span class="line">    name?: <span class="built_in">string</span>;</span><br><span class="line">    age: <span class="built_in">number</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> PersonList = PersonStruct[];</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> ListItemType = PersonList <span class="keyword">extends</span> (infer T)[] ? T : unknown; <span class="comment">// PersonStruct</span></span><br></pre></td></tr></table></figure>
+
+<p><a href="http://www.typescriptlang.org/v2/en/play?target=7&ssl=1&ssc=25&pln=1&pc=1#code/JYOwLgpgTgZghgYwgAgArQM4HsQGUxQCuCYyA3gLABQytyIcAthAPwBcyGBoA5gNzU6yODwgcQhRgCNoAqgF9q1MAE8ADinRRsIADLAuyALxpMOfERIBtALpzl6lPq4BJSIwAqj46e05npBAAHpAgACYYyAAUoDDQyB4AlLbILAnIHIQgANYgWADuIHzIAPQlvjoWxGDUQA">Playground Link</a></p>
+<hr>
+<h3 id="优雅的处理全局变量"><a href="#优雅的处理全局变量" class="headerlink" title="优雅的处理全局变量"></a>优雅的处理全局变量</h3><blockquote>
+<p>优雅解决window下挂载的自定义变量</p>
+</blockquote>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** typings/window.d.ts */</span></span><br><span class="line"><span class="keyword">declare</span> <span class="built_in">module</span> _global &#123;</span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">const</span> someVar: <span class="built_in">number</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> Window &#123;</span><br><span class="line">    _global: <span class="keyword">typeof</span> _global;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">/** src/you path/somefile.d.ts */</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">window</span>._global.someVar); <span class="comment">// good</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(_global.someVar); <span class="comment">// good</span></span><br></pre></td></tr></table></figure>
+
+<p><a href="http://www.typescriptlang.org/v2/en/play?target=7#code/PQKhAIBcE8AcEsB2BzAzsA7kgJgewwHTYGSrgjACwAUNgKYDGANgIYBOd4AtrtgK5NOAfWRNcAIxZNwAbxrgF4OgA9YuNpHANciVJtS4udAGrsAXOER8u4umwDcNAL40aSSHYBmLBpwDqOPiy8ooiYpJMFjCwdLie4GESUo7ULtSu1KAQqGwMwNC4fOCwLJAAFsAGRp7wgkQkZBQ02rq4dWLIABRYiHiEiREEVSbsAJT24MDA4Mi4vBktBu24XQNSQ4YjbOOT07O8QA">Playground Link</a></p>
+<hr>
+<h3 id="优雅的处理第三方库"><a href="#优雅的处理第三方库" class="headerlink" title="优雅的处理第三方库"></a>优雅的处理第三方库</h3><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 有些第三方库可能没有 d.ts</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/** typings/react.d.ts */</span></span><br><span class="line"><span class="keyword">declare</span> <span class="keyword">namespace</span> SomeThirdModule &#123;</span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">const</span> someFunc: <span class="function">() =&gt;</span> <span class="built_in">void</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** src/you path/somefile.d.tsx */</span></span><br><span class="line"></span><br><span class="line">SomeThirdModule.someFunc(); <span class="comment">// good</span></span><br></pre></td></tr></table></figure>
+
+<p><a href="http://www.typescriptlang.org/v2/en/play?target=7#code/PTAEkhzRsuUGm9Eg5RO00Ml6h75UL8BhCm3KAJgOgC4DOAsAFBnABUlo+AngA4CWAdgOaHABOApgIYBjfLjxFQlYGWw8BAGz69QLPgFsehBoJ6gAygHs1AFQAWTLtgCye7AFdZ2gN5lQL0DwAeDPV3ygBelkJfQgMeADEbFgEALlAACgBKUABeAD5QADc9JmwAbjIAXzIKalBCLgFgOj0bUE18Y2AQtQAzJnsRAkJ3cUlyUn0jU3MrWw7m8MiBRNzQEFA2PWsyIA">Playground Link</a></p>
+<hr>
+<h3 id="优雅的处理非模块文件"><a href="#优雅的处理非模块文件" class="headerlink" title="优雅的处理非模块文件"></a>优雅的处理非模块文件</h3><blockquote>
+<p>图片和样式文件会提示非 module</p>
+</blockquote>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** typings/ext.d.ts */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">declare</span> <span class="built_in">module</span> <span class="string">&#x27;*.scss&#x27;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> value: &#123; [className: <span class="built_in">string</span>]: <span class="built_in">string</span> &#125;;</span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">default</span> value;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@description </span>svg 模块</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">declare</span> <span class="built_in">module</span> <span class="string">&#x27;*.svg&#x27;</span> &#123;</span><br><span class="line">    <span class="keyword">import</span> * <span class="keyword">as</span> React <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> src: React.SVGProps&lt;SVGSVGElement&gt;;</span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">default</span> src;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><a href="http://www.typescriptlang.org/v2/en/play?target=7#code/PQKhAIBcE8AcEsB2BzAzsApgD0gOgCa6SrgjACwAUFfhgMYA2AhgE4bgC2A9vgK4PsA5CFyo6qVIPABvKuHng6XRKkjgAbkwa8MALhngA2oyYSAckw57wqlkmQBdfbfvgAvgG45C7LC4s1WgAzJn41TW0ML0o3KipQEDkIAAFaMTtYSHhlG3VkcEBCK0B1dSSKSloTNk4efiERVDypWUoFcHgOPwDScFNwACUMJjo1IJYuDnBBNiHIQWjveSUVNVQWOn0BmdwAZQA1AHEABTHYVAAePf3LgFEBK0RIAD5o1t9-QIwQsJs16LcgA">Playground Link</a></p>
+<hr>
+<h3 id="TypeScript-内置类型函数-列举（不完全）"><a href="#TypeScript-内置类型函数-列举（不完全）" class="headerlink" title="TypeScript 内置类型函数 列举（不完全）"></a>TypeScript 内置类型函数 列举（不完全）</h3><h4 id="Pick"><a href="#Pick" class="headerlink" title="Pick"></a><code>Pick</code></h4><h4 id="Record"><a href="#Record" class="headerlink" title="Record"></a><code>Record</code></h4><h4 id="Partial"><a href="#Partial" class="headerlink" title="Partial"></a><code>Partial</code></h4><h4 id="Required"><a href="#Required" class="headerlink" title="Required"></a><code>Required</code></h4><h4 id="Readonly"><a href="#Readonly" class="headerlink" title="Readonly"></a><code>Readonly</code></h4><h4 id="Exclude"><a href="#Exclude" class="headerlink" title="Exclude"></a><code>Exclude</code></h4><h4 id="Extract"><a href="#Extract" class="headerlink" title="Extract"></a><code>Extract</code></h4><h4 id="Omit"><a href="#Omit" class="headerlink" title="Omit"></a><code>Omit</code></h4><h4 id="NonNullable"><a href="#NonNullable" class="headerlink" title="NonNullable"></a><code>NonNullable</code></h4><h4 id="Parameters"><a href="#Parameters" class="headerlink" title="Parameters"></a><code>Parameters</code></h4><h4 id="ConstructorParameters"><a href="#ConstructorParameters" class="headerlink" title="ConstructorParameters"></a><code>ConstructorParameters</code></h4><h4 id="ReturnType"><a href="#ReturnType" class="headerlink" title="ReturnType"></a><code>ReturnType</code></h4><h4 id="InstanceType"><a href="#InstanceType" class="headerlink" title="InstanceType"></a><code>InstanceType</code></h4><h4 id="ThisType"><a href="#ThisType" class="headerlink" title="ThisType"></a><code>ThisType</code></h4>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/TypeScript/" rel="tag"># TypeScript</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/06/01/%E7%88%AC%E5%8F%96%E5%8A%A8%E6%80%81%E7%BD%91%E7%AB%99%E6%95%B0%E6%8D%AE%20-%20puppeteer%20(headless%20browser)/" rel="prev" title="爬取动态网站数据 - puppeteer (headless browser)">
+      <i class="fa fa-chevron-left"></i> 爬取动态网站数据 - puppeteer (headless browser)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/10/26/%E6%9C%BA%E9%83%BD%E7%BB%99%E4%BD%A0%E5%BC%80%E5%A5%BD%E4%BA%86-%E4%B8%8D%E6%9D%A5%E7%8E%A9Service-Worker%E5%90%97/" rel="next" title="机都给你开好了，来玩Service Worker呀！">
+      机都给你开好了，来玩Service Worker呀！ <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A2%84%E5%A4%87%E5%8A%A8%E4%BD%9C"><span class="nav-number">1.</span> <span class="nav-text">预备动作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AD%A3%E7%89%87%E5%BC%80%E5%A7%8B"><span class="nav-number">2.</span> <span class="nav-text">正片开始</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E8%AF%8D"><span class="nav-number">2.1.</span> <span class="nav-text">关键词</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#typeof-scope-runtime"><span class="nav-number">2.1.1.</span> <span class="nav-text">typeof @scope runtime</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#extends-scope-lexical"><span class="nav-number">2.1.2.</span> <span class="nav-text">extends @scope lexical</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#instanceof-scope-runtime"><span class="nav-number">2.1.3.</span> <span class="nav-text">instanceof @scope runtime</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#is-scope-lexical"><span class="nav-number">2.1.4.</span> <span class="nav-text">is @scope lexical</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#as-scope-lexical"><span class="nav-number">2.1.5.</span> <span class="nav-text">as @scope lexical</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#in-scope-runtime"><span class="nav-number">2.1.6.</span> <span class="nav-text">in @scope runtime</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#scope-runtime"><span class="nav-number">2.1.7.</span> <span class="nav-text">! @scope runtime</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#T-K-scope-lexical"><span class="nav-number">2.1.8.</span> <span class="nav-text">T[K] @scope lexical</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#keyof-scope-lexical"><span class="nav-number">2.1.9.</span> <span class="nav-text">keyof @scope lexical</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#in-scope-lexical"><span class="nav-number">2.1.10.</span> <span class="nav-text">in @scope lexical</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#readonly-scope-lexical"><span class="nav-number">2.1.11.</span> <span class="nav-text">readonly @scope lexical</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#scope-lexical"><span class="nav-number">2.1.12.</span> <span class="nav-text">? @scope lexical</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#scope-lexical-1"><span class="nav-number">2.1.13.</span> <span class="nav-text">- @scope lexical</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#infer-scope-lexical"><span class="nav-number">2.1.14.</span> <span class="nav-text">infer @scope lexical</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%98%E9%9B%85%E7%9A%84%E5%A4%84%E7%90%86%E5%85%A8%E5%B1%80%E5%8F%98%E9%87%8F"><span class="nav-number">2.2.</span> <span class="nav-text">优雅的处理全局变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%98%E9%9B%85%E7%9A%84%E5%A4%84%E7%90%86%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93"><span class="nav-number">2.3.</span> <span class="nav-text">优雅的处理第三方库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%98%E9%9B%85%E7%9A%84%E5%A4%84%E7%90%86%E9%9D%9E%E6%A8%A1%E5%9D%97%E6%96%87%E4%BB%B6"><span class="nav-number">2.4.</span> <span class="nav-text">优雅的处理非模块文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TypeScript-%E5%86%85%E7%BD%AE%E7%B1%BB%E5%9E%8B%E5%87%BD%E6%95%B0-%E5%88%97%E4%B8%BE%EF%BC%88%E4%B8%8D%E5%AE%8C%E5%85%A8%EF%BC%89"><span class="nav-number">2.5.</span> <span class="nav-text">TypeScript 内置类型函数 列举（不完全）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Pick"><span class="nav-number">2.5.1.</span> <span class="nav-text">Pick</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Record"><span class="nav-number">2.5.2.</span> <span class="nav-text">Record</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Partial"><span class="nav-number">2.5.3.</span> <span class="nav-text">Partial</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Required"><span class="nav-number">2.5.4.</span> <span class="nav-text">Required</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Readonly"><span class="nav-number">2.5.5.</span> <span class="nav-text">Readonly</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Exclude"><span class="nav-number">2.5.6.</span> <span class="nav-text">Exclude</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Extract"><span class="nav-number">2.5.7.</span> <span class="nav-text">Extract</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Omit"><span class="nav-number">2.5.8.</span> <span class="nav-text">Omit</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NonNullable"><span class="nav-number">2.5.9.</span> <span class="nav-text">NonNullable</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Parameters"><span class="nav-number">2.5.10.</span> <span class="nav-text">Parameters</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ConstructorParameters"><span class="nav-number">2.5.11.</span> <span class="nav-text">ConstructorParameters</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ReturnType"><span class="nav-number">2.5.12.</span> <span class="nav-text">ReturnType</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#InstanceType"><span class="nav-number">2.5.13.</span> <span class="nav-text">InstanceType</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ThisType"><span class="nav-number">2.5.14.</span> <span class="nav-text">ThisType</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ninnka</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">41</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ninnka</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
