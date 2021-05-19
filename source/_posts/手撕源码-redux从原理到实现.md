@@ -4,10 +4,12 @@ date: 2021-05-15 16:36:58
 categories:
 	- Web
 	- 前端
+	- JavaScript
 	- redux
 tags:
   - Web
 	- 前端
+	- JavaScript
 	- redux
 ---
 
