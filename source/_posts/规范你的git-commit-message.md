@@ -2,6 +2,7 @@
 title: 规范你的git-commit-message
 date: 2016-12-16 12:24:42
 categories:
+  - 版本控制
 	- Git
 tags:
 	- git

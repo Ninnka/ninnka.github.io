@@ -3,8 +3,7 @@ title: '机都给你开好了，来玩Service Worker呀！'
 date: 2019-10-26 14:55:38
 categories:
 	- Web
-	- 前端
-	- Service Worker
+	- JavaScript
 tags:
 	- Service Worker
 ---

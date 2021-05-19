@@ -2,6 +2,7 @@
 title: 爬取动态网站数据 - puppeteer (headless browser)
 date: 2018-06-01 18:22:04
 categories:
+  - Web
 	- JavaScript
 tags:
 	- Nodejs

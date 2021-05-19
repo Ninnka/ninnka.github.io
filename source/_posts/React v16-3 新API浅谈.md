@@ -2,7 +2,7 @@
 title: React v16.3 新API浅谈
 date: 2018-05-01 14:37:29
 categories:
-	- 前端
+	- Web
 	- JavaScript
 tags:
 	- React

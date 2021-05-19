@@ -2,7 +2,7 @@
 title: 从零创建基于nodejs的命令行工具
 date: 2017-04-12 14:28:49
 categories:
-	- JavaScript
+	- Nodejs
 tags:
 	- Nodejs
 	- 命令行工具

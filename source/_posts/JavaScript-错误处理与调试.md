@@ -2,11 +2,8 @@
 title: JavaScript-错误处理与调试
 date: 2021-05-19 14:07:08
 categories:
-	- Web
-	- 前端
+  - Web
 	- JavaScript
-	- 错误处理
-	- 异常处理
 tags:
   - Web
 	- 前端

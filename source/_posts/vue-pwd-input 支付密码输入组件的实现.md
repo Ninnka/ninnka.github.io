@@ -2,7 +2,7 @@
 title: vue-pwd-input 支付密码输入组件的实现
 date: 2017-04-16 13:08:02
 categories:
-	- 前端
+	- Web
 	- JavaScript
 tags:
 	- Vue

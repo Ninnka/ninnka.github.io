@@ -2,7 +2,7 @@
 title: vue-swipe-tab-layout 仿Android端的 TabLayout + ViewPager
 date: 2017-05-03 19:08:02
 categories:
-	- 前端
+	- Web
 	- JavaScript
 tags:
 	- Vue
@@ -119,7 +119,6 @@ export default {
         }
       }
     }
-  }
 ```
 
 无论是 nav-item 还是 tab-content 都使用 slot 分发，能够最大限度的允许使用者自定义内容。其他则属于组件自身的行为。
@@ -376,12 +375,9 @@ export default {
 ```
 
 ```less
-<style lang="less" scoped>
-  .swipe-tab-nav-item {
-    cursor: pointer;
-  }
-</style>
-
+.swipe-tab-nav-item {
+  cursor: pointer;
+}
 ```
 
 ## 遇到的一些问题

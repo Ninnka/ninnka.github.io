@@ -2,11 +2,12 @@
 title: Vue2加载优化
 date: 2017-08-05 17:39:37
 categories:
-	- 前端
+	- Web
 	- JavaScript
 tags:
 	- Vue
-	- 首屏
+	- JavaScript
+	- 首屏加载
 	- 性能
 ---
 

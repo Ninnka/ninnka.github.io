@@ -2,7 +2,7 @@
 title: mint-ui的loadmore（上滑，下拉）组件的非侵入式（不修改源码）优化
 date: 2018-03-17 22:57:58
 categories:
-	- 前端
+	- Web
 	- JavaScript
 tags:
 	- Vue

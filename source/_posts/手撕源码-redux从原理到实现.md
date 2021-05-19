@@ -2,15 +2,13 @@
 title: 手撕源码-redux从原理到实现
 date: 2021-05-15 16:36:58
 categories:
-	- Web
-	- 前端
-	- JavaScript
-	- redux
+  - JavaScript
+  - redux
 tags:
   - Web
-	- 前端
-	- JavaScript
-	- redux
+  - 前端
+  - JavaScript
+  - redux
 ---
 
 # 前言

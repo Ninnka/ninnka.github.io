@@ -2,10 +2,9 @@
 title: TypeScript技巧之从入门到装逼
 date: 2019-8-23 14:55:08
 categories:
-	- Web
-	- 前端
-	- TypeScript
+  - TypeScript
 tags:
+  - Web
 	- TypeScript
 ---
 
