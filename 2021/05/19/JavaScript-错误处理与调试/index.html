@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="静态资源加载的错误处理图片资源加载的错误处理当一项资源（如img或script）加载失败，加载资源的元素会触发一个Event接口的error事件，并执行该元素上的onerror()处理函数。这些error事件不会向上冒泡到window，不过能被单一的window.addEventListener捕获。 图片也支持 error 事件，可以使用 addEventListener 或者 onerror">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JavaScript-错误处理与调试">
+<meta property="og:url" content="http://yoursite.com/2021/05/19/JavaScript-%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86%E4%B8%8E%E8%B0%83%E8%AF%95/index.html">
+<meta property="og:site_name" content="NinnkaStack">
+<meta property="og:description" content="静态资源加载的错误处理图片资源加载的错误处理当一项资源（如img或script）加载失败，加载资源的元素会触发一个Event接口的error事件，并执行该元素上的onerror()处理函数。这些error事件不会向上冒泡到window，不过能被单一的window.addEventListener捕获。 图片也支持 error 事件，可以使用 addEventListener 或者 onerror">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqnqh9teh6j31160jmgpr.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqnqhwbuvnj310o0kwwjl.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqnqm053gpj30u00wkk0w.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpm3xokej30k103s74m.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqnqngr8vkj30u00zx14h.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpmraue8j30k207sgmr.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpn8sv2rj30js04zq3s.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpo7md9nj30jf0fwtbt.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpq51akej30k007t75v.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpqd5hrij30k606y75g.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpr567baj30e601wjre.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpragpzrj30jp048wf2.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqnprpsvitj30lk025glq.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqnps7drvrj30jm05d3yx.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpsctk7rj30jb071wfc.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpswqnlfj30jo05kgm0.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqnptaghrkj30jz041gm6.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqnptv73tej30kc0a0jth.jpg">
+<meta property="article:published_time" content="2021-05-19T06:07:08.000Z">
+<meta property="article:modified_time" content="2021-05-19T06:54:05.547Z">
+<meta property="article:author" content="Ninnka">
+<meta property="article:tag" content="Web">
+<meta property="article:tag" content="前端">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="错误处理">
+<meta property="article:tag" content="异常处理">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqnqh9teh6j31160jmgpr.jpg">
+
+<link rel="canonical" href="http://yoursite.com/2021/05/19/JavaScript-%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86%E4%B8%8E%E8%B0%83%E8%AF%95/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>JavaScript-错误处理与调试 | NinnkaStack</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">NinnkaStack</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/05/19/JavaScript-%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86%E4%B8%8E%E8%B0%83%E8%AF%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NinnkaStack">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JavaScript-错误处理与调试
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-05-19 14:07:08 / 修改时间：14:54:05" itemprop="dateCreated datePublished" datetime="2021-05-19T14:07:08+08:00">2021-05-19</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/JavaScript/%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">错误处理</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/%E5%89%8D%E7%AB%AF/JavaScript/%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">异常处理</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="静态资源加载的错误处理"><a href="#静态资源加载的错误处理" class="headerlink" title="静态资源加载的错误处理"></a>静态资源加载的错误处理</h2><h3 id="图片资源加载的错误处理"><a href="#图片资源加载的错误处理" class="headerlink" title="图片资源加载的错误处理"></a>图片资源加载的错误处理</h3><p>当一项资源（如img或script）加载失败，加载资源的元素会触发一个Event接口的error事件，并执行该元素上的onerror()处理函数。这些error事件不会向上冒泡到window，不过能被单一的window.addEventListener捕获。</p>
+<p>图片也支持 error 事件，可以使用 addEventListener 或者 onerror 来添加。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> image = <span class="keyword">new</span> Image();</span><br><span class="line">image.addEventListener(<span class="string">&quot;load&quot;</span>, <span class="function">(<span class="params">event</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;Image loaded!&quot;</span>);</span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">// 使用 onerror 函数监听错误事件</span></span><br><span class="line">image.onerror = <span class="function">(<span class="params">event</span>) =&gt;</span> &#123;<span class="built_in">console</span>.log(<span class="string">&quot;Image not loaded!&quot;</span>)&#125;;</span><br><span class="line">image.src = <span class="string">&quot;123&quot;</span>; <span class="comment">// 不存在，资源会加载失败</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnqh9teh6j31160jmgpr.jpg" alt="图片资源加载错误1"></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> image = <span class="keyword">new</span> Image();</span><br><span class="line">image.addEventListener(<span class="string">&quot;load&quot;</span>, <span class="function">(<span class="params">event</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;Image loaded!&quot;</span>);</span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">// 使用 addEventListener error 函数监听错误事件</span></span><br><span class="line">image.addEventListener(<span class="string">&quot;error&quot;</span>, <span class="function">(<span class="params">event</span>) =&gt;</span> &#123;</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">&quot;Image not loaded!&quot;</span>); &#125;);</span><br><span class="line">image.src = <span class="string">&quot;doesnotexist.gif&quot;</span>; <span class="comment">// 不存在，资源会加载失败</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnqhwbuvnj310o0kwwjl.jpg" alt="图片资源加载错误2"></p>
+<p>window.onerror 和 window.addListener(‘error’, () =&gt; {}) 都可以捕获到js的错误<br>区别是：<br>1.捕获到的错误参数不同<br>2.window.addEventListener(‘error’)可以捕获资源加载错误，但是window.onerror不能捕获到资源加载错误，window.addEventListener(‘error’)捕获到的错误，可以通过target?.src || target?.href区分是资源加载错误还是js运行时错误</p>
+<h3 id="script资源加载的错误处理"><a href="#script资源加载的错误处理" class="headerlink" title="script资源加载的错误处理"></a>script资源加载的错误处理</h3><p>script资源加载与图片等其他资源加载没有太大区别</p>
+<p>但是有需要注意的地方：<br>当加载自不同域的脚本中发生语法错误时，为避免信息泄露（参见bug 363897），语法错误的细节将不会报告，而代之简单的”Script error.”。在某些浏览器中，通过在script使用crossorigin属性并要求服务器发送适当的 CORS HTTP 响应头，该行为可被覆盖。一个变通方案是单独处理”Script error.”，告知错误详情仅能通过浏览器控制台查看，无法通过JavaScript访问。</p>
+<p>通过script加载跨域脚本时，脚本如果报错的情况，报错信息会缺少 <code>stack</code> 信息，error显示为null，并且错误事件中的 message、lineno、filename 显示是不正确的<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnqm053gpj30u00wkk0w.jpg" alt="跨域脚本错误1"></p>
+<p>这里说的“看不到stack和正确的错误信息”是指使用 onerror 或者 addEventListener 捕获的错误对象<br>如果想知道详细信息还是可以通过打开控制台，查看error窗口来获取真正的信息<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpm3xokej30k103s74m.jpg" alt="跨域脚本错误2"></p>
+<p>如果想要获取正确的信息，则加载跨域脚本时，需要添加 <code>crossorigin</code> 属性，并且资源的请求头需要带上 <code>Access-Control-Allow-Origin: http://www.yourdomain.com</code><br>错误事件中的 message、lineno、filename 会显示正确<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnqngr8vkj30u00zx14h.jpg" alt="跨域脚本错误3"></p>
+<p>通用的处理方式，参考MDN</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">window</span>.onerror = <span class="function"><span class="keyword">function</span> (<span class="params">msg, url, lineNo, columnNo, error</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> string = msg.toLowerCase();</span><br><span class="line">    <span class="keyword">var</span> substring = <span class="string">&quot;script error&quot;</span>;</span><br><span class="line">    <span class="keyword">if</span> (string.indexOf(substring) &gt; -<span class="number">1</span>)&#123;</span><br><span class="line">        alert(<span class="string">&#x27;Script Error: See Browser Console for Detail&#x27;</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">var</span> message = [</span><br><span class="line">            <span class="string">&#x27;Message: &#x27;</span> + msg,</span><br><span class="line">            <span class="string">&#x27;URL: &#x27;</span> + url,</span><br><span class="line">            <span class="string">&#x27;Line: &#x27;</span> + lineNo,</span><br><span class="line">            <span class="string">&#x27;Column: &#x27;</span> + columnNo,</span><br><span class="line">            <span class="string">&#x27;Error object: &#x27;</span> + <span class="built_in">JSON</span>.stringify(error)</span><br><span class="line">        ].join(<span class="string">&#x27; - &#x27;</span>);</span><br><span class="line"></span><br><span class="line">        alert(message);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Promise异常全局处理"><a href="#Promise异常全局处理" class="headerlink" title="Promise异常全局处理"></a>Promise异常全局处理</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Promise</span>.resolve().then(<span class="function">() =&gt;</span> <span class="built_in">console</span>.log(c));</span><br></pre></td></tr></table></figure>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpmraue8j30k207sgmr.jpg" alt="Promise异常1"></p>
+<p>当promise被reject并且错误信息没有被处理的时候，会抛出一个unhandledrejection，并且这个错误不会被window.onerror以及window.addEventListener(‘error’)捕获。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">window</span>.addEventListener(<span class="string">&quot;unhandledrejection&quot;</span>, <span class="function"><span class="params">event</span> =&gt;</span> &#123;</span><br><span class="line">  event.preventDefault();</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">&quot;&gt;&gt;&gt;&quot;</span>, event);</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">&quot;&gt;&gt;&gt;&quot;</span>, event.reason);</span><br><span class="line">&#125;);</span><br><span class="line"><span class="built_in">Promise</span>.resolve().then(<span class="function">() =&gt;</span> <span class="built_in">console</span>.log(c));</span><br></pre></td></tr></table></figure>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpn8sv2rj30js04zq3s.jpg" alt="Promise异常2"></p>
+<p>如果需要在全局捕获unhandledrejection，需要用专门的window.addEventListener(‘unhandledrejection’)捕获处理。<br>使用 <code>event.preventDefault()</code> 可以阻止在开控制台输出默认的错误信息。</p>
+<p>使用 <code>window.onunhandledrejection</code> 也可以实现同样的效果</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">window</span>.onunhandledrejection = <span class="function"><span class="params">event</span> =&gt;</span> &#123;</span><br><span class="line">  event.preventDefault();</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">&quot;&gt;&gt;&gt;&quot;</span>, event);</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">&quot;&gt;&gt;&gt;&quot;</span>, event.reason);</span><br><span class="line">&#125;);</span><br><span class="line"><span class="built_in">Promise</span>.resolve().then(<span class="function">() =&gt;</span> <span class="built_in">console</span>.log(c));</span><br></pre></td></tr></table></figure>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpo7md9nj30jf0fwtbt.jpg" alt="Promise异常3"></p>
+<h2 id="Ajax请求异常"><a href="#Ajax请求异常" class="headerlink" title="Ajax请求异常"></a>Ajax请求异常</h2><h3 id="XMLHttpRequest"><a href="#XMLHttpRequest" class="headerlink" title="XMLHttpRequest"></a>XMLHttpRequest</h3><p>举一个简单的例子：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> xhr = <span class="keyword">new</span> XMLHttpRequest();</span><br><span class="line">xhr.addEventListener(<span class="string">&#x27;error&#x27;</span>, <span class="function"><span class="params">error</span> =&gt;</span> <span class="built_in">console</span>.log(error));</span><br><span class="line">xhr.addEventListener(<span class="string">&#x27;load&#x27;</span>, <span class="function">() =&gt;</span> <span class="built_in">console</span>.log(<span class="string">&#x27;load&#x27;</span>));</span><br><span class="line">xhr.open(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;http://127.0.0.1:8080/index.error&quot;</span>)</span><br><span class="line">xhr.send();</span><br></pre></td></tr></table></figure>
+
+<p>需要注意的时：XMLHttpRequest的error事件与http status无关，只有在请求过程中，发生 Network error（网络错误）才会触发此事件，比如：<br>1、请求过程中，网络中断<br>2、断网环境<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpq51akej30k007t75v.jpg" alt="Ajax异常1"></p>
+<p>对于应用层级别的异常，如响应返回的xhr.statusCode是 4xx 或 5xx 时，并不属于 Network error ，所以不会触发 onerror 事件，而是会触发 onload 事件。<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpqd5hrij30k606y75g.jpg" alt="Ajax异常2"></p>
+<h3 id="Fetch"><a href="#Fetch" class="headerlink" title="Fetch"></a>Fetch</h3><p>举个简单的例子：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">fetch(<span class="string">&#x27;http://127.0.0.1:8080/index.error&#x27;</span>)</span><br><span class="line">    .then(<span class="keyword">async</span> res =&gt; <span class="built_in">console</span>.log(<span class="keyword">await</span> res.text()))</span><br><span class="line">    .catch(<span class="function"><span class="params">error</span> =&gt;</span> <span class="built_in">console</span>.log(error));</span><br></pre></td></tr></table></figure>
+
+<p>fetch 与 XMLHttpRequest 捕获异常上不同的点在于：<br>fetch 可以 catch 应用层的异常，比如：4xx,5xx<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpr567baj30e601wjre.jpg" alt="fetch异常1"><br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpragpzrj30jp048wf2.jpg" alt="fetch异常2"></p>
+<h2 id="常见错误与异常"><a href="#常见错误与异常" class="headerlink" title="常见错误与异常"></a>常见错误与异常</h2><h3 id="EvalError"><a href="#EvalError" class="headerlink" title="EvalError"></a>EvalError</h3><p>创建一个error实例，表示错误的原因：与 eval() 有关。<br>EvalError 不在当前ECMAScript规范中使用，因此不会被运行时抛出. 但是对象本身仍然与规范的早期版本向后兼容.</p>
+<p>常见于：<br>1、给 eval 赋值</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">eval</span> = <span class="string">&#x27;&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>但是现代引擎有可能会允许这种情况，比如：chrome下会出报错</p>
+<p>2、eval在非函数调用的情况下被使用</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="built_in">eval</span>();</span><br></pre></td></tr></table></figure>
+
+<p>但是现代引擎有可能不会报 EvalError，如果满足其他错误的场景会优先展示别的错误类型<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnprpsvitj30lk025glq.jpg" alt="evalerror1"></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">EvalError</span>(<span class="string">&#x27;Hello&#x27;</span>, <span class="string">&#x27;someFile.js&#x27;</span>, <span class="number">10</span>);</span><br><span class="line">&#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(e <span class="keyword">instanceof</span> <span class="built_in">EvalError</span>); <span class="comment">// true</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.message);              <span class="comment">// &quot;Hello&quot;</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.name);                 <span class="comment">// &quot;EvalError&quot;</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.fileName);             <span class="comment">// &quot;someFile.js&quot;</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.lineNumber);           <span class="comment">// 10</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.columnNumber);         <span class="comment">// 0</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.stack);                <span class="comment">// &quot;@Scratchpad/2:2:9\n&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="InternalError（非Web标准的错误类型，目前只有Firefox实现了）"><a href="#InternalError（非Web标准的错误类型，目前只有Firefox实现了）" class="headerlink" title="InternalError（非Web标准的错误类型，目前只有Firefox实现了）"></a>InternalError（非Web标准的错误类型，目前只有Firefox实现了）</h3><p>创建一个代表Javascript引擎内部错误的异常抛出的实例。 如: “递归太多”。</p>
+<h3 id="RangeError"><a href="#RangeError" class="headerlink" title="RangeError"></a>RangeError</h3><p>表示错误的原因：数值变量或参数超出其有效范围。</p>
+<p>常见于：<br>1、创建一个负长度数组<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnps7drvrj30jm05d3yx.jpg" alt="internalError1"></p>
+<p>2、Number 对象的方法参数超出范围<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpsctk7rj30jb071wfc.jpg" alt="internalError2"></p>
+<h3 id="ReferenceError"><a href="#ReferenceError" class="headerlink" title="ReferenceError"></a>ReferenceError</h3><p>表示错误的原因：无效引用。<br>常见的错误提示：xxxx is not defined</p>
+<p>常见于：<br>1、引用了一个不存在变量</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="keyword">var</span> a = undefinedVariable;</span><br><span class="line">&#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(e <span class="keyword">instanceof</span> <span class="built_in">ReferenceError</span>); <span class="comment">// true</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.message);                   <span class="comment">// &quot;undefinedVariable is not defined&quot;</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.name);                      <span class="comment">// &quot;ReferenceError&quot;</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.fileName);                  <span class="comment">// &quot;Scratchpad/1&quot;</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.lineNumber);                <span class="comment">// 2</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.columnNumber);              <span class="comment">// 6</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.stack);                     <span class="comment">// &quot;@Scratchpad/2:2:7\n&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>2、主动抛出一个引用错误</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">ReferenceError</span>(<span class="string">&#x27;Hello&#x27;</span>, <span class="string">&#x27;someFile.js&#x27;</span>, <span class="number">10</span>);</span><br><span class="line">&#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(e <span class="keyword">instanceof</span> <span class="built_in">ReferenceError</span>); <span class="comment">// true</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.message);                   <span class="comment">// &quot;Hello&quot;</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.name);                      <span class="comment">// &quot;ReferenceError&quot;</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.fileName);                  <span class="comment">// &quot;someFile.js&quot;</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.lineNumber);                <span class="comment">// 10</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.columnNumber);              <span class="comment">// 0</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.stack);                     <span class="comment">// &quot;@Scratchpad/2:2:9\n&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="SyntaxError"><a href="#SyntaxError" class="headerlink" title="SyntaxError"></a>SyntaxError</h3><p>JS 引擎解析 js 代码块时，先进行词法语法分析，若发现不符合语法规范的 token 或 token 顺序时抛出 SyntaxError(语法错误)，会导致整个 js 文件无法执行。<br>比如：Chrome中会报”Uncaught SyntaxError: Unexpected token”</p>
+<p>常见于几种场景：<br>1、JS资源文件下载失败<br>2、JS中使用了当前引擎不支持的语法特性</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="built_in">eval</span>(<span class="string">&#x27;hoo bar&#x27;</span>);</span><br><span class="line">&#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(e <span class="keyword">instanceof</span> <span class="built_in">SyntaxError</span>); <span class="comment">// true</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.message);                <span class="comment">// &quot;missing ; before statement&quot;</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.name);                   <span class="comment">// &quot;SyntaxError&quot;</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.fileName);               <span class="comment">// &quot;Scratchpad/1&quot;</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.lineNumber);             <span class="comment">// 1</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.columnNumber);           <span class="comment">// 4</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.stack);                  <span class="comment">// &quot;@Scratchpad/1:2:3\n&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="TypeError"><a href="#TypeError" class="headerlink" title="TypeError"></a>TypeError</h3><p>表示错误的原因：变量或参数不属于有效类型；对象用来表示值的类型发生了非预期类型时的操作。</p>
+<p>常见于：<br>1、基础类型的值用于方法调用</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> foo = <span class="number">1</span>;</span><br><span class="line">foo();</span><br></pre></td></tr></table></figure>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnpswqnlfj30jo05kgm0.jpg" alt="typeerror1"></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="literal">null</span>.f();</span><br><span class="line">&#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(e <span class="keyword">instanceof</span> <span class="built_in">TypeError</span>); <span class="comment">// true</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.message);              <span class="comment">// &quot;null has no properties&quot;</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.name);                 <span class="comment">// &quot;TypeError&quot;</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.fileName);             <span class="comment">// &quot;Scratchpad/1&quot;</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.lineNumber);           <span class="comment">// 2</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.columnNumber);         <span class="comment">// 2</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.stack);                <span class="comment">// &quot;@Scratchpad/2:2:3\n&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="URIError"><a href="#URIError" class="headerlink" title="URIError"></a>URIError</h3><p>用来表示以一种错误的方式使用全局URI处理函数而产生的错误。</p>
+<p>常见于：<br>1、使用decodeURIComponent时，传入了错误格式的url，其他的URL操作方法也会出现这种错误，比如：decodeURI，encodeURL等</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">decodeURIComponent</span>(<span class="string">&#x27;%&#x27;</span>);</span><br></pre></td></tr></table></figure>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnptaghrkj30jz041gm6.jpg" alt="urierror1"></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="built_in">decodeURIComponent</span>(<span class="string">&#x27;%&#x27;</span>);</span><br><span class="line">&#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(e <span class="keyword">instanceof</span> <span class="built_in">URIError</span>); <span class="comment">// true</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.message);             <span class="comment">// &quot;malformed URI sequence&quot;</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.name);                <span class="comment">// &quot;URIError&quot;</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.fileName);            <span class="comment">// &quot;Scratchpad/1&quot;</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.lineNumber);          <span class="comment">// 2</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.columnNumber);        <span class="comment">// 2</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.stack);               <span class="comment">// &quot;@Scratchpad/2:2:3\n&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="自定义错误"><a href="#自定义错误" class="headerlink" title="自定义错误"></a>自定义错误</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyError</span> <span class="keyword">extends</span> <span class="title">Error</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params">message</span>)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>();</span><br><span class="line">        <span class="built_in">this</span>.name = <span class="string">&#x27;MyError&#x27;</span>;</span><br><span class="line">        <span class="built_in">this</span>.message = message || <span class="string">&#x27;default error message&#x27;</span>;</span><br><span class="line">        <span class="built_in">this</span>.stack = (<span class="keyword">new</span> <span class="built_in">Error</span>()).stack;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> MyError();</span><br><span class="line">&#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(e.name);     <span class="comment">// &#x27;MyError&#x27;</span></span><br><span class="line">    <span class="built_in">console</span>.log(e.message);  <span class="comment">// &#x27;Default Message&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> MyError(<span class="string">&#x27;custom message&#x27;</span>);</span><br><span class="line">&#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(e.name);     <span class="comment">// &#x27;MyError&#x27;</span></span><br><span class="line">    <span class="built_in">console</span>.log(e.message);  <span class="comment">// &#x27;custom message&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="错误处理"><a href="#错误处理" class="headerlink" title="错误处理"></a>错误处理</h2><h3 id="局部处理"><a href="#局部处理" class="headerlink" title="局部处理"></a>局部处理</h3><p>常用的处理方式使用 <code>try catch</code> 语句包含执行的代码块</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">&#x27;&#x27;</span>);</span><br><span class="line">&#125; <span class="keyword">catch</span> (error) &#123;</span><br><span class="line">    <span class="built_in">console</span>.error(error);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="全局处理"><a href="#全局处理" class="headerlink" title="全局处理"></a>全局处理</h3><p>任何没有被 try/catch 语句处理的错误都会在 window 对象上触发 error 事件。当JavaScript运行时错误（包括语法错误）发生时，window会触发一个ErrorEvent接口的error事件，并执行window.onerror()。<br>触发 error 事件会传入 3 个参数:错误消息、发生错误的 URL 和行号</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">window</span>.onerror = <span class="function">(<span class="params">message, url, lineNumber</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(message, url, lineNumber);</span><br><span class="line">    <span class="comment">// 返回true可以阻止浏览器的默认报告错误行为，控制台不会输出error</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">window</span>.addEventListener(<span class="string">&#x27;error&#x27;</span>, <span class="function">(<span class="params">errorEvent</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(errorEvent);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">a</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(q);</span><br><span class="line">&#125;</span><br><span class="line">a();</span><br></pre></td></tr></table></figure>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnptv73tej30kc0a0jth.jpg" alt="错误处理1"></p>
+<p>浏览器在使用这个事件处理错误时存在明显差异。在IE中发生error事件时，正 常代码会继续执行，所有变量和数据会保持，且可以在 onerror 事件处理程序中访问。 然而在 Firefox 中，正常代码会执行会终止，错误发生之前的所有变量和数据会被销毁， 导致很难真正分析处理错误。</p>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><ul>
+<li>使用window.onerror 或 window.addEventListener(‘error’) 捕获JS运行时错误</li>
+<li>使用window.onunhandledrejection 或 window.addEventListener(‘unhandledrejection’)捕获未处理的promise reject错误</li>
+<li>在跨域脚本上配置 <code>crossorigin=&quot;anonymous&quot;</code>，并且配置资源的 <code>Access-Control-Allow-Origin: http://www.yourdomain.com</code> 来正确捕获跨域脚本错误</li>
+<li>使用window.addEventListener(‘error’)捕获资源加载错误。因为它也能捕获js运行时错误，为避免重复上报js运行时错误，此时只有event.srcElement inatanceof HTMLScriptElement或HTMLLinkElement或HTMLImageElement时才上报</li>
+<li>XMLHttpRequest 使用 addEventListener(‘error’) 来处理异常</li>
+<li>fetch 使用通常的 Promise catch 的方式即可，try catch 也可以</li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><blockquote>
+<p><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Error">常见的JS错误分类-文档</a><br><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Errors">常见的JS错误列表</a><br><a target="_blank" rel="noopener" href="https://blog.sentry.io/2016/05/17/what-is-script-error">what-is-script-error</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Web/" rel="tag"># Web</a>
+              <a href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag"># 前端</a>
+              <a href="/tags/JavaScript/" rel="tag"># JavaScript</a>
+              <a href="/tags/%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/" rel="tag"># 错误处理</a>
+              <a href="/tags/%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/" rel="tag"># 异常处理</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/05/15/%E6%89%8B%E6%92%95%E6%BA%90%E7%A0%81-redux%E4%BB%8E%E5%8E%9F%E7%90%86%E5%88%B0%E5%AE%9E%E7%8E%B0/" rel="prev" title="手撕源码-redux从原理到实现">
+      <i class="fa fa-chevron-left"></i> 手撕源码-redux从原理到实现
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E8%B5%84%E6%BA%90%E5%8A%A0%E8%BD%BD%E7%9A%84%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">静态资源加载的错误处理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%BE%E7%89%87%E8%B5%84%E6%BA%90%E5%8A%A0%E8%BD%BD%E7%9A%84%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86"><span class="nav-number">1.1.</span> <span class="nav-text">图片资源加载的错误处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#script%E8%B5%84%E6%BA%90%E5%8A%A0%E8%BD%BD%E7%9A%84%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86"><span class="nav-number">1.2.</span> <span class="nav-text">script资源加载的错误处理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Promise%E5%BC%82%E5%B8%B8%E5%85%A8%E5%B1%80%E5%A4%84%E7%90%86"><span class="nav-number">2.</span> <span class="nav-text">Promise异常全局处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ajax%E8%AF%B7%E6%B1%82%E5%BC%82%E5%B8%B8"><span class="nav-number">3.</span> <span class="nav-text">Ajax请求异常</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#XMLHttpRequest"><span class="nav-number">3.1.</span> <span class="nav-text">XMLHttpRequest</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fetch"><span class="nav-number">3.2.</span> <span class="nav-text">Fetch</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF%E4%B8%8E%E5%BC%82%E5%B8%B8"><span class="nav-number">4.</span> <span class="nav-text">常见错误与异常</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#EvalError"><span class="nav-number">4.1.</span> <span class="nav-text">EvalError</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#InternalError%EF%BC%88%E9%9D%9EWeb%E6%A0%87%E5%87%86%E7%9A%84%E9%94%99%E8%AF%AF%E7%B1%BB%E5%9E%8B%EF%BC%8C%E7%9B%AE%E5%89%8D%E5%8F%AA%E6%9C%89Firefox%E5%AE%9E%E7%8E%B0%E4%BA%86%EF%BC%89"><span class="nav-number">4.2.</span> <span class="nav-text">InternalError（非Web标准的错误类型，目前只有Firefox实现了）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RangeError"><span class="nav-number">4.3.</span> <span class="nav-text">RangeError</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ReferenceError"><span class="nav-number">4.4.</span> <span class="nav-text">ReferenceError</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SyntaxError"><span class="nav-number">4.5.</span> <span class="nav-text">SyntaxError</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TypeError"><span class="nav-number">4.6.</span> <span class="nav-text">TypeError</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#URIError"><span class="nav-number">4.7.</span> <span class="nav-text">URIError</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E9%94%99%E8%AF%AF"><span class="nav-number">5.</span> <span class="nav-text">自定义错误</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86"><span class="nav-number">6.</span> <span class="nav-text">错误处理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B1%80%E9%83%A8%E5%A4%84%E7%90%86"><span class="nav-number">6.1.</span> <span class="nav-text">局部处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E5%A4%84%E7%90%86"><span class="nav-number">6.2.</span> <span class="nav-text">全局处理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-number">7.</span> <span class="nav-text">结论</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">8.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ninnka</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">44</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ninnka</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
