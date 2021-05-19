@@ -28,7 +28,7 @@
 <meta property="og:description" content="使用debounce(防抖)来优化window的resize和scroll事件用户在调整浏览器窗口大小时，会触发resize事件，如果在resize事件中有导致回流和重绘的操作的话会大量消耗性能，在低端机和低版本的IE都会悲剧，大概率进入假死状态。 用以下的方法可以调整resize事件中的代码的调用频率。scroll事件同理 123456789var timer &#x3D; null;window.add">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2016-02-11T13:50:33.000Z">
-<meta property="article:modified_time" content="2021-05-17T05:21:34.050Z">
+<meta property="article:modified_time" content="2021-05-19T10:58:54.828Z">
 <meta property="article:author" content="Ninnka">
 <meta property="article:tag" content="debounce">
 <meta property="article:tag" content="throttle">
@@ -120,6 +120,16 @@
     <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
 
   </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
@@ -183,7 +193,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-17 13:21:34" itemprop="dateModified" datetime="2021-05-17T13:21:34+08:00">2021-05-17</time>
+                <time title="修改时间：2021-05-19 18:58:54" itemprop="dateModified" datetime="2021-05-19T18:58:54+08:00">2021-05-19</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -191,11 +201,11 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
                 </span>
                   ，
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%89%8D%E7%AB%AF/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                  <a href="/categories/Web/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
                 </span>
             </span>
 
@@ -344,11 +354,13 @@
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-        <span class="site-state-item-count">17</span>
+          
+        <span class="site-state-item-count">11</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
+          
         <span class="site-state-item-count">44</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
