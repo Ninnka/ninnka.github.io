@@ -56,6 +56,8 @@ script资源加载与图片等其他资源加载没有太大区别
 但是有需要注意的地方：
 当加载自不同域的脚本中发生语法错误时，为避免信息泄露（参见bug 363897），语法错误的细节将不会报告，而代之简单的"Script error."。在某些浏览器中，通过在script使用crossorigin属性并要求服务器发送适当的 CORS HTTP 响应头，该行为可被覆盖。一个变通方案是单独处理"Script error."，告知错误详情仅能通过浏览器控制台查看，无法通过JavaScript访问。
 
+<!-- more -->
+
 通过script加载跨域脚本时，脚本如果报错的情况，报错信息会缺少 `stack` 信息，error显示为null，并且错误事件中的 message、lineno、filename 显示是不正确的
 ![跨域脚本错误1](https://tva1.sinaimg.cn/large/008i3skNgy1gqnqm053gpj30u00wkk0w.jpg)
 
