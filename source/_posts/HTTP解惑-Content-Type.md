@@ -46,6 +46,8 @@ Content-Type: [type]/[subtype]; parameter。例如最常见的就是text/html，
 
 互联网号码分配机构（IANA）是负责跟踪所有官方MIME类型的官方机构，您可以在媒体类型页面中找到最新的完整列表。(在文章的最后)
 
+<!-- more -->
+
 ## MIME结构
 
 MIME格式：[type]/[subType]；
