@@ -10,6 +10,10 @@ tags:
 	- 源码
 ---
 
+在 `响应式原理` 提到过数据更新时会把 watcher 推入 `queue` 队列，在下一个 `tick` 中遍历逐个执行
+
+这次我们从一个 demo 开始一探究竟，从数据更新到 `nextTick` 的过程
+
 ## 一个数据更新的demo
 
 先来看一个常见的案例，点击click后会循环1000次，每次都给this.number+1
@@ -41,89 +45,78 @@ export default {
 
 但是连续更新1000次会造成不必要的视图更新，频繁操作DOM的效率也非常低，为了减少布局和渲染，Vue把DOM更新设计为异步更新，每次侦听到数据变化，将开启一个队列，并缓冲在同一事件循环中发生的所有数据变更。如果同一个 watcher 被多次触发，只会被推入到队列中一次。然后在下一个的事件循环tick中，Vue才会真正执行队列中的数据变更，然后页面才会重新渲染。相当于把多个地方的DOM更新放到一个地方一次性全部更新。
 
+## 回顾响应式原理
+
+![](https://tva1.sinaimg.cn/large/008i3skNgy1gr32nsmyerj32dn0u047q.jpg)
+
+在了解了响应式原理后，大家应该都清楚触发 `setter` 后会通知 `watcher` 需要更新，这之后的过程是我们这次关注的重点
+
+对应图中触发 `dep.notify()` 后到 `watcher.run()` 执行的部分
+
 ## 更新队列 queue
 
 为了避免频繁操作DOM，造成不必要的视图更新，Vue在数据发生变化时，触发setter方法后，setter会把Watcher push到队列queue中。
 
 为此，Vue提供了异步更新的监听接口 —— Vue.nextTick(callback) 或 this.$nextTick(callback) 。当数据发生改变，异步DOM更新完成后，callback回调将被调用。开发者可以在回调中，操作更新后的DOM。
 
+通知的关键在与 Watcher 中的 update 函数，update 实际最终会调用 queueWatcher 把当前 watcher 推入 queue 队列中
+
 <!-- more -->
 
 ```js
-// watch.js
-  /**
-   * Subscriber interface.
-   * Will be called when a dependency changes.
-   */
+// class Watch
+Class Watcher {
+  // ...
   update () {
-    /* istanbul ignore else */
-    if (this.lazy) {
-      this.dirty = true
-    } else if (this.sync) {
-      this.run()
-    } else {
-      // 上述例子中点击click，修改this.number后，最后会调用对应watcher的 update方法
-      queueWatcher(this)
-    }
+    // ...
+    // 上述例子中点击click，修改this.number后，最后会调用对应watcher的 update方法
+    queueWatcher(this)
   }
-```
-
-```js
-/**
- * 把 watcher push到 watcher 队列中
- * 对于 watcher 会做几个判断
- * 1、如果有重复的id，那么就跳过
- * 2、如果还未 flush ，那么正常 push 到队列中
- * 3、如果在 flushing 中，那么按照 id 排序插入到队列中对应的位置
- */
-export function queueWatcher (watcher: Watcher) {
-  const id = watcher.id
-  if (has[id] == null) {
-    // 有重复的id，那么就跳过，不重复就正常 push
-    has[id] = true
-    if (!flushing) {
-      // 还未 flush ，那么正常 push 到队列中
-      queue.push(watcher)
-    } else {
-      // 在 flushing 中，那么按照 id 排序插入到队列中对应的位置
-      let i = queue.length - 1
-      while (i > index && queue[i].id > watcher.id) {
-        i--
-      }
-      queue.splice(i + 1, 0, watcher)
-    }
-    // 当有 watcher push 到队列中时，把队列置位等待 flush 状态
-    if (!waiting) {
-      waiting = true
-
-      if (process.env.NODE_ENV !== 'production' && !config.async) {
-        flushSchedulerQueue()
-        return
-      }
-      // 在下一个 tick 中遍历队列 run 一遍。
-      nextTick(flushSchedulerQueue)
-    }
-  }
+  // ...
 }
 ```
 
-`nextTick` 中传入了一个新的函数 `flushScheduleerQueue`，这个函数做的事情很简单，就是遍历 `queue`，顺序执行每个 `watcher` 的 `run` 方法。
+`queueWatcher` 实现比较简单，主要做了两件事
+
+1. watcher 推入 queue
+2. 把 flushSchedulerQueue 推入 nextTick callbacks回调队列中，并设置waiting标记位为true
+
+把 watcher push到 watcher 队列中会做一些判断：
+
+1. 如果有重复的id，那么就跳过
+2. 如果还未 flush ，那么正常 push 到队列中
+3. 如果在 flushing 中，那么按照 id 排序插入到队列中对应的位置
+
+```js
+// 精简了很多代码，我们只看需要关注的部分
+export function queueWatcher (watcher: Watcher) {
+  // ....
+  // 还未 flush ，那么正常 push 到队列中
+  queue.push(watcher)
+  // ...
+  // 如果还未触发等待标识，则把 flushSchedulerQueue 推入 callbacks
+  nextTick(flushSchedulerQueue)
+  // ...
+}
+```
+
+`nextTick` 中传入了一个新的函数 `flushScheduleerQueue`，这个函数做的事情很简单，就是遍历 `queue`，顺序执行每个 `watcher` 的 `run` 方法
+
+开始flush前要对queue进行排序，排序主要是为了确保：
+1. 组件更新顺序是从父组件到子组件（因为父组件早于子组件先创建）
+2. 确保 user watchers 在 render watchers 前执行（因为 user watchers 早于 render watchers 创建）
+3. 父组件的watcher运行途中如果子组件销毁了，可以及时发现并跳转它
+
+由于 flush 途中可以继续插入 watchers，所以不缓存 queue 的长度
 
 ```js
 function flushSchedulerQueue () {
-  currentFlushTimestamp = getNow()
   flushing = true
-  let watcher, id
 
-  // 开始flush前要对queue进行排序
-  // 排序主要是为了确保：
-  // 1. 组件更新顺序是从父组件到子组件（因为父组件早于子组件先创建）
-  // 2. 确保 user watchers 在 render watchers 前执行（因为 user watchers 早于 render watchers 创建）
-  // 3. 父组件的watcher运行途中如果子组件销毁了，可以及时发现并跳转它
+  // watchers 排序
   queue.sort((a, b) => a.id - b.id)
 
-  // 遍历 queue
-  // 不缓存 queue 的长度，从 queueWatcher 中可以了解到 queue 在 flushing 途中也会发生变化
+  // 遍历 queue，不缓存 queue 的长度
   for (index = 0; index < queue.length; index++) {
     watcher = queue[index]
     if (watcher.before) {
@@ -131,6 +124,7 @@ function flushSchedulerQueue () {
     }
     id = watcher.id
     has[id] = null
+    // 执行 watcher.run() 方法
     watcher.run()
     // ...
   }
@@ -140,9 +134,13 @@ function flushSchedulerQueue () {
 }
 ```
 
-通过 `queueWatcher` 可以看到，当有数据变化时，会先把 `watcher` 推入到待更新的队列中，并触发一次 `nextTick` 调用，在下一个 tick 中遍历队列 run 一遍。
+通过 `queueWatcher` 可以看到，当有数据变化时，会先把 `watcher` 推入到待更新的队列中，并触发一次 `nextTick` 调用 `flushSchedulerQueue`
 
-那么下一个 tick 是什么时候？如何去定义它？
+经过上述分析，我们可以得到一个大致的流程轮廓
+
+![](https://tva1.sinaimg.cn/large/008i3skNgy1gr42cyfhmwj32qo0u07aa.jpg)
+
+那么 `nextTick` 具体指什么呢？如何去定义它？
 
 ## nextTick
 
@@ -156,11 +154,7 @@ function nextTick (cb, ctx) {
   /* cb是我们传入的回调函数，cb会先被push到回调队列中 */
   callbacks.push(function () {
     if (cb) {
-      try {
-        cb.call(ctx);
-      } catch (e) {
-        handleError(e, ctx, 'nextTick');
-      }
+      cb.call(ctx);
     } else if (_resolve) {
       _resolve(ctx);
     }
@@ -171,13 +165,7 @@ function nextTick (cb, ctx) {
     // timerFunc 是执行 callback队列的入口
     timerFunc();
   }
-  // $flow-disable-line
-  if (!cb && typeof Promise !== 'undefined') {
-    /* 在支持Promise环境下，返回一个异步函数，支持nextTick的异步调用 */
-    return new Promise(function (resolve) {
-      _resolve = resolve;
-    })
-  }
+  // ... 判断环境是否应该返回 Promise
 }
 ```
 
@@ -190,6 +178,12 @@ nextTick函数主要做了这几件事情：
 那么关键点应该就在 `timerFunc` 上了，我们来看看 `timerFunc` 具体做了什么
 
 ### timerFunc
+
+`timerFunc` 的处理分支比较多，我们先看图
+
+![](https://tva1.sinaimg.cn/large/008i3skNgy1gr42d8e8yrj331i0u01c6.jpg)
+
+下面代码其实表示了 `timerFunc = ` 这一部分的处理
 
 ```js
 // 回调队列
@@ -265,3 +259,11 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
 总的来说，优先选择Promise，MutationObserver等microtask来执行flushCallbacks。
 
 如果不支持的话，就选择setImmediate和setTimeout等macrotask来执行flushCallbacks。
+
+## 总结
+
+经过 `响应式原理` 和 `nextTick` 的分析，我们对 Vue 的执行流程有了进一步的了解
+
+大致轮廓可以用这幅图概括
+
+![](https://tva1.sinaimg.cn/large/008i3skNgy1gr42fxudaej33ah0u04qp.jpg)
