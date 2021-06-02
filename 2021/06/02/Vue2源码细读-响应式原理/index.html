@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="如何理解响应式「响应式数据」的特性是数据改变时自动更新视图，当数据变化后，自动通知到对应的观察者，更新操作函数 Vue的响应式则用到了 Object.defineProperty，可能很多小伙伴之前都了解过，在分析 Vue 的响应式原理之前，我们先简单介绍一下Object.defineProperty 的用法 Object.defineProperty该方法允许精确地添加或修改对象的属性。 通过设">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vue2源码细读-响应式原理">
+<meta property="og:url" content="http://yoursite.com/2021/06/02/Vue2%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E5%93%8D%E5%BA%94%E5%BC%8F%E5%8E%9F%E7%90%86/index.html">
+<meta property="og:site_name" content="某科学の前端杂货铺">
+<meta property="og:description" content="如何理解响应式「响应式数据」的特性是数据改变时自动更新视图，当数据变化后，自动通知到对应的观察者，更新操作函数 Vue的响应式则用到了 Object.defineProperty，可能很多小伙伴之前都了解过，在分析 Vue 的响应式原理之前，我们先简单介绍一下Object.defineProperty 的用法 Object.defineProperty该方法允许精确地添加或修改对象的属性。 通过设">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqz9uduek2j30xc0kuq4o.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gr2zpu5eb7j31dv0u0q6d.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gr311meb9oj31qb0sqacf.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gr31d577k6j31rs0u0gq5.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gr32nsmyerj32dn0u047q.jpg">
+<meta property="article:published_time" content="2021-06-02T02:01:17.000Z">
+<meta property="article:modified_time" content="2021-06-02T03:39:34.434Z">
+<meta property="article:author" content="Ninnka">
+<meta property="article:tag" content="Web">
+<meta property="article:tag" content="Vue2">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="响应式原理">
+<meta property="article:tag" content="Observer">
+<meta property="article:tag" content="Dep">
+<meta property="article:tag" content="Watcher">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqz9uduek2j30xc0kuq4o.jpg">
+
+<link rel="canonical" href="http://yoursite.com/2021/06/02/Vue2%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E5%93%8D%E5%BA%94%E5%BC%8F%E5%8E%9F%E7%90%86/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Vue2源码细读-响应式原理 | 某科学の前端杂货铺</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">某科学の前端杂货铺</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/06/02/Vue2%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E5%93%8D%E5%BA%94%E5%BC%8F%E5%8E%9F%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="某科学の前端杂货铺">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Vue2源码细读-响应式原理
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-06-02 10:01:17 / 修改时间：11:39:34" itemprop="dateCreated datePublished" datetime="2021-06-02T10:01:17+08:00">2021-06-02</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Vue2/" itemprop="url" rel="index"><span itemprop="name">Vue2</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Vue2/%E5%93%8D%E5%BA%94%E5%BC%8F%E5%8E%9F%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">响应式原理</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="如何理解响应式"><a href="#如何理解响应式" class="headerlink" title="如何理解响应式"></a>如何理解响应式</h2><p>「响应式数据」的特性是数据改变时自动更新视图，当数据变化后，自动通知到对应的观察者，更新操作函数</p>
+<p>Vue的响应式则用到了 <code>Object.defineProperty</code>，可能很多小伙伴之前都了解过，在分析 Vue 的响应式原理之前，我们先简单介绍一下<br><code>Object.defineProperty</code> 的用法</p>
+<h2 id="Object-defineProperty"><a href="#Object-defineProperty" class="headerlink" title="Object.defineProperty"></a>Object.defineProperty</h2><p>该方法允许精确地添加或修改对象的属性。</p>
+<p>通过设置 get/set 属性，可以代理属性的获取和写入操作，这两个是实现 Vue 响应式的关键</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> object1 = &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">Object</span>.defineProperty(object1, <span class="string">&#x27;property1&#x27;</span>, &#123;</span><br><span class="line">  <span class="comment">// 赋值</span></span><br><span class="line">  <span class="function"><span class="title">set</span>(<span class="params">val</span>)</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;set&#x27;</span>, val);</span><br><span class="line">    <span class="built_in">this</span>.value = val;</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="function"><span class="title">get</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;get&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>.value || <span class="number">1</span>;</span><br><span class="line">  &#125;,</span><br><span class="line"><span class="comment">//   value: 1,</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// object1.property1 = 77;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(object1.property1);</span><br><span class="line">object1.property1 = <span class="number">2</span>;</span><br><span class="line"><span class="built_in">console</span>.log(object1.property1);</span><br></pre></td></tr></table></figure>
+
+<p>此外，<code>defineProperty</code> 可以实现控制属性的可覆写、可枚举、可配置等操作</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> object1 = &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">Object</span>.defineProperty(object1, <span class="string">&#x27;property1&#x27;</span>, &#123;</span><br><span class="line">  <span class="comment">// 赋值</span></span><br><span class="line">  value: <span class="number">42</span>,</span><br><span class="line">  <span class="comment">// 不可覆写</span></span><br><span class="line">  writable: <span class="literal">false</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">object1.property1 = <span class="number">77</span>;</span><br><span class="line"><span class="comment">// 严格模式下抛出错误，不可覆写</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(object1.property1); <span class="comment">// 42</span></span><br></pre></td></tr></table></figure>
+
+<p>简单了解 <code>defineProperty</code> 后我们开始进入正题</p>
+<h2 id="Vue响应式"><a href="#Vue响应式" class="headerlink" title="Vue响应式"></a>Vue响应式</h2><p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqz9uduek2j30xc0kuq4o.jpg" alt="reactive1"></p>
+<p>这是官方的响应式流程图，我们今天需要重点关注的地方有几个</p>
+<ol>
+<li>Data 模块是如何转换成响应式数据结构？</li>
+<li>getter 是如何收集依赖？依赖具体是什么？</li>
+<li>setter 如何通知 Watcher？</li>
+<li>Watcher 是什么？Watcher 的作用是什么？</li>
+<li>Data 和 Watcher 的关系是什么？</li>
+<li>Watcher 是如何触发组件 render？</li>
+</ol>
+<a id="more"></a>
+
+<h3 id="简单回顾-init-初始化过程"><a href="#简单回顾-init-初始化过程" class="headerlink" title="简单回顾 _init 初始化过程"></a>简单回顾 <code>_init</code> 初始化过程</h3><p>我们先回想下在 <code>Vue初始化</code> 篇章中的 <code>_init</code> 函数</p>
+<p><code>_init</code> 函数主要是对初始化组件的生命周期，事件，渲染VNode，数据响应式，数据注入和提供等函数做了初始化，其中数据响应式 <code>initState</code> 是这次的关键点</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src/core/instance/init.js</span></span><br><span class="line"></span><br><span class="line">Vue.prototype._init = <span class="function"><span class="keyword">function</span> (<span class="params">options?: <span class="built_in">Object</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> vm: Component = <span class="built_in">this</span></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="comment">// 触发组件的 beforeCreate 事件</span></span><br><span class="line">    callHook(vm, <span class="string">&#x27;beforeCreate&#x27;</span>)</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="comment">// 1、data/props/computed的响应式</span></span><br><span class="line">    <span class="comment">// 2、绑定methods到实例this</span></span><br><span class="line">    <span class="comment">// 3、初始化watch</span></span><br><span class="line">    initState(vm)</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="comment">// 触发组件的 created 事件</span></span><br><span class="line">    callHook(vm, <span class="string">&#x27;created&#x27;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="initState-初始化数据状态"><a href="#initState-初始化数据状态" class="headerlink" title="initState 初始化数据状态"></a>initState 初始化数据状态</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">initState</span> (<span class="params">vm: Component</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 创建私有属性 _watchers，用于保存当前组件中创建的render watcher,internal watcher,user watcher</span></span><br><span class="line">  vm._watchers = []</span><br><span class="line">  <span class="keyword">const</span> opts = vm.$options</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 初始化 props</span></span><br><span class="line">  <span class="keyword">if</span> (opts.props) initProps(vm, opts.props)</span><br><span class="line">  <span class="keyword">if</span> (opts.methods) initMethods(vm, opts.methods)</span><br><span class="line">  <span class="keyword">if</span> (opts.data) &#123;</span><br><span class="line">    <span class="comment">// 初始化 data</span></span><br><span class="line">    initData(vm)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 如果没有data属性，则给 _data 属性赋值空对象</span></span><br><span class="line">    observe(vm._data = &#123;&#125;, <span class="literal">true</span> <span class="comment">/* asRootData */</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 初始化 computed</span></span><br><span class="line">  <span class="keyword">if</span> (opts.computed) initComputed(vm, opts.computed)</span><br><span class="line">  <span class="comment">// 初始化 watch</span></span><br><span class="line">  <span class="keyword">if</span> (opts.watch &amp;&amp; opts.watch !== nativeWatch) &#123;</span><br><span class="line">    initWatch(vm, opts.watch)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>initState</code> 方法主要是对我们设置的 props、methods、data、computed 和 wathc 等属性做初始化，下面我们重点分析 <code>props</code> 和 <code>data</code></p>
+<p>对于 <code>methods</code> 会在后续的篇幅中单独解读</p>
+<p><code>computed</code> 和 <code>watch</code> 都是利用了 <code>watcher</code> 来做处理，这两个同样会在后续的篇幅中单独解读</p>
+<h4 id="initProps-props响应式化"><a href="#initProps-props响应式化" class="headerlink" title="initProps props响应式化"></a>initProps props响应式化</h4><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">initProps</span> (<span class="params">vm: Component, propsOptions: <span class="built_in">Object</span></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> propsData = vm.$options.propsData || &#123;&#125;</span><br><span class="line">  <span class="keyword">const</span> props = vm._props = &#123;&#125;</span><br><span class="line">  <span class="comment">// 第一次遍历 props 对象时把key保存到数组，避免后续遍历对象</span></span><br><span class="line">  <span class="keyword">const</span> keys = vm.$options._propKeys = []</span><br><span class="line">  <span class="keyword">const</span> isRoot = !vm.$parent</span><br><span class="line">  <span class="comment">// 根节点不需要响应式</span></span><br><span class="line">  <span class="keyword">if</span> (!isRoot) &#123;</span><br><span class="line">    <span class="comment">// 如果是根节点，会把全局变量 shouldObserve 置位 false</span></span><br><span class="line">    toggleObserving(<span class="literal">false</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 遍历 props</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">const</span> key <span class="keyword">in</span> propsOptions) &#123;</span><br><span class="line">    keys.push(key)</span><br><span class="line">    <span class="keyword">const</span> value = validateProp(key, propsOptions, propsData, vm)</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    defineReactive(props, key, value)</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="comment">// static props are already proxied on the component&#x27;s prototype</span></span><br><span class="line">    <span class="comment">// during Vue.extend(). We only need to proxy props defined at</span></span><br><span class="line">    <span class="comment">// instantiation here.</span></span><br><span class="line">    <span class="keyword">if</span> (!(key <span class="keyword">in</span> vm)) &#123;</span><br><span class="line">      proxy(vm, <span class="string">`_props`</span>, key)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  toggleObserving(<span class="literal">true</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>props 的初始化主要过程，就是遍历定义的 props 配置，把有效的 props 都转换为响应式数据。</p>
+<p>遍历时主要做两件事情：</p>
+<ol>
+<li>先调用 <code>defineReactive</code> 方法把每个 prop 对应的值变成响应式，可以通过 <code>vm._props.xxx</code> 访问到定义 props 中对应的属性</li>
+<li>另一个是通过 <code>proxy</code> 函数把 <code>vm._props.xxx</code> 的访问代理到 <code>vm.xxx</code> 上</li>
+</ol>
+<p>这里用到了两个很重要的函数：<code>defineReactive</code> 和 <code>proxy</code></p>
+<p>这两个函数在后面会一块介绍，我们继续看 <code>initData</code> 的实现</p>
+<h4 id="initData-data响应式化"><a href="#initData-data响应式化" class="headerlink" title="initData data响应式化"></a>initData data响应式化</h4><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">initData</span> (<span class="params">vm: Component</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">let</span> data = vm.$options.data</span><br><span class="line">  data = vm._data = <span class="keyword">typeof</span> data === <span class="string">&#x27;function&#x27;</span></span><br><span class="line">    ? getData(data, vm)</span><br><span class="line">    : data || &#123;&#125;</span><br><span class="line">  <span class="comment">// proxy data on instance</span></span><br><span class="line">  <span class="keyword">const</span> keys = <span class="built_in">Object</span>.keys(data)</span><br><span class="line">  <span class="keyword">const</span> props = vm.$options.props</span><br><span class="line">  <span class="keyword">const</span> methods = vm.$options.methods</span><br><span class="line">  <span class="keyword">let</span> i = keys.length</span><br><span class="line">  <span class="keyword">while</span> (i--) &#123;</span><br><span class="line">    <span class="keyword">const</span> key = keys[i]</span><br><span class="line">    <span class="comment">// 初始化 data 的数据时，会对 data 与 props，methods 中的 key 做个检查</span></span><br><span class="line">    <span class="keyword">if</span> (process.env.NODE_ENV !== <span class="string">&#x27;production&#x27;</span>) &#123;</span><br><span class="line">      <span class="keyword">if</span> (methods &amp;&amp; hasOwn(methods, key)) &#123;</span><br><span class="line">        warn(</span><br><span class="line">          <span class="string">`Method &quot;<span class="subst">$&#123;key&#125;</span>&quot; has already been defined as a data property.`</span>,</span><br><span class="line">          vm</span><br><span class="line">        )</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (props &amp;&amp; hasOwn(props, key)) &#123;</span><br><span class="line">      process.env.NODE_ENV !== <span class="string">&#x27;production&#x27;</span> &amp;&amp; warn(</span><br><span class="line">        <span class="string">`The data property &quot;<span class="subst">$&#123;key&#125;</span>&quot; is already declared as a prop. `</span> +</span><br><span class="line">        <span class="string">`Use prop default value instead.`</span>,</span><br><span class="line">        vm</span><br><span class="line">      )</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!isReserved(key)) &#123;</span><br><span class="line">      <span class="comment">// 代理 _data 的访问到 vm 实例上， 访问 vm.xxx 可以访问到 vm._data.xxx，与前面的 _props 一样的处理</span></span><br><span class="line">      proxy(vm, <span class="string">`_data`</span>, key)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 这个函数是用来把 data 变成响应式的关键</span></span><br><span class="line">  observe(data, <span class="literal">true</span> <span class="comment">/* asRootData */</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>data 初始化的过程主要也是做了两件事</p>
+<ol>
+<li>一个是对定义 data 函数返回对象的遍历，通过 proxy 把每一个值 <code>vm._data.xxx</code> 都代理到 <code>vm.xxx</code> 上</li>
+<li>另一个用 observe 方法把整个 data 转换成响应式的结构</li>
+</ol>
+<p>通过观察 initProps 和 initData 的实现可以看到，无论是 props 或是 data，都是把它们变成响应式对象</p>
+<p>在这个过程我们接触到几个重要方法</p>
+<ul>
+<li>proxy</li>
+<li>defineReactive // 响应式数据结构的关键函数</li>
+<li>observe</li>
+</ul>
+<h2 id="proxy"><a href="#proxy" class="headerlink" title="proxy"></a>proxy</h2><p>大家都知道有个新的API叫做 Proxy，这里的 proxy 与 js的api API并不是同一个</p>
+<p>vue2 中的 proxy 函数是用来把绑定实例的 data,props,methods等属性</p>
+<p>比如：我们通常在组件中会这样访问 data，props，<code>this.xxx</code>，但是这个 <code>xxx</code> 实际不存在与 vm 实例上，只是通过 <code>defineProperty</code> 代理到对应的属性上了</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">proxy</span> (<span class="params">target: <span class="built_in">Object</span>, sourceKey: string, key: string</span>) </span>&#123;</span><br><span class="line">  sharedPropertyDefinition.get = <span class="function"><span class="keyword">function</span> <span class="title">proxyGetter</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>[sourceKey][key]</span><br><span class="line">  &#125;</span><br><span class="line">  sharedPropertyDefinition.set = <span class="function"><span class="keyword">function</span> <span class="title">proxySetter</span> (<span class="params">val</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">this</span>[sourceKey][key] = val</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">Object</span>.defineProperty(target, key, sharedPropertyDefinition)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码很简单，清晰明了，就只做一件事</p>
+<ul>
+<li>通过 <code>defineProperty</code> 代理了 vm 属性的访问，比如前面提到的 <code>this.num</code> 访问到 <code>this._data.num</code></li>
+</ul>
+<h2 id="defineReactive"><a href="#defineReactive" class="headerlink" title="defineReactive"></a>defineReactive</h2><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">defineReactive</span> (<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  obj: <span class="built_in">Object</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  key: string,</span></span></span><br><span class="line"><span class="function"><span class="params">  val: any,</span></span></span><br><span class="line"><span class="function"><span class="params">  customSetter?: ?<span class="built_in">Function</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  shallow?: boolean</span></span></span><br><span class="line"><span class="function"><span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="comment">// Dep 对象，这个很关键，后续会单独开一个篇章解读</span></span><br><span class="line">  <span class="keyword">const</span> dep = <span class="keyword">new</span> Dep()</span><br><span class="line">  <span class="comment">// 过滤不可配置的对象</span></span><br><span class="line">  <span class="keyword">const</span> property = <span class="built_in">Object</span>.getOwnPropertyDescriptor(obj, key)</span><br><span class="line">  <span class="keyword">if</span> (property &amp;&amp; property.configurable === <span class="literal">false</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 保存原来的 set get 方法</span></span><br><span class="line">  <span class="keyword">const</span> getter = property &amp;&amp; property.get</span><br><span class="line">  <span class="keyword">const</span> setter = property &amp;&amp; property.set</span><br><span class="line">  <span class="keyword">if</span> ((!getter || setter) &amp;&amp; <span class="built_in">arguments</span>.length === <span class="number">2</span>) &#123;</span><br><span class="line">    val = obj[key]</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 如果是深层遍历，那么会先把属性中的对象先转换成响应式结构</span></span><br><span class="line">  <span class="keyword">let</span> childOb = !shallow &amp;&amp; observe(val)</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 响应式的关键</span></span><br><span class="line">  <span class="built_in">Object</span>.defineProperty(obj, key, &#123;</span><br><span class="line">    enumerable: <span class="literal">true</span>,</span><br><span class="line">    configurable: <span class="literal">true</span>,</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 设置 get 属性，目的是做依赖收集</span></span><br><span class="line">    get: <span class="function"><span class="keyword">function</span> <span class="title">reactiveGetter</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="keyword">const</span> value = getter ? getter.call(obj) : val</span><br><span class="line">      <span class="keyword">if</span> (Dep.target) &#123;</span><br><span class="line">        dep.depend()</span><br><span class="line">        <span class="keyword">if</span> (childOb) &#123;</span><br><span class="line">          childOb.dep.depend()</span><br><span class="line">          <span class="keyword">if</span> (<span class="built_in">Array</span>.isArray(value)) &#123;</span><br><span class="line">            dependArray(value)</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> value</span><br><span class="line">    &#125;,</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 设置 set 属性，目的是做更新事务收集</span></span><br><span class="line">    set: <span class="function"><span class="keyword">function</span> <span class="title">reactiveSetter</span> (<span class="params">newVal</span>) </span>&#123;</span><br><span class="line">      <span class="keyword">const</span> value = getter ? getter.call(obj) : val</span><br><span class="line">      <span class="comment">/* eslint-disable no-self-compare */</span></span><br><span class="line">      <span class="keyword">if</span> (newVal === value || (newVal !== newVal &amp;&amp; value !== value)) &#123;</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (setter) &#123;</span><br><span class="line">        setter.call(obj, newVal)</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        val = newVal</span><br><span class="line">      &#125;</span><br><span class="line">      </span><br><span class="line">      <span class="comment">// 如果新的值是对象，在深层遍历的模式下会把新值也转换成响应式结构</span></span><br><span class="line">      childOb = !shallow &amp;&amp; observe(newVal)</span><br><span class="line">      </span><br><span class="line">      <span class="comment">// 通知watchers有更新，这一步很关键</span></span><br><span class="line">      dep.notify()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>defineReactive</code> 函数做的事情也很简单</p>
+<ol>
+<li>创建 dep 实例，dep实例可以用来收集当前的watcher</li>
+<li>如果是深层遍历，那么会先把属性中的对象先转换成响应式结构</li>
+<li>通过 <code>defineProperty</code> 给对象设置 get 属性，目的是做依赖收集，收集的是watcher（render watcher,user watcher）</li>
+<li>通过 <code>defineProperty</code> 给对象设置 set 属性，目的是做更新事务收集，dep通知收集的watcher队列，watcher去做对应的处理</li>
+</ol>
+<h2 id="observe-方法"><a href="#observe-方法" class="headerlink" title="observe 方法"></a>observe 方法</h2><p>observe 函数是给对象（不包括 VNode和组件实例vm）创建 <code>Observer</code> 实例对象</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">observe</span> (<span class="params">value: any, asRootData: ?boolean</span>): <span class="title">Observer</span> | <span class="title">void</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (!isObject(value) || value <span class="keyword">instanceof</span> VNode) &#123;</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">let</span> ob: Observer | <span class="keyword">void</span></span><br><span class="line">  <span class="keyword">if</span> (hasOwn(value, <span class="string">&#x27;__ob__&#x27;</span>) &amp;&amp; value.__ob__ <span class="keyword">instanceof</span> Observer) &#123;</span><br><span class="line">    ob = value.__ob__</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (</span><br><span class="line">    shouldObserve &amp;&amp;</span><br><span class="line">    !isServerRendering() &amp;&amp;</span><br><span class="line">    (<span class="built_in">Array</span>.isArray(value) || isPlainObject(value)) &amp;&amp;</span><br><span class="line">    <span class="built_in">Object</span>.isExtensible(value) &amp;&amp;</span><br><span class="line">    !value._isVue</span><br><span class="line">  ) &#123;</span><br><span class="line">    <span class="comment">// 满足一下条件的可以创建 Observer 对象</span></span><br><span class="line">    <span class="comment">// 1、可以被 observe</span></span><br><span class="line">    <span class="comment">// 2、非服务端渲染</span></span><br><span class="line">    <span class="comment">// 3、数组或普通对象</span></span><br><span class="line">    <span class="comment">// 4、可扩展</span></span><br><span class="line">    <span class="comment">// 5、不是Vue组件实例</span></span><br><span class="line">    ob = <span class="keyword">new</span> Observer(value)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (asRootData &amp;&amp; ob) &#123;</span><br><span class="line">    <span class="comment">// 根节点数据会统计当前对象中的 Observer 对象个数</span></span><br><span class="line">    ob.vmCount++</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> ob</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>observe</code> 函数并没有出现 <code>defineReactive</code> 相关的操作，响应式转换的操作其实放到了 <code>Observer</code> 对象中处理</p>
+<h2 id="Observer-对象"><a href="#Observer-对象" class="headerlink" title="Observer 对象"></a>Observer 对象</h2><p>在 <code>observe</code> 函数中提到过 <code>Observer</code> 对象，它的核心作用是将普通对象转换为响应式数据结构</p>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gr2zpu5eb7j31dv0u0q6d.jpg"></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">Observer</span> </span>&#123;</span><br><span class="line">  value: any;</span><br><span class="line">  dep: Dep;</span><br><span class="line">  vmCount: number; <span class="comment">// number of vms that have this object as root $data</span></span><br><span class="line"></span><br><span class="line">  <span class="title">constructor</span> (<span class="params">value: any</span>) &#123;</span><br><span class="line">    <span class="built_in">this</span>.value = value</span><br><span class="line">    <span class="built_in">this</span>.dep = <span class="keyword">new</span> Dep()</span><br><span class="line">    <span class="built_in">this</span>.vmCount = <span class="number">0</span></span><br><span class="line">    def(value, <span class="string">&#x27;__ob__&#x27;</span>, <span class="built_in">this</span>)</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">Array</span>.isArray(value)) &#123;</span><br><span class="line">      <span class="keyword">if</span> (hasProto) &#123;</span><br><span class="line">        protoAugment(value, arrayMethods)</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        copyAugment(value, arrayMethods, arrayKeys)</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">// 数组转换成响应式数据结构</span></span><br><span class="line">      <span class="built_in">this</span>.observeArray(value)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 对象转换成响应式数据结构</span></span><br><span class="line">      <span class="built_in">this</span>.walk(value)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  walk (obj: <span class="built_in">Object</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> keys = <span class="built_in">Object</span>.keys(obj)</span><br><span class="line">    <span class="comment">// 遍历对象执行 defineReactive</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; keys.length; i++) &#123;</span><br><span class="line">      defineReactive(obj, keys[i])</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  observeArray (items: <span class="built_in">Array</span>&lt;any&gt;) &#123;</span><br><span class="line">    <span class="comment">// 遍历对象执行 observe</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, l = items.length; i &lt; l; i++) &#123;</span><br><span class="line">      observe(items[i])</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Observer</code> 对象比较简单，主要就两件事</p>
+<ol>
+<li>创建一个 dep 对象</li>
+<li>深度遍历 value，将对象属性都转成响应式数据结构</li>
+</ol>
+<h2 id="Dep-对象"><a href="#Dep-对象" class="headerlink" title="Dep 对象"></a>Dep 对象</h2><p><code>Dep</code> 对象核心作用是：管理依赖，用于辅助 响应式 Data 和 Watcher</p>
+<p>想象这样一个场景：某个函数执行时用到了某个响应式数据，但是它是无法直接知道是哪个函数使用了这个响应式数据，当数据更新时也就无法在数据找到这个函数重新执行。</p>
+<p>为了解决这个问题，需要用到 依赖管理 <code>Dep</code> 对象</p>
+<p>通过前面的 <code>defineProperty</code> 函数可以了解到，每次触发属性的取值逻辑时都会 get 函数，然后执行 <code>dep.depend()</code></p>
+<p>这是管理依赖的第一点：<code>收集 watcher</code>，用一个 subs 数组管理，依赖收集的目的是为了知道是谁在使用数据</p>
+<p>通过前面的 <code>defineProperty</code> 函数还可以了解到，每次修改属性值时都会 set 函数，然后执行 <code>dep.notify()</code></p>
+<p>这是管理依赖的第二点：<code>通知 watcher</code>，遍历subs数组逐个执行 <code>watcher.update()</code>，通知的目的是为了告诉正在使用数据的watcher需要更新了</p>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gr311meb9oj31qb0sqacf.jpg"></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="class"><span class="keyword">class</span> <span class="title">Dep</span> </span>&#123;</span><br><span class="line">  <span class="keyword">static</span> target: ?Watcher;</span><br><span class="line">  id: number;</span><br><span class="line">  subs: <span class="built_in">Array</span>&lt;Watcher&gt;;</span><br><span class="line"></span><br><span class="line">  <span class="title">constructor</span> (<span class="params"></span>) &#123;</span><br><span class="line">    <span class="built_in">this</span>.id = uid++</span><br><span class="line">    <span class="built_in">this</span>.subs = []</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  addSub (sub: Watcher) &#123;</span><br><span class="line">    <span class="built_in">this</span>.subs.push(sub)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  removeSub (sub: Watcher) &#123;</span><br><span class="line">    remove(<span class="built_in">this</span>.subs, sub)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 把当前watcher添加到 dep.subs</span></span><br><span class="line">  depend () &#123;</span><br><span class="line">    <span class="keyword">if</span> (Dep.target) &#123;</span><br><span class="line">      Dep.target.addDep(<span class="built_in">this</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  notify () &#123;</span><br><span class="line">    <span class="keyword">const</span> subs = <span class="built_in">this</span>.subs.slice()</span><br><span class="line">    <span class="keyword">if</span> (process.env.NODE_ENV !== <span class="string">&#x27;production&#x27;</span> &amp;&amp; !config.async) &#123;</span><br><span class="line">      subs.sort(<span class="function">(<span class="params">a, b</span>) =&gt;</span> a.id - b.id)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 遍历 watchers 逐个通知</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, l = subs.length; i &lt; l; i++) &#123;</span><br><span class="line">      subs[i].update()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Watcher-对象"><a href="#Watcher-对象" class="headerlink" title="Watcher 对象"></a>Watcher 对象</h2><h3 id="Watcher-对象是什么"><a href="#Watcher-对象是什么" class="headerlink" title="Watcher 对象是什么"></a>Watcher 对象是什么</h3><p><code>Watcher</code> 是用在 依赖收集 和 组件更新代理 的对象</p>
+<p><code>Watcher</code> 中需要先关注几个重要的方法和属性</p>
+<ol>
+<li>this.getter // <code>vm</code> 组件实例的更新函数</li>
+<li>get() {} // 代理 <code>this.getter</code> 执行，做了些运行时的判断</li>
+<li>update() {} // 接收 <code>dep.notify()</code>，把当前 watcher 推入到 <code>dep.subs</code> 中</li>
+<li>run() {} // 代理 <code>this.get</code> 执行，做了些运行时的判断</li>
+</ol>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 简化了原有的代码，保留了这次我们需要关注的部分</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="class"><span class="keyword">class</span> <span class="title">Watcher</span> </span>&#123;</span><br><span class="line">  vm: Component;</span><br><span class="line">  expression: string;</span><br><span class="line">  cb: <span class="built_in">Function</span>;</span><br><span class="line">  id: number;</span><br><span class="line">  getter: <span class="built_in">Function</span>;</span><br><span class="line">  value: any;</span><br><span class="line">  <span class="comment">// ... 还有很多成员属性</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 构造函数</span></span><br><span class="line">  <span class="title">constructor</span> (<span class="params"></span></span><br><span class="line"><span class="params">    vm: Component,</span></span><br><span class="line"><span class="params">    expOrFn: string | <span class="built_in">Function</span>,</span></span><br><span class="line"><span class="params">    cb: <span class="built_in">Function</span>,</span></span><br><span class="line"><span class="params">    options?: ?<span class="built_in">Object</span>,</span></span><br><span class="line"><span class="params">    isRenderWatcher?: boolean</span></span><br><span class="line"><span class="params">  </span>) &#123;</span><br><span class="line">    <span class="built_in">this</span>.vm = vm</span><br><span class="line">    <span class="keyword">if</span> (isRenderWatcher) &#123;</span><br><span class="line">      vm._watcher = <span class="built_in">this</span></span><br><span class="line">    &#125;</span><br><span class="line">    vm._watchers.push(<span class="built_in">this</span>)</span><br><span class="line">    <span class="comment">// 很多成员属性的初始化</span></span><br><span class="line">    <span class="comment">// parse expression for getter</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">typeof</span> expOrFn === <span class="string">&#x27;function&#x27;</span>) &#123;</span><br><span class="line">      <span class="comment">// getter 实质就是更新的函数</span></span><br><span class="line">      <span class="built_in">this</span>.getter = expOrFn</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="built_in">this</span>.getter = parsePath(expOrFn)</span><br><span class="line">      <span class="keyword">if</span> (!<span class="built_in">this</span>.getter) &#123;</span><br><span class="line">        <span class="built_in">this</span>.getter = noop</span><br><span class="line">        process.env.NODE_ENV !== <span class="string">&#x27;production&#x27;</span> &amp;&amp; warn(</span><br><span class="line">          <span class="string">`Failed watching path: &quot;<span class="subst">$&#123;expOrFn&#125;</span>&quot; `</span> +</span><br><span class="line">          <span class="string">&#x27;Watcher only accepts simple dot-delimited paths. &#x27;</span> +</span><br><span class="line">          <span class="string">&#x27;For full control, use a function instead.&#x27;</span>,</span><br><span class="line">          vm</span><br><span class="line">        )</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">this</span>.value = <span class="built_in">this</span>.lazy</span><br><span class="line">      ? <span class="literal">undefined</span></span><br><span class="line">      : <span class="built_in">this</span>.get()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 用于执行 getter，并开始收集依赖</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  get () &#123;</span><br><span class="line">    <span class="comment">// watcher 推入到 Dep.target 中</span></span><br><span class="line">    pushTarget(<span class="built_in">this</span>)</span><br><span class="line">    <span class="keyword">let</span> value</span><br><span class="line">    <span class="keyword">const</span> vm = <span class="built_in">this</span>.vm</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// getter 开始执行</span></span><br><span class="line">      value = <span class="built_in">this</span>.getter.call(vm, vm)</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">      <span class="keyword">if</span> (<span class="built_in">this</span>.user) &#123;</span><br><span class="line">        handleError(e, vm, <span class="string">`getter for watcher &quot;<span class="subst">$&#123;<span class="built_in">this</span>.expression&#125;</span>&quot;`</span>)</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">throw</span> e</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">      <span class="comment">// &quot;touch&quot; every property so they are all tracked as</span></span><br><span class="line">      <span class="comment">// dependencies for deep watching</span></span><br><span class="line">      <span class="keyword">if</span> (<span class="built_in">this</span>.deep) &#123;</span><br><span class="line">        traverse(value)</span><br><span class="line">      &#125;</span><br><span class="line">      popTarget()</span><br><span class="line">      <span class="built_in">this</span>.cleanupDeps()</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> value</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 订阅接收更新</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  update () &#123;</span><br><span class="line">    <span class="comment">// ....</span></span><br><span class="line">    <span class="comment">// 推入待更新的 watcher 队列</span></span><br><span class="line">    queueWatcher(<span class="built_in">this</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Scheduler 执行 getter 的接口</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  run () &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.active) &#123;</span><br><span class="line">      <span class="comment">// 执行 getter</span></span><br><span class="line">      <span class="keyword">const</span> value = <span class="built_in">this</span>.get()</span><br><span class="line">      <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过阅读代码我们可以简单了解到，watcher有区分几种情况</p>
+<ol>
+<li>isRenderWatcher 这个对应的是 <code>vm</code> 组件实例级别的 watcher，一般称为 <code>render watcher</code></li>
+<li>lazy 这个对应的是 <code>computed</code> 创建的 watcher，一般称为 <code>internal watcher</code>，后续会独立一个篇幅解读</li>
+<li>cb 参数和 this.user 判断，这个对应的是通过 <code>watch</code> 属性创建的 watcher，一般称为 <code>user watcher</code>，后续会独立一个篇幅解读</li>
+</ol>
+<h3 id="Watcher-如何接收通知"><a href="#Watcher-如何接收通知" class="headerlink" title="Watcher 如何接收通知"></a>Watcher 如何接收通知</h3><p>前面的 Dep 提到过 setter 触发时会通知 Watcher 需要更新了，watcher 是怎么接收通知的呢？</p>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gr31d577k6j31rs0u0gq5.jpg"></p>
+<p><code>watcher</code> 通过暴露 <code>update</code> 函数来接收更新的通知，收到通知后把当前的 watcher 推入待更新的队列中，然后等待下一个 <code>tick</code> 去遍历更新</p>
+<p>下一个 <code>tick</code> 就是我们熟悉的 <code>nextTick</code>，具体会在后面的篇章中单独解读</p>
+<p>当更新队列开始 <code>flush</code> 时，会把排好序的 <code>Watchers</code> 队列遍历一遍，取出 <code>Watcher</code> 执行 <code>watcher.run()</code></p>
+<p>通过 watcher 的 run 实现可以看到，run 实际是 get 方法的代理执行</p>
+<p>get 方法会调用 watcher 实例上的 getter 函数，也就是组件创建 Watcher 时传入的组件更新方法 <code>vm._update</code></p>
+<p><code>vm._update</code> 组件 <code>patch</code> 的入口，具体实现会在后面的篇章中单独解读</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>经过前面对流程和函数的拆解，Vue2中的响应式原理应该有了一个大致的轮廓</p>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gr32nsmyerj32dn0u047q.jpg"></p>
+<ol>
+<li>props options 会直接遍历然后通过 <code>defineReactive</code> 生成响应式数据结构</li>
+<li>data options 通过创建 <code>Observer</code> 对象，由 <code>Observer</code> 对象将 data 属性转换成响应式数据结构</li>
+<li>组件 render 时会如果使用了 data 或 props 中的值，会触发对应的 getter</li>
+<li><code>getter</code> 触发后，会调用 <code>dep.depend()</code> 收集依赖，也就是当前的 <code>watcher</code></li>
+<li>当组件修改 data 时，会触发对应的 <code>setter</code></li>
+<li><code>setter</code> 出发后，会调用 <code>dep.notify()</code> 去通知收集到的 <code>watcher</code></li>
+<li><code>watcher</code> 暴露的 <code>update</code> api 在接收到 <code>dep.notify()</code> 的通知时会被调用</li>
+<li>被执行 <code>watcher.update()</code> 的 <code>watcher</code> 会推入到待更新的队列中 <code>queue</code>，这个会在其他篇幅中解读</li>
+<li>最后通过执行 <code>watcher.run()</code> 来调用组件实例的更新方法</li>
+</ol>
+<p>以上便实现了Vue2中的响应式原理的闭环，其中涉及到 <code>observe</code> <code>Observer</code> <code>Dep</code> <code>watcher</code> 函数和模块</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><blockquote>
+<p><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty">Object.defineProperty</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Web/" rel="tag"># Web</a>
+              <a href="/tags/Vue2/" rel="tag"># Vue2</a>
+              <a href="/tags/%E6%BA%90%E7%A0%81/" rel="tag"># 源码</a>
+              <a href="/tags/%E5%93%8D%E5%BA%94%E5%BC%8F%E5%8E%9F%E7%90%86/" rel="tag"># 响应式原理</a>
+              <a href="/tags/Observer/" rel="tag"># Observer</a>
+              <a href="/tags/Dep/" rel="tag"># Dep</a>
+              <a href="/tags/Watcher/" rel="tag"># Watcher</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/05/30/Vue2%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E4%BB%8E%E6%95%B0%E6%8D%AE%E6%9B%B4%E6%96%B0%E5%88%B0nextTick/" rel="prev" title="Vue2源码细读-从数据更新到nextTick">
+      <i class="fa fa-chevron-left"></i> Vue2源码细读-从数据更新到nextTick
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3%E5%93%8D%E5%BA%94%E5%BC%8F"><span class="nav-number">1.</span> <span class="nav-text">如何理解响应式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Object-defineProperty"><span class="nav-number">2.</span> <span class="nav-text">Object.defineProperty</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vue%E5%93%8D%E5%BA%94%E5%BC%8F"><span class="nav-number">3.</span> <span class="nav-text">Vue响应式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E5%9B%9E%E9%A1%BE-init-%E5%88%9D%E5%A7%8B%E5%8C%96%E8%BF%87%E7%A8%8B"><span class="nav-number">3.1.</span> <span class="nav-text">简单回顾 _init 初始化过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#initState-%E5%88%9D%E5%A7%8B%E5%8C%96%E6%95%B0%E6%8D%AE%E7%8A%B6%E6%80%81"><span class="nav-number">3.2.</span> <span class="nav-text">initState 初始化数据状态</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#initProps-props%E5%93%8D%E5%BA%94%E5%BC%8F%E5%8C%96"><span class="nav-number">3.2.1.</span> <span class="nav-text">initProps props响应式化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#initData-data%E5%93%8D%E5%BA%94%E5%BC%8F%E5%8C%96"><span class="nav-number">3.2.2.</span> <span class="nav-text">initData data响应式化</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#proxy"><span class="nav-number">4.</span> <span class="nav-text">proxy</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#defineReactive"><span class="nav-number">5.</span> <span class="nav-text">defineReactive</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#observe-%E6%96%B9%E6%B3%95"><span class="nav-number">6.</span> <span class="nav-text">observe 方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Observer-%E5%AF%B9%E8%B1%A1"><span class="nav-number">7.</span> <span class="nav-text">Observer 对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dep-%E5%AF%B9%E8%B1%A1"><span class="nav-number">8.</span> <span class="nav-text">Dep 对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Watcher-%E5%AF%B9%E8%B1%A1"><span class="nav-number">9.</span> <span class="nav-text">Watcher 对象</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Watcher-%E5%AF%B9%E8%B1%A1%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">9.1.</span> <span class="nav-text">Watcher 对象是什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Watcher-%E5%A6%82%E4%BD%95%E6%8E%A5%E6%94%B6%E9%80%9A%E7%9F%A5"><span class="nav-number">9.2.</span> <span class="nav-text">Watcher 如何接收通知</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">10.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">11.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ninnka</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">52</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ninnka</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

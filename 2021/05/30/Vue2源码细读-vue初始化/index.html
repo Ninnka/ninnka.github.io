@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Vue.js 是一个以数据驱动为设计原理的框架。 所谓数据驱动，是指视图是由数据驱动生成的，比起视图如何生成，开发者更关注数据模型和数据流转。 接下来，我们会从源码角度来分析 Vue 是如何实现的，分析过程会以主线代码为主，重要的分支逻辑会放在之后单独分析。 先来看一个熟悉的 demo 熟悉的 demo大家对这简单的案例应该都不会陌生，在我还是萌新的那会常看这个demo demo的代码很简单，功能">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vue2源码细读-vue初始化">
+<meta property="og:url" content="http://yoursite.com/2021/05/30/Vue2%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-vue%E5%88%9D%E5%A7%8B%E5%8C%96/index.html">
+<meta property="og:site_name" content="某科学の前端杂货铺">
+<meta property="og:description" content="Vue.js 是一个以数据驱动为设计原理的框架。 所谓数据驱动，是指视图是由数据驱动生成的，比起视图如何生成，开发者更关注数据模型和数据流转。 接下来，我们会从源码角度来分析 Vue 是如何实现的，分析过程会以主线代码为主，重要的分支逻辑会放在之后单独分析。 先来看一个熟悉的 demo 熟悉的 demo大家对这简单的案例应该都不会陌生，在我还是萌新的那会常看这个demo demo的代码很简单，功能">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-05-30T13:12:43.000Z">
+<meta property="article:modified_time" content="2021-05-31T09:27:07.056Z">
+<meta property="article:author" content="Ninnka">
+<meta property="article:tag" content="Web">
+<meta property="article:tag" content="Vue2">
+<meta property="article:tag" content="源码">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2021/05/30/Vue2%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-vue%E5%88%9D%E5%A7%8B%E5%8C%96/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Vue2源码细读-vue初始化 | 某科学の前端杂货铺</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">某科学の前端杂货铺</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/05/30/Vue2%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-vue%E5%88%9D%E5%A7%8B%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="某科学の前端杂货铺">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Vue2源码细读-vue初始化
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-30 21:12:43" itemprop="dateCreated datePublished" datetime="2021-05-30T21:12:43+08:00">2021-05-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-31 17:27:07" itemprop="dateModified" datetime="2021-05-31T17:27:07+08:00">2021-05-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Vue2/" itemprop="url" rel="index"><span itemprop="name">Vue2</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Vue2/%E5%88%9D%E5%A7%8B%E5%8C%96-init/" itemprop="url" rel="index"><span itemprop="name">初始化-init</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Vue.js 是一个以数据驱动为设计原理的框架。</p>
+<p>所谓数据驱动，是指视图是由数据驱动生成的，比起视图如何生成，开发者更关注数据模型和数据流转。</p>
+<p>接下来，我们会从源码角度来分析 Vue 是如何实现的，分析过程会以主线代码为主，重要的分支逻辑会放在之后单独分析。</p>
+<p>先来看一个熟悉的 demo</p>
+<h2 id="熟悉的-demo"><a href="#熟悉的-demo" class="headerlink" title="熟悉的 demo"></a>熟悉的 demo</h2><p>大家对这简单的案例应该都不会陌生，在我还是萌新的那会常看这个demo</p>
+<p>demo的代码很简单，功能是点击数字然后累增</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;utf-8&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span><span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;/path/to/dist/vue.min.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;app&quot;</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">div</span> @<span class="attr">click</span>=<span class="string">&quot;num++&quot;</span>&gt;</span></span><br><span class="line">        &#123;&#123; num &#125;&#125;</span><br><span class="line">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript">    <span class="keyword">var</span> vm1 = <span class="keyword">new</span> Vue(&#123;</span></span><br><span class="line"><span class="javascript">      el: <span class="string">&#x27;#app&#x27;</span>,</span></span><br><span class="line">      data: &#123;</span><br><span class="line">        num: 1,</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>现在回想起来，这一切似乎就从这个 <code>new Vue()</code> 开始了：）</p>
+<p>带着些许怀旧的心情，我们从 <code>new vue()</code> 开始一探究竟。</p>
+<h2 id="new-Vue-做了什么"><a href="#new-Vue-做了什么" class="headerlink" title="new Vue() 做了什么"></a>new Vue() 做了什么</h2><p>new Vue() 本质上是创建了一个 Vue 的实例对象，那么 Vue 是怎么定义的呢</p>
+<h3 id="Vue-的定义"><a href="#Vue-的定义" class="headerlink" title="Vue 的定义"></a>Vue 的定义</h3><p>Vue本质是一个构造函数，只能通过 new 操作符去创建一个 Vue 的实例</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> Vue(&#123; <span class="comment">/* options */</span> &#125;);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src/core/instance/index.js</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// vue 构造函数</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Vue</span> (<span class="params">options</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 初始化的入口</span></span><br><span class="line">  <span class="built_in">this</span>._init(options)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 下面的都是在 Vue.prototype 上挂载接来下要用到函数</span></span><br><span class="line">initMixin(Vue)</span><br><span class="line">stateMixin(Vue)</span><br><span class="line">eventsMixin(Vue)</span><br><span class="line">lifecycleMixin(Vue)</span><br><span class="line">renderMixin(Vue)</span><br></pre></td></tr></table></figure>
+
+<p>Vue 本身很简单，就只做了一件事，就是调用初始化方法 <code>this._init</code>，并发参数传入</p>
+<p>Vue 实例的函数并没直接写在 Vue 构造函数内，而是通过各种 mixin 挂载到了 Vue.prototype</p>
+<p>其实这些函数都可以直接在当前文件中书写，但是拆开到不同模块分别挂载可以降低当前文件的耦合度，更利于代码的维护</p>
+<h3 id="initMixin-初始化"><a href="#initMixin-初始化" class="headerlink" title="initMixin 初始化"></a>initMixin 初始化</h3><p><code>initMixin</code> 用于挂载初始化相关的函数到 Vue.prototype</p>
+<p><code>_init</code> 函数则是通过 <code>initMixin</code> 注入到 Vue 的原型链上</p>
+<a id="more"></a>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src/core/instance/init.js</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">initMixin</span> (<span class="params">Vue: Class&lt;Component&gt;</span>) </span>&#123;</span><br><span class="line">  Vue.prototype._init = <span class="function"><span class="keyword">function</span> (<span class="params">options?: <span class="built_in">Object</span></span>) </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="stateMixin-数据状态"><a href="#stateMixin-数据状态" class="headerlink" title="stateMixin 数据状态"></a>stateMixin 数据状态</h3><p><code>stateMixin</code> 用于挂载 控制数据状态 相关的函数到 Vue.prototype</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">stateMixin</span> (<span class="params">Vue: Class&lt;Component&gt;</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 初始化 $data 和 $props 的 descriptor</span></span><br><span class="line">  <span class="keyword">const</span> dataDef = &#123;&#125;</span><br><span class="line">  dataDef.get = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123; <span class="keyword">return</span> <span class="built_in">this</span>._data &#125;</span><br><span class="line">  <span class="keyword">const</span> propsDef = &#123;&#125;</span><br><span class="line">  propsDef.get = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123; <span class="keyword">return</span> <span class="built_in">this</span>._props &#125;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="built_in">Object</span>.defineProperty(Vue.prototype, <span class="string">&#x27;$data&#x27;</span>, dataDef)</span><br><span class="line">  <span class="built_in">Object</span>.defineProperty(Vue.prototype, <span class="string">&#x27;$props&#x27;</span>, propsDef)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 注入 $set 和 $delete 方法</span></span><br><span class="line">  Vue.prototype.$set = set</span><br><span class="line">  Vue.prototype.$delete = del</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 注入手动 $watch api</span></span><br><span class="line">  Vue.prototype.$watch = <span class="function"><span class="keyword">function</span> (<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">    expOrFn: string | <span class="built_in">Function</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">    cb: any,</span></span></span><br><span class="line"><span class="function"><span class="params">    options?: <span class="built_in">Object</span></span></span></span><br><span class="line"><span class="function"><span class="params">  </span>): <span class="title">Function</span> </span>&#123;</span><br><span class="line">    <span class="comment">// .....</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>stateMixin</code>比较简单纯粹，主要做了这几件事</p>
+<ol>
+<li>初始化 $data 和 $props 的 descriptor</li>
+<li>注入 $set 和 $delete 方法</li>
+<li>注入手动 $watch api</li>
+</ol>
+<h3 id="eventsMixin-事件发布订阅"><a href="#eventsMixin-事件发布订阅" class="headerlink" title="eventsMixin 事件发布订阅"></a>eventsMixin 事件发布订阅</h3><p><code>eventsMixin</code> 用于挂载 事件发布订阅 相关的函数 到 Vue.prototype</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">eventsMixin</span> (<span class="params">Vue: Class&lt;Component&gt;</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 事件订阅</span></span><br><span class="line">  Vue.prototype.$on = <span class="function"><span class="keyword">function</span> (<span class="params">event: string | <span class="built_in">Array</span>&lt;string&gt;, fn: <span class="built_in">Function</span></span>): <span class="title">Component</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 只触发一次的事件订阅</span></span><br><span class="line">  Vue.prototype.$once = <span class="function"><span class="keyword">function</span> (<span class="params">event: string, fn: <span class="built_in">Function</span></span>): <span class="title">Component</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 取消订阅</span></span><br><span class="line">  Vue.prototype.$off = <span class="function"><span class="keyword">function</span> (<span class="params">event?: string | <span class="built_in">Array</span>&lt;string&gt;, fn?: <span class="built_in">Function</span></span>): <span class="title">Component</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 触发事件</span></span><br><span class="line">  Vue.prototype.$emit = <span class="function"><span class="keyword">function</span> (<span class="params">event: string</span>): <span class="title">Component</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>eventsMixin</code> 主要做了这几件事</p>
+<ol>
+<li>挂载 事件订阅 函数</li>
+<li>挂载 只触发一次的事件订阅 函数</li>
+<li>挂载 取消订阅 函数</li>
+<li>挂载 触发事件 函数</li>
+</ol>
+<h3 id="lifecycleMixin-生命周期"><a href="#lifecycleMixin-生命周期" class="headerlink" title="lifecycleMixin 生命周期"></a>lifecycleMixin 生命周期</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">lifecycleMixin</span> (<span class="params">Vue: Class&lt;Component&gt;</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// vue 内部使用的更新函数</span></span><br><span class="line">  Vue.prototype._update = <span class="function"><span class="keyword">function</span> (<span class="params">vnode: VNode, hydrating?: boolean</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// vue 公开api，强制刷新组件</span></span><br><span class="line">  Vue.prototype.$forceUpdate = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// vue 公开 api，销毁组件</span></span><br><span class="line">  Vue.prototype.$destroy = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="renderMixin-渲染VNode"><a href="#renderMixin-渲染VNode" class="headerlink" title="renderMixin 渲染VNode"></a>renderMixin 渲染VNode</h3><p><code>renderMixin</code> 用于挂载 控制渲染执行 相关的函数到 Vue.prototype</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">renderMixin</span> (<span class="params">Vue: Class&lt;Component&gt;</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 注入运行时的一些辅助函数，供内部使用，目的是为了简化操作</span></span><br><span class="line">  installRenderHelpers(Vue.prototype)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 公有API，我们熟悉的 $nextTick 方法</span></span><br><span class="line">  Vue.prototype.$nextTick = <span class="function"><span class="keyword">function</span> (<span class="params">fn: <span class="built_in">Function</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> nextTick(fn, <span class="built_in">this</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 私有API，返回 render 函数创建的 VNode，非常重要</span></span><br><span class="line">  Vue.prototype._render = <span class="function"><span class="keyword">function</span> (<span class="params"></span>): <span class="title">VNode</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>renderMixin</code> 只做了三件事</p>
+<ol>
+<li>注入运行时的一些辅助函数，供内部使用，目的是为了简化操作</li>
+<li>挂载我们熟悉的 <code>$nextTick</code></li>
+<li>挂载内部API <code>_render</code></li>
+</ol>
+<p>从上述各种 mixin 中可以观察到，这里挂载到 prototype 上的方法分为两种</p>
+<table>
+<thead>
+<tr>
+<th>函数类型</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>以 <code>_</code> 开头的私有方法</td>
+<td>非公开暴露的API，仅提供给 vue 内部去使用，不建议外部使用这类私有方法，因为在后续是有可能会发生变化的</td>
+</tr>
+<tr>
+<td>以 <code>$</code> 开发的公有方法</td>
+<td>已经被公开暴露的 API，可以安心使用</td>
+</tr>
+</tbody></table>
+<p>以上就是 Vue 的构造函数定义，其中的函数简化了许多，目的是为了先从宏观的角度上对 Vue 初始化有个大概了解</p>
+<h2 id="初始化-init"><a href="#初始化-init" class="headerlink" title="初始化 _init"></a>初始化 <code>_init</code></h2><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src/core/instance/init.js</span></span><br><span class="line"></span><br><span class="line">Vue.prototype._init = <span class="function"><span class="keyword">function</span> (<span class="params">options?: <span class="built_in">Object</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> vm: Component = <span class="built_in">this</span></span><br><span class="line">    vm._uid = uid++</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 标记为 vue，避免被 observe</span></span><br><span class="line">    vm._isVue = <span class="literal">true</span></span><br><span class="line">    <span class="comment">// 合并 options</span></span><br><span class="line">    <span class="keyword">if</span> (options &amp;&amp; options._isComponent) &#123;</span><br><span class="line">      initInternalComponent(vm, options)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">/*</span></span><br><span class="line"><span class="comment">      * 这里合并的options来源有三个</span></span><br><span class="line"><span class="comment">      1、合并 vue 构造器上的通用 options</span></span><br><span class="line"><span class="comment">      2、参数传入的 options，加载优先级大于通用的options</span></span><br><span class="line"><span class="comment">      3、当前vm实例，这个会在加载策略中用到</span></span><br><span class="line"><span class="comment">      */</span></span><br><span class="line">      vm.$options = mergeOptions(</span><br><span class="line">        resolveConstructorOptions(vm.constructor),</span><br><span class="line">        options || &#123;&#125;,</span><br><span class="line">        vm</span><br><span class="line">      )</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/* istanbul ignore else */</span></span><br><span class="line">    <span class="comment">// _renderProxy 是 vm 的别名，用于需要访问自身实例的情况</span></span><br><span class="line">    <span class="keyword">if</span> (process.env.NODE_ENV !== <span class="string">&#x27;production&#x27;</span>) &#123;</span><br><span class="line">      <span class="comment">// 在开发环境时，如果开发环境支持 `Proxy` API，则会用 Proxy 把 vm 包装一下</span></span><br><span class="line">      initProxy(vm)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 生产环境时就是 vm 自身</span></span><br><span class="line">      vm._renderProxy = vm</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// _self 也是 vm 的别名，用于需要访问自身实例的情况，跟 _renderProxy 在开发环境时还是有区别的，但在生产环境中它们是一样的</span></span><br><span class="line">    vm._self = vm</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 做了两件事</span></span><br><span class="line">    <span class="comment">// 1、初始化生命周期标识中的一些变量</span></span><br><span class="line">    <span class="comment">// 2、把自身vm绑定到parent.$children上</span></span><br><span class="line">    initLifecycle(vm)</span><br><span class="line">    <span class="comment">// 更新父组件的attached事件监听器</span></span><br><span class="line">    initEvents(vm)</span><br><span class="line">    <span class="comment">// 1、绑定生成Component和Element的函数到实例上</span></span><br><span class="line">    <span class="comment">// 2、$attrs和$listeners的响应式，创建$slots</span></span><br><span class="line">    <span class="comment">// 3、初始化_vnode、_staticTrees等虚拟dom和dom tree的关键信息</span></span><br><span class="line">    initRender(vm)</span><br><span class="line">    <span class="comment">// 触发组件的 beforeCreate 事件</span></span><br><span class="line">    callHook(vm, <span class="string">&#x27;beforeCreate&#x27;</span>)</span><br><span class="line">    <span class="comment">// 在组件data/props初始化前，初始化变量注入</span></span><br><span class="line">    initInjections(vm)</span><br><span class="line">    <span class="comment">// 1、data/props/computed的响应式</span></span><br><span class="line">    <span class="comment">// 2、绑定methods到实例this</span></span><br><span class="line">    <span class="comment">// 3、初始化watch</span></span><br><span class="line">    initState(vm)</span><br><span class="line">    <span class="comment">// 在组件data/props初始化后，初始化变量提供</span></span><br><span class="line">    initProvide(vm)</span><br><span class="line">    <span class="comment">// 触发组件的 created 事件</span></span><br><span class="line">    callHook(vm, <span class="string">&#x27;created&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (vm.$options.el) &#123;</span><br><span class="line">      <span class="comment">// 准备就绪后，把vdom生成的模板挂载到对应父节点上</span></span><br><span class="line">      vm.$mount(vm.$options.el)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>好家伙，上面一串代码看起来是那么的简单清晰‼️大致浏览后便对 <code>Vue _init</code> 阶段有了一个轮廓</p>
+<p>感慨完后，我们把其中各部分简单拆解一下，下面对它们做解释</p>
+<h3 id="合并配置-mergeOptions"><a href="#合并配置-mergeOptions" class="headerlink" title="合并配置 mergeOptions"></a>合并配置 mergeOptions</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (options &amp;&amp; options._isComponent) &#123;</span><br><span class="line">  initInternalComponent(vm, options)</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  vm.$options = mergeOptions(</span><br><span class="line">    resolveConstructorOptions(vm.constructor),</span><br><span class="line">    options || &#123;&#125;,</span><br><span class="line">    vm</span><br><span class="line">  )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到这里有两种场景的配置合并，不同场景合并逻辑也不一样</p>
+<p>为了方便梳理，这里会改造一下最初的案例，后面会用到</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> Vue <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> ChildComp = &#123;</span><br><span class="line">  template: <span class="string">&#x27;&lt;div&gt;&#123;&#123;msg&#125;&#125;&lt;/div&gt;&#x27;</span>,</span><br><span class="line">  <span class="function"><span class="title">created</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;child created&#x27;</span>)</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="function"><span class="title">mounted</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;child mounted&#x27;</span>)</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="function"><span class="title">data</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">      msg: <span class="string">&#x27;Hello World&#x27;</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Vue.mixin(&#123;</span><br><span class="line">  <span class="function"><span class="title">created</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;mixin created&#x27;</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> vm1 = <span class="keyword">new</span> Vue(&#123;</span><br><span class="line">  el: <span class="string">&#x27;#app&#x27;</span>,</span><br><span class="line">  data: &#123;</span><br><span class="line">    num: <span class="number">1</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">  render: <span class="function"><span class="params">h</span> =&gt;</span> h(childComp)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>按照我们的思路，在执行 <code>this._init</code> 后，代码进入到这个场景 <code>手动调用场景</code></p>
+<p>所谓 <code>手动调用场景</code> 其实是指我们手动创建的 Vue 组件实例，用于区分平时我们 <code>import xxxComponent from &#39;../path/your/vue-component&#39;</code>，也就是 <code>组件场景</code>;</p>
+<h4 id="手动调用场景"><a href="#手动调用场景" class="headerlink" title="手动调用场景"></a>手动调用场景</h4><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">vm.$options = mergeOptions(</span><br><span class="line">  resolveConstructorOptions(vm.constructor),</span><br><span class="line">  options || &#123;&#125;,</span><br><span class="line">  vm</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这里合并的options来源有三个</p>
+<p>1、合并 vue 构造器上的通用 options<br>2、参数传入的 options，加载优先级大于通用的options<br>3、当前vm实例，这个会在加载策略中用到</p>
+<p>这里通过调用 mergeOptions 方法来合并，它实际上就是把 resolveConstructorOptions(vm.constructor) 的返回值和 options 做合并。</p>
+<table>
+<thead>
+<tr>
+<th>options来源</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>resolveConstructorOptions(vm.constructor)</td>
+<td>通用的配置，Vue.options，initGlobalAPI时挂载</td>
+</tr>
+<tr>
+<td>options</td>
+<td>new Vue时传入的参数</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>组件实例</td>
+</tr>
+</tbody></table>
+<h5 id="Vue-options"><a href="#Vue-options" class="headerlink" title="Vue.options"></a>Vue.options</h5><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">initGlobalAPI</span> (<span class="params">Vue: GlobalAPI</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// config</span></span><br><span class="line">  <span class="keyword">const</span> configDef = &#123;&#125;</span><br><span class="line">  configDef.get = <span class="function">() =&gt;</span> config</span><br><span class="line">  <span class="built_in">Object</span>.defineProperty(Vue, <span class="string">&#x27;config&#x27;</span>, configDef)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 暴露了一些内置api，这些并不是公有api，不建议使用</span></span><br><span class="line">  Vue.util = &#123;</span><br><span class="line">    warn,</span><br><span class="line">    extend,</span><br><span class="line">    mergeOptions,</span><br><span class="line">    defineReactive</span><br><span class="line">  &#125;</span><br><span class="line">  Vue.set = set</span><br><span class="line">  Vue.delete = del</span><br><span class="line">  Vue.nextTick = nextTick</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 下面是 options 的初始化</span></span><br><span class="line">  Vue.options = <span class="built_in">Object</span>.create(<span class="literal">null</span>)</span><br><span class="line">  <span class="comment">/*</span></span><br><span class="line"><span class="comment">      export const ASSET_TYPES = [</span></span><br><span class="line"><span class="comment">          &#x27;component&#x27;,</span></span><br><span class="line"><span class="comment">          &#x27;directive&#x27;,</span></span><br><span class="line"><span class="comment">          &#x27;filter&#x27;</span></span><br><span class="line"><span class="comment">      ]</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line">  ASSET_TYPES.forEach(<span class="function"><span class="params">type</span> =&gt;</span> &#123;</span><br><span class="line">    Vue.options[type + <span class="string">&#x27;s&#x27;</span>] = <span class="built_in">Object</span>.create(<span class="literal">null</span>)</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 增加 Vue 构造函数的索引</span></span><br><span class="line">  Vue.options._base = Vue</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// ....</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到 Vue.options 实际是给 <code>components</code>，<code>filters</code>，<code>directives</code>设置默认值</p>
+<h5 id="resolveConstructorOptions-获取Vue构造器的options"><a href="#resolveConstructorOptions-获取Vue构造器的options" class="headerlink" title="resolveConstructorOptions 获取Vue构造器的options"></a>resolveConstructorOptions 获取Vue构造器的options</h5><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">resolveConstructorOptions</span> (<span class="params">Ctor: Class&lt;Component&gt;</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">let</span> options = Ctor.options</span><br><span class="line">  <span class="keyword">if</span> (Ctor.super) &#123;</span><br><span class="line">    <span class="comment">// 父构造器的 options</span></span><br><span class="line">    <span class="keyword">const</span> superOptions = resolveConstructorOptions(Ctor.super)</span><br><span class="line">    <span class="keyword">const</span> cachedSuperOptions = Ctor.superOptions</span><br><span class="line">    <span class="keyword">if</span> (superOptions !== cachedSuperOptions) &#123;</span><br><span class="line">      Ctor.superOptions = superOptions</span><br><span class="line">      <span class="keyword">const</span> modifiedOptions = resolveModifiedOptions(Ctor)</span><br><span class="line">      <span class="keyword">if</span> (modifiedOptions) &#123;</span><br><span class="line">        extend(Ctor.extendOptions, modifiedOptions)</span><br><span class="line">      &#125;</span><br><span class="line">      options = Ctor.options = mergeOptions(superOptions, Ctor.extendOptions)</span><br><span class="line">      <span class="keyword">if</span> (options.name) &#123;</span><br><span class="line">        options.components[options.name] = Ctor</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 上述操作是直接操作了 options 对象</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> options</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面一串代码简单来说</p>
+<ol>
+<li>获取当前构造器的 options</li>
+<li>如果构造器继承了别的构造器，则把当前构造器和父构造器的options合并</li>
+</ol>
+<h5 id="mergeOptions"><a href="#mergeOptions" class="headerlink" title="mergeOptions"></a>mergeOptions</h5><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">mergeOptions</span> (<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  parent: <span class="built_in">Object</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  child: <span class="built_in">Object</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  vm?: Component</span></span></span><br><span class="line"><span class="function"><span class="params"></span>): <span class="title">Object</span> </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">  normalizeProps(child, vm)</span><br><span class="line">  normalizeInject(child, vm)</span><br><span class="line">  normalizeDirectives(child)</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">if</span> (!child._base) &#123;</span><br><span class="line">    <span class="keyword">if</span> (child.extends) &#123;</span><br><span class="line">      <span class="comment">// 组件继承</span></span><br><span class="line">      parent = mergeOptions(parent, child.extends, vm)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (child.mixins) &#123;</span><br><span class="line">      <span class="comment">// 合并 mixin 配置</span></span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, l = child.mixins.length; i &lt; l; i++) &#123;</span><br><span class="line">        parent = mergeOptions(parent, child.mixins[i], vm)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">const</span> options = &#123;&#125;</span><br><span class="line">  <span class="keyword">let</span> key</span><br><span class="line">  <span class="keyword">for</span> (key <span class="keyword">in</span> parent) &#123;</span><br><span class="line">    mergeField(key)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">for</span> (key <span class="keyword">in</span> child) &#123;</span><br><span class="line">    <span class="keyword">if</span> (!hasOwn(parent, key)) &#123;</span><br><span class="line">      mergeField(key)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">mergeField</span> (<span class="params">key</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> strat = strats[key] || defaultStrat</span><br><span class="line">    options[key] = strat(parent[key], child[key], vm, key)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> options</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>mergeOptions 主要功能就是把 parent 和 child 这两个对象根据一些合并策略，合并成一个新对象并返回。比较核心的几步，先递归把 extends 和 mixins 合并到 parent 上，然后遍历 parent，调用 mergeField，然后再遍历 child，如果 key 不在 parent 的自身属性上，则调用 mergeField</p>
+<p>mergeField 中用到了策略模式，对于特定的 key，会有特殊的处理，mergeOptions中的 <code>vm</code> 参数也是用于此</p>
+<h5 id="merge-strate-合并策略"><a href="#merge-strate-合并策略" class="headerlink" title="merge strate 合并策略"></a>merge strate 合并策略</h5><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment">export const LIFECYCLE_HOOKS = [</span></span><br><span class="line"><span class="comment">  &#x27;beforeCreate&#x27;,</span></span><br><span class="line"><span class="comment">  &#x27;created&#x27;,</span></span><br><span class="line"><span class="comment">  &#x27;beforeMount&#x27;,</span></span><br><span class="line"><span class="comment">  &#x27;mounted&#x27;,</span></span><br><span class="line"><span class="comment">  &#x27;beforeUpdate&#x27;,</span></span><br><span class="line"><span class="comment">  &#x27;updated&#x27;,</span></span><br><span class="line"><span class="comment">  &#x27;beforeDestroy&#x27;,</span></span><br><span class="line"><span class="comment">  &#x27;destroyed&#x27;,</span></span><br><span class="line"><span class="comment">  &#x27;activated&#x27;,</span></span><br><span class="line"><span class="comment">  &#x27;deactivated&#x27;,</span></span><br><span class="line"><span class="comment">  &#x27;errorCaptured&#x27;</span></span><br><span class="line"><span class="comment">]</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">mergeHook</span> (<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  parentVal: ?<span class="built_in">Array</span>&lt;<span class="built_in">Function</span>&gt;,</span></span></span><br><span class="line"><span class="function"><span class="params">  childVal: ?<span class="built_in">Function</span> | ?<span class="built_in">Array</span>&lt;<span class="built_in">Function</span>&gt;</span></span></span><br><span class="line"><span class="function"><span class="params"></span>): ?<span class="title">Array</span>&lt;<span class="title">Function</span>&gt; </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> res = childVal</span><br><span class="line">    ? parentVal</span><br><span class="line">      ? parentVal.concat(childVal)</span><br><span class="line">      : <span class="built_in">Array</span>.isArray(childVal)</span><br><span class="line">        ? childVal</span><br><span class="line">        : [childVal]</span><br><span class="line">    : parentVal</span><br><span class="line">  <span class="keyword">return</span> res</span><br><span class="line">    ? dedupeHooks(res)</span><br><span class="line">    : res</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">LIFECYCLE_HOOKS.forEach(<span class="function"><span class="params">hook</span> =&gt;</span> &#123;</span><br><span class="line">  strats[hook] = mergeHook</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>不难看到，合并策略里的特殊 key 其实都是 Vue 的生命周期 key</p>
+<p>这个函数的实现也非常有意思，就是</p>
+<p>1、如果没有 childVal ，就返回 parentVal；<br>2、如果有 dhildval， 再判断是否存在 parentVal<br>3、如果存在 parentVal 就把 childVal 添加到 parentVal 后返回新数组；否则返回 childVal 的数组。<br>最后回到 mergeOptions 函数，一旦 parent 和 child 都定义了相同的钩子函数，那么它们会把 2 个钩子函数合并成一个数组。</p>
+<p>这样做的目的是为了把同个组件内的相同的声明周期定义从上往下顺序执行</p>
+<h4 id="手动调用场景的结果"><a href="#手动调用场景的结果" class="headerlink" title="手动调用场景的结果"></a>手动调用场景的结果</h4><p>当我们走完上述流程，案例中的 Vue 实例的 options 最后会变成这样</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">vm.$options = &#123;</span><br><span class="line">  components: &#123; &#125;,</span><br><span class="line">  created: [</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">created</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">&#x27;mixin created&#x27;</span>)</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">created</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">&#x27;child created&#x27;</span>)</span><br><span class="line">    &#125;,</span><br><span class="line">  ],</span><br><span class="line">  mounted: [</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">mounted</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">&#x27;child mounted&#x27;</span>)</span><br><span class="line">    &#125;,</span><br><span class="line">  ],</span><br><span class="line">  directives: &#123; &#125;,</span><br><span class="line">  filters: &#123; &#125;,</span><br><span class="line">  _base: <span class="function"><span class="keyword">function</span> <span class="title">Vue</span>(<span class="params">options</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;,</span><br><span class="line">  el: <span class="string">&quot;#app&quot;</span>,</span><br><span class="line">  render: <span class="function"><span class="keyword">function</span> (<span class="params">h</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="组件场景"><a href="#组件场景" class="headerlink" title="组件场景"></a>组件场景</h4><p>所谓 <code>组件场景</code> 是指通过全局组件注册 <code>Vue.component</code> 或者 局部组件注册 <code>components: [&#39;xxx&#39;]</code></p>
+<p>所有注册的组件都会经过 <code>createComponent</code> -&gt; <code>Vue.extend</code> 处理</p>
+<h5 id="Vue-extend-组件创建和继承"><a href="#Vue-extend-组件创建和继承" class="headerlink" title="Vue.extend 组件创建和继承"></a>Vue.extend 组件创建和继承</h5><p>我们来看看 <code>Vue.extend</code> 是怎么实现的</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Class inheritance</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">Vue.extend = <span class="function"><span class="keyword">function</span> (<span class="params">extendOptions: <span class="built_in">Object</span></span>): <span class="title">Function</span> </span>&#123;</span><br><span class="line">  <span class="comment">// extendOptions 就是我们写的对象配置</span></span><br><span class="line">  <span class="comment">// 这个大家都熟悉 export default &#123; ... &#125;</span></span><br><span class="line">  extendOptions = extendOptions || &#123;&#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">const</span> Super = <span class="built_in">this</span></span><br><span class="line">  <span class="keyword">const</span> SuperId = Super.cid</span><br><span class="line">  <span class="keyword">const</span> cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = &#123;&#125;)</span><br><span class="line">  <span class="comment">// 缓存 在当前父节点下 时期的 当前构造函数</span></span><br><span class="line">  <span class="keyword">if</span> (cachedCtors[SuperId]) &#123;</span><br><span class="line">    <span class="keyword">return</span> cachedCtors[SuperId]</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 组件名赋值</span></span><br><span class="line">  <span class="keyword">const</span> name = extendOptions.name || Super.options.name</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 定义了一个 VueComponent 构造函数</span></span><br><span class="line">  <span class="keyword">const</span> Sub = <span class="function"><span class="keyword">function</span> <span class="title">VueComponent</span> (<span class="params">options</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// 又到了我们熟悉 _init 环节</span></span><br><span class="line">    <span class="built_in">this</span>._init(options)</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 下面是熟悉的手写基于prototype继承</span></span><br><span class="line">  Sub.prototype = <span class="built_in">Object</span>.create(Super.prototype)</span><br><span class="line">  Sub.prototype.constructor = Sub</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 增加 cid 标识</span></span><br><span class="line">  Sub.cid = cid++</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 合并基础配置</span></span><br><span class="line">  Sub.options = mergeOptions(</span><br><span class="line">    Super.options,</span><br><span class="line">    extendOptions</span><br><span class="line">  )</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 标识父构造函数的别名</span></span><br><span class="line">  Sub[<span class="string">&#x27;super&#x27;</span>] = Super</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (Sub.options.props) &#123;</span><br><span class="line">    <span class="comment">// 这里的 initProps 其实不是对 Props 做响应式，只是把 props 代理到了 prototype._props</span></span><br><span class="line">    initProps(Sub)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (Sub.options.computed) &#123;</span><br><span class="line">    <span class="comment">// 同上</span></span><br><span class="line">    initComputed(Sub)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 这三个都是引用，便于继承父组件的功能</span></span><br><span class="line">  Sub.extend = Super.extend</span><br><span class="line">  Sub.mixin = Super.mixin</span><br><span class="line">  Sub.use = Super.use</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 前面提到过的基本属性，目的也是继承父组件的属性</span></span><br><span class="line">  <span class="comment">/*</span></span><br><span class="line"><span class="comment">    export const ASSET_TYPES = [</span></span><br><span class="line"><span class="comment">        &#x27;component&#x27;,</span></span><br><span class="line"><span class="comment">        &#x27;directive&#x27;,</span></span><br><span class="line"><span class="comment">        &#x27;filter&#x27;</span></span><br><span class="line"><span class="comment">    ]</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line">  ASSET_TYPES.forEach(<span class="function"><span class="keyword">function</span> (<span class="params">type</span>) </span>&#123;</span><br><span class="line">    Sub[type] = Super[type]</span><br><span class="line">  &#125;)</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 允许组件使用自己，也就是递归使用自身</span></span><br><span class="line">  <span class="keyword">if</span> (name) &#123;</span><br><span class="line">    Sub.options.components[name] = Sub</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 保存对各个配置的引用。sub.options 才是当前组件真正的配置</span></span><br><span class="line">  Sub.superOptions = Super.options</span><br><span class="line">  Sub.extendOptions = extendOptions</span><br><span class="line">  Sub.sealedOptions = extend(&#123;&#125;, Sub.options)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 缓存 在当前父节点下 时期的 当前构造函数</span></span><br><span class="line">  cachedCtors[SuperId] = Sub</span><br><span class="line">  <span class="keyword">return</span> Sub</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Vue.extend</code> 主要做了这几件事</p>
+<ol>
+<li>缓存 在当前父节点下 时期的 当前构造函数</li>
+<li>组件名赋值</li>
+<li>定义了一个 VueComponent 构造函数</li>
+<li>基于prototype继承 Vue</li>
+<li>增加 cid 标识</li>
+<li>标识父构造函数的别名</li>
+<li>把 props 代理到了 <code>prototype._props</code>，computed 代理到 <code>prototype._computed</code></li>
+<li>继承父组件的component,directive,filter属性</li>
+<li>允许组件使用自己，也就是递归使用自身</li>
+<li>保存对各个配置的引用。sub.options 才是当前组件真正的配置</li>
+</ol>
+<p><code>Vue.extend</code> 会在 <code>createComponent</code> 中被调用，用于获取真正的VueComponent构造函数</p>
+<h5 id="createComponent-创建组件VNode"><a href="#createComponent-创建组件VNode" class="headerlink" title="createComponent 创建组件VNode"></a>createComponent 创建组件VNode</h5><p>我们先不讨论他们是在何时怎么流转到 <code>createComponent</code></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">createComponent</span> (<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  Ctor: Class&lt;Component&gt; | <span class="built_in">Function</span> | <span class="built_in">Object</span> | <span class="keyword">void</span>, <span class="comment">// 当前组件的 PlainObject</span></span></span></span><br><span class="line"><span class="function"><span class="params">  data: ?VNodeData, <span class="comment">// 父节点的 VNode</span></span></span></span><br><span class="line"><span class="function"><span class="params">  context: Component,</span></span></span><br><span class="line"><span class="function"><span class="params">  children: ?<span class="built_in">Array</span>&lt;VNode&gt;,</span></span></span><br><span class="line"><span class="function"><span class="params">  tag?: string</span></span></span><br><span class="line"><span class="function"><span class="params"></span>): <span class="title">VNode</span> | <span class="title">Array</span>&lt;<span class="title">VNode</span>&gt; | <span class="title">void</span> </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> baseCtor = context.$options._base</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ctor 是指我们的SFC中 export 的对象，实质是一个普通js对象</span></span><br><span class="line">  <span class="keyword">if</span> (isObject(Ctor)) &#123;</span><br><span class="line">    <span class="comment">// 这一步是把组件对象Options处理后才会真正的 Vue component 构造函数</span></span><br><span class="line">    Ctor = baseCtor.extend(Ctor)</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  </span><br><span class="line">  data = data || &#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 合并父子 options</span></span><br><span class="line">  resolveConstructorOptions(Ctor)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 注册组件函数钩子，非常重要，在后续的篇章中会详细解读</span></span><br><span class="line">  installComponentHooks(data) </span><br><span class="line">  <span class="keyword">const</span> name = Ctor.options.name || tag</span><br><span class="line">  <span class="comment">// 创建一个 VNode对象，因为组件还没有渲染，所以组件实例componentInstance其实还是 undefined</span></span><br><span class="line">  <span class="keyword">const</span> vnode = <span class="keyword">new</span> VNode(</span><br><span class="line">    <span class="string">`vue-component-<span class="subst">$&#123;Ctor.cid&#125;</span><span class="subst">$&#123;name ? <span class="string">`-<span class="subst">$&#123;name&#125;</span>`</span> : <span class="string">&#x27;&#x27;</span>&#125;</span>`</span>,</span><br><span class="line">    data, <span class="literal">undefined</span>, <span class="literal">undefined</span>, <span class="literal">undefined</span>, context,</span><br><span class="line">    &#123; Ctor, propsData, listeners, tag, children &#125;,</span><br><span class="line">    asyncFactory</span><br><span class="line">  )</span><br><span class="line">  <span class="keyword">return</span> vnode</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>createComponent</code> 最后返回了一个初始的 VNode，这个VNode的componentInstance其实还是空的，那么真正的组件实例会在什么时候创建呢？</p>
+<p>这里关系到 <code>installComponentHooks</code>，这里简单提一下，在父组件patch过程中，会对触发子组件的 <code>init</code> 钩子，此时子组件才会去真正创建组件实例</p>
+<p>这个<code>init</code> 钩子做了什么呢？</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> componentVNodeHooks = &#123;</span><br><span class="line">  init (vnode: VNodeWithData, <span class="attr">hydrating</span>: boolean): ?boolean &#123;</span><br><span class="line">    <span class="keyword">if</span> (</span><br><span class="line">      vnode.componentInstance &amp;&amp;</span><br><span class="line">      !vnode.componentInstance._isDestroyed &amp;&amp;</span><br><span class="line">      vnode.data.keepAlive</span><br><span class="line">    ) &#123;</span><br><span class="line">      <span class="comment">// kept-alive components, treat as a patch</span></span><br><span class="line">      <span class="keyword">const</span> mountedNode: any = vnode <span class="comment">// work around flow</span></span><br><span class="line">      componentVNodeHooks.prepatch(mountedNode, mountedNode)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 在这里第一次创建组件的实例</span></span><br><span class="line">      <span class="keyword">const</span> child = vnode.componentInstance = createComponentInstanceForVnode(</span><br><span class="line">        vnode,</span><br><span class="line">        activeInstance</span><br><span class="line">      )</span><br><span class="line">      child.$mount(hydrating ? vnode.elm : <span class="literal">undefined</span>, hydrating)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="createComponentInstanceForVnode-创建组件实例并挂载到VNode"><a href="#createComponentInstanceForVnode-创建组件实例并挂载到VNode" class="headerlink" title="createComponentInstanceForVnode 创建组件实例并挂载到VNode"></a>createComponentInstanceForVnode 创建组件实例并挂载到VNode</h5><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">createComponentInstanceForVnode</span> (<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  vnode: any,</span></span></span><br><span class="line"><span class="function"><span class="params">  parent: any</span></span></span><br><span class="line"><span class="function"><span class="params"></span>): <span class="title">Component</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 熟悉的配置</span></span><br><span class="line">  <span class="keyword">const</span> options: InternalComponentOptions = &#123;</span><br><span class="line">    <span class="comment">// 这个标记大家应该有印象，就是前面用于区分手动调用场景和组件场景的关键</span></span><br><span class="line">    _isComponent: <span class="literal">true</span>,</span><br><span class="line">    <span class="comment">// 标明父节点的VNode</span></span><br><span class="line">    _parentVnode: vnode,</span><br><span class="line">    <span class="comment">// 父组件实例</span></span><br><span class="line">    parent</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="comment">// vnode.componentOptions.Ctor 是创建Vnode时传入的VueComponent构造函数，通过这个构造函数创建出真正的组件实例</span></span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> vnode.componentOptions.Ctor(options)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="initInternalComponent"><a href="#initInternalComponent" class="headerlink" title="initInternalComponent"></a>initInternalComponent</h5><p>组件场景的关键函数都已经梳理好了，我们回过头看看 <code>组件场景</code> 的关键处理函数</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">initInternalComponent</span> (<span class="params">vm: Component, options: InternalComponentOptions</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> opts = vm.$options = <span class="built_in">Object</span>.create(vm.constructor.options)</span><br><span class="line">  <span class="comment">// doing this because it&#x27;s faster than dynamic enumeration.</span></span><br><span class="line">  <span class="keyword">const</span> parentVnode = options._parentVnode</span><br><span class="line">  opts.parent = options.parent</span><br><span class="line">  opts._parentVnode = parentVnode</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> vnodeComponentOptions = parentVnode.componentOptions</span><br><span class="line">  opts.propsData = vnodeComponentOptions.propsData</span><br><span class="line">  opts._parentListeners = vnodeComponentOptions.listeners</span><br><span class="line">  opts._renderChildren = vnodeComponentOptions.children</span><br><span class="line">  opts._componentTag = vnodeComponentOptions.tag</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (options.render) &#123;</span><br><span class="line">    opts.render = options.render</span><br><span class="line">    opts.staticRenderFns = options.staticRenderFns</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先执行把组件的保存到当前实例 vm.$options</p>
+<p>接着又把实例化子组件传入的子组件父 VNode 实例 parentVnode、子组件的父 Vue 实例 parent 保存到 vm.$options 中，另外还保留了 parentVnode 配置中的如 propsData 等其它的属性。</p>
+<p>这样看来，相较于 <code>手动调用场景</code>，initInternalComponent 只是做了简单一层对象赋值，并不涉及到递归、合并策略等复杂逻辑。</p>
+<h4 id="组件场景的结果"><a href="#组件场景的结果" class="headerlink" title="组件场景的结果"></a>组件场景的结果</h4><p>经过上述代码执行，VueComponent 实例的options会变成情况</p>
+<p>核心的地方在于我们设置的组件配置都在 <code>__proto__</code> 上</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">vm.$options = &#123;</span><br><span class="line">  parent: Vue <span class="comment">/*父Vue组件实例*/</span>,</span><br><span class="line">  propsData: <span class="literal">undefined</span>,</span><br><span class="line">  _componentTag: <span class="literal">undefined</span>,</span><br><span class="line">  _parentVnode: VNode <span class="comment">/*父VNode实例*/</span>,</span><br><span class="line">  _renderChildren: <span class="literal">undefined</span>,</span><br><span class="line">  __proto__: &#123;</span><br><span class="line">    components: &#123; &#125;,</span><br><span class="line">    directives: &#123; &#125;,</span><br><span class="line">    filters: &#123; &#125;,</span><br><span class="line">    _base: <span class="function"><span class="keyword">function</span> <span class="title">Vue</span>(<span class="params">options</span>) </span>&#123;</span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">    &#125;,</span><br><span class="line">    _Ctor: &#123;&#125;,</span><br><span class="line">    created: [</span><br><span class="line">      <span class="function"><span class="keyword">function</span> <span class="title">created</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">&#x27;mixin created&#x27;</span>)</span><br><span class="line">      &#125;, <span class="function"><span class="keyword">function</span> <span class="title">created</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">&#x27;child created&#x27;</span>)</span><br><span class="line">      &#125;</span><br><span class="line">    ],</span><br><span class="line">    mounted: [</span><br><span class="line">      <span class="function"><span class="keyword">function</span> <span class="title">mounted</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">&#x27;child mounted&#x27;</span>)</span><br><span class="line">      &#125;</span><br><span class="line">    ],</span><br><span class="line">    <span class="function"><span class="title">data</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">       <span class="keyword">return</span> &#123;</span><br><span class="line">         msg: <span class="string">&#x27;Hello Vue&#x27;</span></span><br><span class="line">       &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    template: <span class="string">&#x27;&lt;div&gt;&#123;&#123;msg&#125;&#125;&lt;/div&gt;&#x27;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在new Vue()过程中，主要做了这几件事：</p>
+<ol>
+<li>合并传入的options和通用的options，把options挂载到vm.$options</li>
+<li>初始化生命周期标识中的一些变量，把自身vm绑定到parent.$children上</li>
+<li>更新父组件的attached事件监听器</li>
+<li>绑定生成Component和Element的函数到实例上，$attrs和$listeners的响应式，创建$slots，初始化_vnode、_staticTrees等虚拟dom和dom tree的关键信息</li>
+<li>触发组件的 beforeCreate 事件</li>
+<li>data/props/computed的响应式，绑定methods到实例this，初始化watch</li>
+<li>触发组件的 created 事件</li>
+<li>准备就绪后，把vdom生成的模板挂载到对应父节点上</li>
+</ol>
+<p>在 <code>_init</code> 过程中，做了很多模块的初始化</p>
+<ul>
+<li>初始化生命周期 initLifecycle</li>
+<li>初始化事件 initEvents</li>
+<li>初始化渲染VNode initRender</li>
+<li>初始化数据注入 initInjections</li>
+<li>初始化数据状态 initState</li>
+<li>初始化数据暴露 initProvide</li>
+<li>挂载 vm.$mount</li>
+<li>注册组件函数钩子 installComponentHooks</li>
+<li>…等等</li>
+</ul>
+<p>这些将放在后面的篇章中一一细读</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Web/" rel="tag"># Web</a>
+              <a href="/tags/Vue2/" rel="tag"># Vue2</a>
+              <a href="/tags/%E6%BA%90%E7%A0%81/" rel="tag"># 源码</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/05/22/HTTP%E8%A7%A3%E6%83%91-Content-Type/" rel="prev" title="HTTP解惑-Content-Type">
+      <i class="fa fa-chevron-left"></i> HTTP解惑-Content-Type
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/05/30/Vue2%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E4%BB%8E%E6%95%B0%E6%8D%AE%E6%9B%B4%E6%96%B0%E5%88%B0nextTick/" rel="next" title="Vue2源码细读-从数据更新到nextTick">
+      Vue2源码细读-从数据更新到nextTick <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%86%9F%E6%82%89%E7%9A%84-demo"><span class="nav-number">1.</span> <span class="nav-text">熟悉的 demo</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#new-Vue-%E5%81%9A%E4%BA%86%E4%BB%80%E4%B9%88"><span class="nav-number">2.</span> <span class="nav-text">new Vue() 做了什么</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Vue-%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-number">2.1.</span> <span class="nav-text">Vue 的定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#initMixin-%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">2.2.</span> <span class="nav-text">initMixin 初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#stateMixin-%E6%95%B0%E6%8D%AE%E7%8A%B6%E6%80%81"><span class="nav-number">2.3.</span> <span class="nav-text">stateMixin 数据状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#eventsMixin-%E4%BA%8B%E4%BB%B6%E5%8F%91%E5%B8%83%E8%AE%A2%E9%98%85"><span class="nav-number">2.4.</span> <span class="nav-text">eventsMixin 事件发布订阅</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lifecycleMixin-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-number">2.5.</span> <span class="nav-text">lifecycleMixin 生命周期</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#renderMixin-%E6%B8%B2%E6%9F%93VNode"><span class="nav-number">2.6.</span> <span class="nav-text">renderMixin 渲染VNode</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96-init"><span class="nav-number">3.</span> <span class="nav-text">初始化 _init</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%88%E5%B9%B6%E9%85%8D%E7%BD%AE-mergeOptions"><span class="nav-number">3.1.</span> <span class="nav-text">合并配置 mergeOptions</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%8B%E5%8A%A8%E8%B0%83%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">3.1.1.</span> <span class="nav-text">手动调用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Vue-options"><span class="nav-number">3.1.1.1.</span> <span class="nav-text">Vue.options</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#resolveConstructorOptions-%E8%8E%B7%E5%8F%96Vue%E6%9E%84%E9%80%A0%E5%99%A8%E7%9A%84options"><span class="nav-number">3.1.1.2.</span> <span class="nav-text">resolveConstructorOptions 获取Vue构造器的options</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#mergeOptions"><span class="nav-number">3.1.1.3.</span> <span class="nav-text">mergeOptions</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#merge-strate-%E5%90%88%E5%B9%B6%E7%AD%96%E7%95%A5"><span class="nav-number">3.1.1.4.</span> <span class="nav-text">merge strate 合并策略</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%8B%E5%8A%A8%E8%B0%83%E7%94%A8%E5%9C%BA%E6%99%AF%E7%9A%84%E7%BB%93%E6%9E%9C"><span class="nav-number">3.1.2.</span> <span class="nav-text">手动调用场景的结果</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%84%E4%BB%B6%E5%9C%BA%E6%99%AF"><span class="nav-number">3.1.3.</span> <span class="nav-text">组件场景</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Vue-extend-%E7%BB%84%E4%BB%B6%E5%88%9B%E5%BB%BA%E5%92%8C%E7%BB%A7%E6%89%BF"><span class="nav-number">3.1.3.1.</span> <span class="nav-text">Vue.extend 组件创建和继承</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#createComponent-%E5%88%9B%E5%BB%BA%E7%BB%84%E4%BB%B6VNode"><span class="nav-number">3.1.3.2.</span> <span class="nav-text">createComponent 创建组件VNode</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#createComponentInstanceForVnode-%E5%88%9B%E5%BB%BA%E7%BB%84%E4%BB%B6%E5%AE%9E%E4%BE%8B%E5%B9%B6%E6%8C%82%E8%BD%BD%E5%88%B0VNode"><span class="nav-number">3.1.3.3.</span> <span class="nav-text">createComponentInstanceForVnode 创建组件实例并挂载到VNode</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#initInternalComponent"><span class="nav-number">3.1.3.4.</span> <span class="nav-text">initInternalComponent</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%84%E4%BB%B6%E5%9C%BA%E6%99%AF%E7%9A%84%E7%BB%93%E6%9E%9C"><span class="nav-number">3.1.4.</span> <span class="nav-text">组件场景的结果</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ninnka</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">52</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ninnka</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

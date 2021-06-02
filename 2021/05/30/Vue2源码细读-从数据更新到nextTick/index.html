@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="一个数据更新的demo先来看一个常见的案例，点击click后会循环1000次，每次都给this.number+1 1234567891011121314151617181920&lt;template&gt;  &lt;div&gt;    &lt;div&gt;&amp;#123;&amp;#123;number&amp;#125;&amp;#125;&lt;&#x2F;div&gt;    &lt;div @click&amp;#x">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vue2源码细读-从数据更新到nextTick">
+<meta property="og:url" content="http://yoursite.com/2021/05/30/Vue2%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E4%BB%8E%E6%95%B0%E6%8D%AE%E6%9B%B4%E6%96%B0%E5%88%B0nextTick/index.html">
+<meta property="og:site_name" content="某科学の前端杂货铺">
+<meta property="og:description" content="一个数据更新的demo先来看一个常见的案例，点击click后会循环1000次，每次都给this.number+1 1234567891011121314151617181920&lt;template&gt;  &lt;div&gt;    &lt;div&gt;&amp;#123;&amp;#123;number&amp;#125;&amp;#125;&lt;&#x2F;div&gt;    &lt;div @click&amp;#x">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-05-30T13:13:10.000Z">
+<meta property="article:modified_time" content="2021-05-31T09:27:07.056Z">
+<meta property="article:author" content="Ninnka">
+<meta property="article:tag" content="Web">
+<meta property="article:tag" content="Vue2">
+<meta property="article:tag" content="源码">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2021/05/30/Vue2%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E4%BB%8E%E6%95%B0%E6%8D%AE%E6%9B%B4%E6%96%B0%E5%88%B0nextTick/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Vue2源码细读-从数据更新到nextTick | 某科学の前端杂货铺</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">某科学の前端杂货铺</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/05/30/Vue2%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E4%BB%8E%E6%95%B0%E6%8D%AE%E6%9B%B4%E6%96%B0%E5%88%B0nextTick/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="某科学の前端杂货铺">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Vue2源码细读-从数据更新到nextTick
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-30 21:13:10" itemprop="dateCreated datePublished" datetime="2021-05-30T21:13:10+08:00">2021-05-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-31 17:27:07" itemprop="dateModified" datetime="2021-05-31T17:27:07+08:00">2021-05-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Vue2/" itemprop="url" rel="index"><span itemprop="name">Vue2</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Vue2/nextTick/" itemprop="url" rel="index"><span itemprop="name">nextTick</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="一个数据更新的demo"><a href="#一个数据更新的demo" class="headerlink" title="一个数据更新的demo"></a>一个数据更新的demo</h2><p>先来看一个常见的案例，点击click后会循环1000次，每次都给this.number+1</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">  &lt;div&gt;</span><br><span class="line">    &lt;div&gt;&#123;&#123;number&#125;&#125;&lt;&#x2F;div&gt;</span><br><span class="line">    &lt;div @click&#x3D;&quot;onClick&quot;&gt;click&lt;&#x2F;div&gt;</span><br><span class="line">  &lt;&#x2F;div&gt;</span><br><span class="line">&lt;&#x2F;template&gt;</span><br><span class="line">export default &#123;</span><br><span class="line">    data () &#123;</span><br><span class="line">        return &#123;</span><br><span class="line">            number: 0,</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;,</span><br><span class="line">    methods: &#123;</span><br><span class="line">        onClick () &#123;</span><br><span class="line">            for(let i &#x3D; 0; i &lt; 1000; i++) &#123;</span><br><span class="line">                this.number +&#x3D; 1;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>按照我们对vue响应式的理解，number变化后会触发setter函数，进而触发Dept.notify，最后通过Watcher.update()来更新视图，循环1000次会导致视图的更新1000次。</p>
+<p>但是连续更新1000次会造成不必要的视图更新，频繁操作DOM的效率也非常低，为了减少布局和渲染，Vue把DOM更新设计为异步更新，每次侦听到数据变化，将开启一个队列，并缓冲在同一事件循环中发生的所有数据变更。如果同一个 watcher 被多次触发，只会被推入到队列中一次。然后在下一个的事件循环tick中，Vue才会真正执行队列中的数据变更，然后页面才会重新渲染。相当于把多个地方的DOM更新放到一个地方一次性全部更新。</p>
+<h2 id="更新队列-queue"><a href="#更新队列-queue" class="headerlink" title="更新队列 queue"></a>更新队列 queue</h2><p>为了避免频繁操作DOM，造成不必要的视图更新，Vue在数据发生变化时，触发setter方法后，setter会把Watcher push到队列queue中。</p>
+<p>为此，Vue提供了异步更新的监听接口 —— Vue.nextTick(callback) 或 this.$nextTick(callback) 。当数据发生改变，异步DOM更新完成后，callback回调将被调用。开发者可以在回调中，操作更新后的DOM。</p>
+<a id="more"></a>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// watch.js</span></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Subscriber interface.</span></span><br><span class="line"><span class="comment">   * Will be called when a dependency changes.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  update () &#123;</span><br><span class="line">    <span class="comment">/* istanbul ignore else */</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.lazy) &#123;</span><br><span class="line">      <span class="built_in">this</span>.dirty = <span class="literal">true</span></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="built_in">this</span>.sync) &#123;</span><br><span class="line">      <span class="built_in">this</span>.run()</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 上述例子中点击click，修改this.number后，最后会调用对应watcher的 update方法</span></span><br><span class="line">      queueWatcher(<span class="built_in">this</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 把 watcher push到 watcher 队列中</span></span><br><span class="line"><span class="comment"> * 对于 watcher 会做几个判断</span></span><br><span class="line"><span class="comment"> * 1、如果有重复的id，那么就跳过</span></span><br><span class="line"><span class="comment"> * 2、如果还未 flush ，那么正常 push 到队列中</span></span><br><span class="line"><span class="comment"> * 3、如果在 flushing 中，那么按照 id 排序插入到队列中对应的位置</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">queueWatcher</span> (<span class="params">watcher: Watcher</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> id = watcher.id</span><br><span class="line">  <span class="keyword">if</span> (has[id] == <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="comment">// 有重复的id，那么就跳过，不重复就正常 push</span></span><br><span class="line">    has[id] = <span class="literal">true</span></span><br><span class="line">    <span class="keyword">if</span> (!flushing) &#123;</span><br><span class="line">      <span class="comment">// 还未 flush ，那么正常 push 到队列中</span></span><br><span class="line">      queue.push(watcher)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 在 flushing 中，那么按照 id 排序插入到队列中对应的位置</span></span><br><span class="line">      <span class="keyword">let</span> i = queue.length - <span class="number">1</span></span><br><span class="line">      <span class="keyword">while</span> (i &gt; index &amp;&amp; queue[i].id &gt; watcher.id) &#123;</span><br><span class="line">        i--</span><br><span class="line">      &#125;</span><br><span class="line">      queue.splice(i + <span class="number">1</span>, <span class="number">0</span>, watcher)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 当有 watcher push 到队列中时，把队列置位等待 flush 状态</span></span><br><span class="line">    <span class="keyword">if</span> (!waiting) &#123;</span><br><span class="line">      waiting = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (process.env.NODE_ENV !== <span class="string">&#x27;production&#x27;</span> &amp;&amp; !config.async) &#123;</span><br><span class="line">        flushSchedulerQueue()</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">// 在下一个 tick 中遍历队列 run 一遍。</span></span><br><span class="line">      nextTick(flushSchedulerQueue)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>nextTick</code> 中传入了一个新的函数 <code>flushScheduleerQueue</code>，这个函数做的事情很简单，就是遍历 <code>queue</code>，顺序执行每个 <code>watcher</code> 的 <code>run</code> 方法。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">flushSchedulerQueue</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  currentFlushTimestamp = getNow()</span><br><span class="line">  flushing = <span class="literal">true</span></span><br><span class="line">  <span class="keyword">let</span> watcher, id</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 开始flush前要对queue进行排序</span></span><br><span class="line">  <span class="comment">// 排序主要是为了确保：</span></span><br><span class="line">  <span class="comment">// 1. 组件更新顺序是从父组件到子组件（因为父组件早于子组件先创建）</span></span><br><span class="line">  <span class="comment">// 2. 确保 user watchers 在 render watchers 前执行（因为 user watchers 早于 render watchers 创建）</span></span><br><span class="line">  <span class="comment">// 3. 父组件的watcher运行途中如果子组件销毁了，可以及时发现并跳转它</span></span><br><span class="line">  queue.sort(<span class="function">(<span class="params">a, b</span>) =&gt;</span> a.id - b.id)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 遍历 queue</span></span><br><span class="line">  <span class="comment">// 不缓存 queue 的长度，从 queueWatcher 中可以了解到 queue 在 flushing 途中也会发生变化</span></span><br><span class="line">  <span class="keyword">for</span> (index = <span class="number">0</span>; index &lt; queue.length; index++) &#123;</span><br><span class="line">    watcher = queue[index]</span><br><span class="line">    <span class="keyword">if</span> (watcher.before) &#123;</span><br><span class="line">      watcher.before()</span><br><span class="line">    &#125;</span><br><span class="line">    id = watcher.id</span><br><span class="line">    has[id] = <span class="literal">null</span></span><br><span class="line">    watcher.run()</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  resetSchedulerState()</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过 <code>queueWatcher</code> 可以看到，当有数据变化时，会先把 <code>watcher</code> 推入到待更新的队列中，并触发一次 <code>nextTick</code> 调用，在下一个 tick 中遍历队列 run 一遍。</p>
+<p>那么下一个 tick 是什么时候？如何去定义它？</p>
+<h2 id="nextTick"><a href="#nextTick" class="headerlink" title="nextTick"></a>nextTick</h2><p>目前浏览器平台并没有实现原生的 nextTick 方法，Vue 中源码中分别用 Promise、setTimeout、setImmediate 等方式在 microtask（或是marcotask）中创建一个事件来模拟 nextTick，这样做的目的是在当前调用栈执行完毕以后（不一定立即）才会去执行这个事件。</p>
+<p>先来看看 <code>nextTick</code> 的实现</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">nextTick</span> (<span class="params">cb, ctx</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> _resolve;</span><br><span class="line">  <span class="comment">/* cb是我们传入的回调函数，cb会先被push到回调队列中 */</span></span><br><span class="line">  callbacks.push(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (cb) &#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        cb.call(ctx);</span><br><span class="line">      &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">        handleError(e, ctx, <span class="string">&#x27;nextTick&#x27;</span>);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (_resolve) &#123;</span><br><span class="line">      _resolve(ctx);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="keyword">if</span> (!pending) &#123;</span><br><span class="line">    <span class="comment">// pending用于控制callback队列的调用节流</span></span><br><span class="line">    pending = <span class="literal">true</span>;</span><br><span class="line">    <span class="comment">// timerFunc 是执行 callback队列的入口</span></span><br><span class="line">    timerFunc();</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// $flow-disable-line</span></span><br><span class="line">  <span class="keyword">if</span> (!cb &amp;&amp; <span class="keyword">typeof</span> <span class="built_in">Promise</span> !== <span class="string">&#x27;undefined&#x27;</span>) &#123;</span><br><span class="line">    <span class="comment">/* 在支持Promise环境下，返回一个异步函数，支持nextTick的异步调用 */</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="keyword">function</span> (<span class="params">resolve</span>) </span>&#123;</span><br><span class="line">      _resolve = resolve;</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>nextTick函数主要做了这几件事情：</p>
+<ol>
+<li>把回调函数push到回调队列中，等待调用</li>
+<li>控制callback队列的调用，timerFunc()</li>
+<li>返回promise，支持外部异步调用</li>
+</ol>
+<p>那么关键点应该就在 <code>timerFunc</code> 上了，我们来看看 <code>timerFunc</code> 具体做了什么</p>
+<h3 id="timerFunc"><a href="#timerFunc" class="headerlink" title="timerFunc"></a>timerFunc</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 回调队列</span></span><br><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment">这里存放的callback来源包含数据更新时的回调和this.$nextTick调用传入的回调</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">var</span> callbacks = [];</span><br><span class="line"><span class="keyword">var</span> pending = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 遍历回调队列执行回调 */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">flushCallbacks</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  pending = <span class="literal">false</span>;</span><br><span class="line">  <span class="comment">// 开始清空队列时，先浅拷贝一份callback队列，目的是为了避免callback万一放生变化，不至于影响到当前的任务执行。</span></span><br><span class="line">  <span class="keyword">var</span> copies = callbacks.slice(<span class="number">0</span>);</span><br><span class="line">  callbacks.length = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; copies.length; i++) &#123;</span><br><span class="line">    copies[i]();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 这段代码在Vuejs代码初始化时就会执行</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> timerFunc;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* istanbul ignore next, $flow-disable-line */</span></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">typeof</span> <span class="built_in">Promise</span> !== <span class="string">&#x27;undefined&#x27;</span> &amp;&amp; isNative(<span class="built_in">Promise</span>)) &#123;</span><br><span class="line">  <span class="keyword">var</span> p = <span class="built_in">Promise</span>.resolve();</span><br><span class="line">  <span class="comment">// 第一处赋值</span></span><br><span class="line">  timerFunc = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    p.then(flushCallbacks);</span><br><span class="line">    <span class="keyword">if</span> (isIOS) &#123; <span class="built_in">setTimeout</span>(noop); &#125;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (!isIE &amp;&amp; <span class="keyword">typeof</span> MutationObserver !== <span class="string">&#x27;undefined&#x27;</span> &amp;&amp; (</span><br><span class="line">  isNative(MutationObserver) ||</span><br><span class="line">  <span class="comment">// PhantomJS and iOS 7.x</span></span><br><span class="line">  MutationObserver.toString() === <span class="string">&#x27;[object MutationObserverConstructor]&#x27;</span></span><br><span class="line">)) &#123;</span><br><span class="line">  <span class="comment">// ....</span></span><br><span class="line">  <span class="comment">// 第二处赋值</span></span><br><span class="line">  timerFunc = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    counter = (counter + <span class="number">1</span>) % <span class="number">2</span>;</span><br><span class="line">    textNode.data = <span class="built_in">String</span>(counter);</span><br><span class="line">  &#125;;</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">typeof</span> setImmediate !== <span class="string">&#x27;undefined&#x27;</span> &amp;&amp; isNative(setImmediate)) &#123;</span><br><span class="line">  <span class="comment">// 第三处赋值</span></span><br><span class="line">  timerFunc = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    setImmediate(flushCallbacks);</span><br><span class="line">  &#125;;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="comment">// 第四处赋值</span></span><br><span class="line">  timerFunc = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">setTimeout</span>(flushCallbacks, <span class="number">0</span>);</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们分析一下以上代码的关键部分</p>
+<table>
+<thead>
+<tr>
+<th>属性或方法</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>callbacks</td>
+<td>回调队列，这里存放的是通过nextTick调用传入的回调函数。比如：数据更新时传入的更新回调，通过this.$nextTick调用传入的回调</td>
+</tr>
+<tr>
+<td>pending</td>
+<td>用于控制callback队列的调用节流（见 nextTick 函数内）</td>
+</tr>
+<tr>
+<td>flushCallbacks</td>
+<td>遍历 callbacks 队列，按照添加顺序执行回调函数，在开始遍历队列前，先浅拷贝一份callback队列，目的是为了避免callback万一放生变化，不至于影响到当前的任务执行。</td>
+</tr>
+<tr>
+<td>timerFunc</td>
+<td>代理 flushCallbacks 的执行，由 timerFunc 来控制 flush 的时机</td>
+</tr>
+</tbody></table>
+<p>从分析上看，<code>timerFunc</code> 有四种被赋值的条件，这四种条件就是用来找到 nextTick 中的 tick。</p>
+<ol>
+<li>如果是在promise环境，flushCallbacks会在微任务环境中执行，ios的特殊处理（setTimeout）</li>
+<li>不支持promise的情况，会选择使用MutationObserver作为microtask</li>
+<li>当前环境不支持现有的microtask的情况，如果支持setImmediate，则使用setImmediate在下一个macrotask执行flushCallbacks</li>
+<li>上述条件都不支持的情况，选择使用setTimeout在下一个macrotask执行flushCallbacks</li>
+</ol>
+<p>总的来说，优先选择Promise，MutationObserver等microtask来执行flushCallbacks。</p>
+<p>如果不支持的话，就选择setImmediate和setTimeout等macrotask来执行flushCallbacks。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Web/" rel="tag"># Web</a>
+              <a href="/tags/Vue2/" rel="tag"># Vue2</a>
+              <a href="/tags/%E6%BA%90%E7%A0%81/" rel="tag"># 源码</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/05/30/Vue2%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-vue%E5%88%9D%E5%A7%8B%E5%8C%96/" rel="prev" title="Vue2源码细读-vue初始化">
+      <i class="fa fa-chevron-left"></i> Vue2源码细读-vue初始化
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/06/02/Vue2%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E5%93%8D%E5%BA%94%E5%BC%8F%E5%8E%9F%E7%90%86/" rel="next" title="Vue2源码细读-响应式原理">
+      Vue2源码细读-响应式原理 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E6%95%B0%E6%8D%AE%E6%9B%B4%E6%96%B0%E7%9A%84demo"><span class="nav-number">1.</span> <span class="nav-text">一个数据更新的demo</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9B%B4%E6%96%B0%E9%98%9F%E5%88%97-queue"><span class="nav-number">2.</span> <span class="nav-text">更新队列 queue</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#nextTick"><span class="nav-number">3.</span> <span class="nav-text">nextTick</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#timerFunc"><span class="nav-number">3.1.</span> <span class="nav-text">timerFunc</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ninnka</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">52</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ninnka</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="什么是 Content-TypeHTTP协议（RFC2616）采用了请求&#x2F;响应模型。客户端向服务器发送一个请求，请求头包含请求的方法、URI、协议版本、以及包含请求修饰符、客户信息和内容的类似于MIME的消息结构。服务器以一个状态行作为响应，相应的内容包括消息协议的版本，成功或者错误编码加上包含服务器信息、实体元信息以 及可能的实体内容。 通常HTTP消息由一个起始行，一个或者多个头域，一个只是头">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTTP解惑-Content-Type">
+<meta property="og:url" content="http://yoursite.com/2021/05/22/HTTP%E8%A7%A3%E6%83%91-Content-Type/index.html">
+<meta property="og:site_name" content="某科学の前端杂货铺">
+<meta property="og:description" content="什么是 Content-TypeHTTP协议（RFC2616）采用了请求&#x2F;响应模型。客户端向服务器发送一个请求，请求头包含请求的方法、URI、协议版本、以及包含请求修饰符、客户信息和内容的类似于MIME的消息结构。服务器以一个状态行作为响应，相应的内容包括消息协议的版本，成功或者错误编码加上包含服务器信息、实体元信息以 及可能的实体内容。 通常HTTP消息由一个起始行，一个或者多个头域，一个只是头">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqralnkznwj31b20okn1z.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqraxpdgerj30s60fsmz1.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqria1zt67j30v80u0gvt.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqrirlqbudj31fk0ew0vg.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqris8feioj30xa0k8wgx.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqrivvx00nj31c80u043z.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqrix9t1qfj31ab0u043a.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqrdgs01r9j31040aa75w.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqrdvogdckj30yi0u0q8j.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqrdxfyj8gj318m0k6wih.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqrdzhgldvj314s0nc42r.jpg">
+<meta property="article:published_time" content="2021-05-22T12:28:13.000Z">
+<meta property="article:modified_time" content="2021-05-27T13:27:31.491Z">
+<meta property="article:author" content="Ninnka">
+<meta property="article:tag" content="Web">
+<meta property="article:tag" content="Http">
+<meta property="article:tag" content="Content-Type">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gqralnkznwj31b20okn1z.jpg">
+
+<link rel="canonical" href="http://yoursite.com/2021/05/22/HTTP%E8%A7%A3%E6%83%91-Content-Type/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>HTTP解惑-Content-Type | 某科学の前端杂货铺</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">某科学の前端杂货铺</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/05/22/HTTP%E8%A7%A3%E6%83%91-Content-Type/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="某科学の前端杂货铺">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          HTTP解惑-Content-Type
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-22 20:28:13" itemprop="dateCreated datePublished" datetime="2021-05-22T20:28:13+08:00">2021-05-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-27 21:27:31" itemprop="dateModified" datetime="2021-05-27T21:27:31+08:00">2021-05-27</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Http/" itemprop="url" rel="index"><span itemprop="name">Http</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Http/Content-Type/" itemprop="url" rel="index"><span itemprop="name">Content-Type</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="什么是-Content-Type"><a href="#什么是-Content-Type" class="headerlink" title="什么是 Content-Type"></a>什么是 Content-Type</h1><p>HTTP协议（RFC2616）采用了请求/响应模型。<br>客户端向服务器发送一个请求，请求头包含请求的方法、URI、协议版本、以及包含请求修饰符、客户信息和内容的类似于MIME的消息结构。<br>服务器以一个状态行作为响应，相应的内容包括消息协议的版本，成功或者错误编码加上包含服务器信息、实体元信息以 及可能的实体内容。</p>
+<p>通常HTTP消息由一个起始行，一个或者多个头域，一个只是头域结束的空行和可选的消息体组成。<br>HTTP的头域包括通用头，请求头，响应头和实体头四个部分。每个头域由一个域名，冒号（:）和域值三部分组成。域名是大小写无关的，域值前可以添加任何数量的空格符，头域可以被扩展为多行，在每行开始处，使用至少一个空格或制表符。</p>
+<p>请求消息和响应消息都可以包含实体信息，实体信息一般由实体头域和实体组成。实体头域包含关于实体的原信息，实体头包括Allow、Content- Base、Content-Encoding、Content-Language、 Content-Length、Content-Location、Content-MD5、Content-Range、Content-Type、 Etag、Expires、Last-Modified、extension-header。</p>
+<p>Content-Type是返回消息中非常重要的内容，表示后面的文档属于什么MIME类型。</p>
+<p>Content-Type: [type]/[subtype]; parameter。例如最常见的就是text/html，它的意思是说返回的内容是文本类型，这个文本又是HTML格式的。原则上浏览器会根据Content-Type来决定如何显示返回的消息体内容。</p>
+<p>在请求中，Content-Type 是实体头部用于指示资源的MIME类型 media type，服务端根据这个类型来做不同的处理。</p>
+<p>在响应中，Content-Type标头告诉客户端实际返回的内容的内容类型，浏览器根据Content-Type来对文件做不同的处理。<br>比如对请求 google.com 返回的content-type: text/html，charset=uft8，浏览器会把文本作为html进行解析，最终渲染到页面中。<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqralnkznwj31b20okn1z.jpg" alt="response_content-type1"></p>
+<p>响应头中的 Content-Type 类型与请求头中的 Content-Type 并没有太多区别，但是有一些content-type只能在响应头中设置。</p>
+<table>
+<thead>
+<tr>
+<th>Content-Type</th>
+<th>说明</th>
+<th>案例</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>请求头中的content-type</td>
+<td>描述请求实体对应的MIME信息</td>
+<td>Content-Type: application/json</td>
+<td>简单理解就是：客户端告诉服务端，我传的数据是什么类型</td>
+</tr>
+<tr>
+<td>响应头中的content-type</td>
+<td>描述响应实体对应的MIME信息</td>
+<td>text/html; charset=UTF8</td>
+<td>简单理解就是：服务端告诉客户端，我返回的数据是什么类型</td>
+</tr>
+</tbody></table>
+<h1 id="MIME"><a href="#MIME" class="headerlink" title="MIME"></a>MIME</h1><h2 id="MIME类型"><a href="#MIME类型" class="headerlink" title="MIME类型"></a>MIME类型</h2><p>媒体类型（通常称为 Multipurpose Internet Mail Extensions 或 MIME 类型 ）是一种标准，用来表示文档、文件或字节流的性质和格式。它在IETF RFC 6838中进行了定义和标准化。</p>
+<p>互联网号码分配机构（IANA）是负责跟踪所有官方MIME类型的官方机构，您可以在媒体类型页面中找到最新的完整列表。(在文章的最后)</p>
+<a id="more"></a>
+
+<h2 id="MIME结构"><a href="#MIME结构" class="headerlink" title="MIME结构"></a>MIME结构</h2><p>MIME格式：[type]/[subType]；<br>type是指主类型；subType为子类型；</p>
+<p>例如：text/html text/css image/jpeg image/png application/json 等等</p>
+<p>每种MIME类型有独立的配置，我们称之为-可选参数（Optional parameters），比如text/html 可以配置 charset=UTF8<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqraxpdgerj30s60fsmz1.jpg" alt="request_content-type1"></p>
+<p>MIME类型对大小写不敏感，但是传统写法都是小写。</p>
+<h2 id="MIME有哪些类型"><a href="#MIME有哪些类型" class="headerlink" title="MIME有哪些类型"></a>MIME有哪些类型</h2><p>目前已知的MIME中有以下已注册的类型</p>
+<ul>
+<li>application</li>
+<li>audio</li>
+<li>font</li>
+<li>example</li>
+<li>image</li>
+<li>message</li>
+<li>model</li>
+<li>multipart</li>
+<li>text</li>
+<li>video</li>
+</ul>
+<h3 id="基本的独立类型"><a href="#基本的独立类型" class="headerlink" title="基本的独立类型"></a>基本的独立类型</h3><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>描述</th>
+<th>典型案例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>text</td>
+<td>表明文件是普通文本，理论上是人类可读</td>
+<td>text/plain, text/html, text/css, text/javascript</td>
+</tr>
+<tr>
+<td>image</td>
+<td>表明是某种图像。不包括视频，但是动态图（比如动态gif）也使用image类型</td>
+<td>image/gif, image/png, image/jpeg, image/bmp, image/webp, image/x-icon, image/vnd.microsoft.icon</td>
+</tr>
+<tr>
+<td>audio</td>
+<td>表明是某种音频文件</td>
+<td>audio/midi, audio/mpeg, audio/webm, audio/ogg, audio/wav</td>
+</tr>
+<tr>
+<td>video</td>
+<td>表明是某种视频文件</td>
+<td>video/webm, video/ogg</td>
+</tr>
+<tr>
+<td>application</td>
+<td>表明是某种二进制数据</td>
+<td>application/octet-stream, application/pkcs12, application/vnd.mspowerpoint, application/xhtml+xml, application/xml,  application/pdf</td>
+</tr>
+</tbody></table>
+<p>对于text文件类型若没有特定的subtype，就使用 text/plain。类似的，二进制文件没有特定或已知的 subtype，即使用 application/octet-stream。</p>
+<p>application/octet-stream通常与标识二进制文件，常见的场景是：上传文件；<br>服务端在处理这种类型的MIME时通常就是把数据流写入文件。</p>
+<h2 id="document-contentType"><a href="#document-contentType" class="headerlink" title="document.contentType"></a>document.contentType</h2><p>浏览器在请求资源成功后，会把当前页面对应链接的content-type挂载到document.contentType中</p>
+<p>比如：</p>
+<p>1、请求一个网站后，访问document.contentType 可以得到 text/html<br>2、请求一个css文件，访问document.contentType 可以得到 text/css<br>3、请求一个js文件，访问document.contentType 可以得到 application/javascript</p>
+<h2 id="MIME没有设置或错误设置的情况"><a href="#MIME没有设置或错误设置的情况" class="headerlink" title="MIME没有设置或错误设置的情况"></a>MIME没有设置或错误设置的情况</h2><p>在缺失 MIME 类型或客户端认为文件设置了错误的 MIME 类型时，浏览器可能会通过查看资源来进行MIME嗅探。每一个浏览器在不同的情况下会执行不同的操作。因为这个操作会有一些安全问题，有的 MIME 类型表示可执行内容而有些是不可执行内容。浏览器可以通过请求头 Content-Type 来设置 X-Content-Type-Options 以阻止MIME嗅探。</p>
+<p>很多服务器使用默认的 application/octet-stream 来发送未知的二进制数据。出于一些安全原因，对于这些资源浏览器不允许设置一些自定义默认操作，导致用户必须存储到本地以使用。<br>比如说：</p>
+<p>请求了一个图片文件，希望可以通过浏览器打开查看文件，但是实际因为content-type是application/octet-stream，最后只会弹出一个下载框。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> http = <span class="built_in">require</span>(<span class="string">&quot;http&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&quot;fs&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">&quot;path&quot;</span>);</span><br><span class="line"></span><br><span class="line">http</span><br><span class="line">  .createServer(<span class="function"><span class="keyword">function</span> (<span class="params">request, response</span>) </span>&#123;</span><br><span class="line">    response.writeHead(<span class="number">200</span>, &#123; <span class="string">&quot;Content-Type&quot;</span>: <span class="string">&quot;application/octet-stream&quot;</span> &#125;);</span><br><span class="line">    <span class="keyword">var</span> stream = fs.createReadStream(</span><br><span class="line">      path.resolve(process.cwd(), <span class="string">&quot;public/a.png&quot;</span>)</span><br><span class="line">    );</span><br><span class="line">    <span class="keyword">var</span> responseData = [];</span><br><span class="line">    <span class="keyword">if</span> (stream) &#123;</span><br><span class="line">      stream.on(<span class="string">&quot;data&quot;</span>, <span class="function"><span class="keyword">function</span> (<span class="params">chunk</span>) </span>&#123;</span><br><span class="line">        responseData.push(chunk);</span><br><span class="line">      &#125;);</span><br><span class="line">      stream.on(<span class="string">&quot;end&quot;</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="keyword">var</span> finalData = Buffer.concat(responseData);</span><br><span class="line">        response.write(finalData);</span><br><span class="line">        response.end();</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">  .listen(<span class="number">8099</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&quot;startup in http://127.0.0.1:8099&quot;</span>);</span><br><span class="line">  &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>在浏览器中访问 <a target="_blank" rel="noopener" href="http://127.0.0.1:8099/public/a.png%EF%BC%8C%E5%8F%AA%E4%BC%9A%E5%BC%B9%E5%87%BA%E4%B8%80%E4%B8%AA%E4%B8%8B%E8%BD%BD%E6%A1%86">http://127.0.0.1:8099/public/a.png，只会弹出一个下载框</a></p>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqria1zt67j30v80u0gvt.jpg" alt="content-type6"></p>
+<p>如果返回了错误的MIME类型，<br>比如说：</p>
+<p>音视频播放的资源如果返回了错误的MIME类型，即使使用了正确的video和audio标签也无法播放。</p>
+<p>正常的情况：正确返回 Content-Type，可以正常播放音频</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> mp3 = path.resolve(process.cwd(), <span class="string">&quot;public/One Last Kiss.mp3&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> stat = fs.statSync(mp3);</span><br><span class="line"></span><br><span class="line">response.writeHead(<span class="number">200</span>, &#123;</span><br><span class="line">    <span class="string">&quot;Content-Type&quot;</span>: <span class="string">&quot;audio/mpeg&quot;</span>,</span><br><span class="line">    <span class="string">&quot;Content-Length&quot;</span>: stat.size,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">//创建可读流</span></span><br><span class="line"><span class="keyword">const</span> readableStream = fs.createReadStream(mp3);</span><br><span class="line"><span class="comment">// 管道pipe流入</span></span><br><span class="line">readableStream.pipe(response);</span><br></pre></td></tr></table></figure>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqrirlqbudj31fk0ew0vg.jpg"><br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqris8feioj30xa0k8wgx.jpg"><br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqrivvx00nj31c80u043z.jpg"></p>
+<p>错误的情况：无法播放</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> mp3 = path.resolve(process.cwd(), <span class="string">&quot;public/One Last Kiss.mp3&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> stat = fs.statSync(mp3);</span><br><span class="line"></span><br><span class="line">response.writeHead(<span class="number">200</span>, &#123;</span><br><span class="line">    <span class="comment">// 这里返回了图片的 MIME</span></span><br><span class="line">    <span class="string">&quot;Content-Type&quot;</span>: <span class="string">&quot;image/png&quot;</span>,</span><br><span class="line">    <span class="string">&quot;Content-Length&quot;</span>: stat.size,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">//创建可读流</span></span><br><span class="line"><span class="keyword">const</span> readableStream = fs.createReadStream(mp3);</span><br><span class="line"><span class="comment">// 管道pipe流入</span></span><br><span class="line">readableStream.pipe(response);</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqrix9t1qfj31ab0u043a.jpg"></p>
+<h1 id="常见的-Content-Type-讲解"><a href="#常见的-Content-Type-讲解" class="headerlink" title="常见的 Content-Type 讲解"></a>常见的 Content-Type 讲解</h1><h2 id="application-x-www-form-urlencoded"><a href="#application-x-www-form-urlencoded" class="headerlink" title="application/x-www-form-urlencoded"></a>application/x-www-form-urlencoded</h2><p>用于POST请求提交数据的格式之一。</p>
+<p>常用于FORM表单提交，如果不设置enctype属性,默认为application/x-www-form-urlencoded方式提交数据。</p>
+<p>x-www-form-urlencoded有这几个特性：</p>
+<ul>
+<li>Content-Type都指定为application/x-www-form-urlencoded;</li>
+<li>提交的表单数据会转换为键值对并按照key1=val&amp;key2=val2的方式进行编码,key和val都进行了URL转码。大部分服务端语言都对这种方式有很好的支持。</li>
+</ul>
+<p>另外,如利用AJAX提交数据时,也可使用这种方式。例如在jQuery中,Content-Type默认值都是”application/x-www-form-urlencoded;charset=utf-8”。</p>
+<h2 id="application-json"><a href="#application-json" class="headerlink" title="application/json"></a>application/json</h2><p>用于POST请求提交数据的格式之一。</p>
+<p>application/json在响应头和请求头中都很常见，消息主体是序列化后的JSON字符串。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">fetch(<span class="string">&#x27;url&#x27;</span>, &#123;</span><br><span class="line">    method: <span class="string">&#x27;POST&#x27;</span>,</span><br><span class="line">    body: <span class="built_in">JSON</span>.stringify(&#123;</span><br><span class="line">        xxx: <span class="string">&#x27;xxx&#x27;</span>,</span><br><span class="line">    &#125;),</span><br><span class="line">    header: &#123;</span><br><span class="line">        <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/json&#x27;</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h2 id="text-plain"><a href="#text-plain" class="headerlink" title="text/plain"></a>text/plain</h2><p>如果没有指定响应头中的content-type，那么content-type默认就是text/plain，纯文本，浏览器中会直接以文本形式展示出来。</p>
+<h2 id="multipart类型"><a href="#multipart类型" class="headerlink" title="multipart类型"></a>multipart类型</h2><p>multipart中有的重要类型：</p>
+<ul>
+<li>multipart/form-data</li>
+<li>multipart/byteranges</li>
+</ul>
+<h3 id="multipart-form-data"><a href="#multipart-form-data" class="headerlink" title="multipart/form-data"></a>multipart/form-data</h3><p>这个是老生常谈的话题，multipart/form-data通常用在需要文件上传的场景：</p>
+<ul>
+<li>HTML FORM：表单提交很常见，通常在需要上传文件时，会把FORM的enctype设置为multipart/form-data</li>
+<li>AjAX POST：提交异步POST请求时配合 formData 使用</li>
+</ul>
+<p>multipart/form-data作为多部分文档格式，主要构成分为这几部分：<br>1、边界线<br>2、内容区域，包含content-disposition和content-type，content-type出现在文件上传的时候</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">form</span> <span class="attr">action</span>=<span class="string">&quot;http://localhost:8000/&quot;</span> <span class="attr">method</span>=<span class="string">&quot;post&quot;</span> <span class="attr">enctype</span>=<span class="string">&quot;multipart/form-data&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;text&quot;</span> <span class="attr">name</span>=<span class="string">&quot;myTextField&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;checkbox&quot;</span> <span class="attr">name</span>=<span class="string">&quot;myCheckBox&quot;</span>&gt;</span>Check<span class="tag">&lt;/<span class="name">input</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;file&quot;</span> <span class="attr">name</span>=<span class="string">&quot;myFile&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">button</span>&gt;</span>Send the file<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">POST</span> <span class="string">/</span> HTTP/1.1</span><br><span class="line"><span class="attribute">Host</span>: localhost:8000</span><br><span class="line"><span class="attribute">User-Agent</span>: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:50.0) Gecko/20100101 Firefox/50.0</span><br><span class="line"><span class="attribute">Accept</span>: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8</span><br><span class="line"><span class="attribute">Accept-Language</span>: en-US,en;q=0.5</span><br><span class="line"><span class="attribute">Accept-Encoding</span>: gzip, deflate</span><br><span class="line"><span class="attribute">Connection</span>: keep-alive</span><br><span class="line"><span class="attribute">Upgrade-Insecure-Requests</span>: 1</span><br><span class="line"><span class="attribute">Content-Type</span>: multipart/form-data; boundary=---------------------------8721656041911415653955004498</span><br><span class="line"><span class="attribute">Content-Length</span>: 465</span><br><span class="line"></span><br><span class="line">-----------------------------8721656041911415653955004498</span><br><span class="line"><span class="attribute">Content-Disposition</span>: form-data; name=&quot;myTextField&quot;</span><br><span class="line"></span><br><span class="line"><span class="attribute">Test</span></span><br><span class="line"><span class="attribute">-----------------------------8721656041911415653955004498</span></span><br><span class="line"><span class="attribute">Content-Disposition</span>: form-data; name=&quot;myCheckBox&quot;</span><br><span class="line"></span><br><span class="line"><span class="attribute">on</span></span><br><span class="line"><span class="attribute">-----------------------------8721656041911415653955004498</span></span><br><span class="line"><span class="attribute">Content-Disposition</span>: form-data; name=&quot;myFile&quot;; filename=&quot;test.txt&quot; // 描述内容的基础配置</span><br><span class="line"><span class="attribute">Content-Type</span>: text/plain // 描述了上传的文件类型</span><br><span class="line"></span><br><span class="line">Simple file.</span><br><span class="line">-----------------------------8721656041911415653955004498--</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="multipart-byteranges"><a href="#multipart-byteranges" class="headerlink" title="multipart/byteranges"></a>multipart/byteranges</h3><p>这个类型通常用来标明当前的数据是分片传输的，分片传输听起来可能有点模糊，我们来举个🌰：<br>大家应该都看过电影，一步高清的电影动辄几十GB的大小很难在短时间迅速下完，但是如果中途中断下次再下载时会不会重头开始呢？<br>网络中常用的下载工具肯定都提供了断点续传的功能，multipart/byteranges就是其中的关键。</p>
+<p>对于这个content-type，图解HTTP中是这样解释的：</p>
+<blockquote>
+<p>multipart/byteranges：状态码 206（Partial Content，部分内容）响应报文包含了多个范围的内容时使用<br>   HTTP/1.1 206 Partial Content   Date: Fri, 13 Jul 2012 02:45:26v GMT   Last-Modified: Fri, 31 Aug 2007 02:02:20 GMT   Content-Type: multipart/byteranges; boundary=THIS_STRING_SEPARATES      –THIS_STRING_SEPARATES   Content-Type: application/pdf   Content-Range: bytes 500-999/8000      …(范围指定的数据)…      –THIS_STRING_SEPARATES   Content-Type: application/pdf   Content-Range: bytes 7000-7999/8000      …(范围指定的数据)…   –THIS_STRING_SEPARATES–<br>   使用 boundary 字符串来划分 multipart 指明的各类实体，在其指定的各个实体的起始行之前插入『—』标记（如 –AaB03x），在对应的字符串的最后插入『–』标记作为结束（如 –AaB03x—）。</p>
+</blockquote>
+<p>看起来很疑惑，是的，因为只有这段说明是解释不清楚的。</p>
+<p>因为响应头中的content-type: multipart/byteranges需要配合请求头的Range请求使用，那么Range是啥？我们看看图解HTTP的解释：</p>
+<blockquote>
+<p>范围请求（Range Request）：指定范围发送的请求。执行范围请求时，用到首部字段 Range 来指定资源的 byte 范围：<br>5001<del>10000 字节<br>   Range: bytes=5001-10000<br>从 5001 字节之后全部的<br>   Range: bytes=5001-<br>从一开始到 3000 字节和 5000</del>7000 字节的多重范围<br>   Range: bytes=-3000, 5000-7000<br>说明：针对范围请求，响应返回 206 Partial Content 的响应报文。对于多重范围的范围请求，响应会在首部字段 Content-Type 标明 multipart/byteranges 后 返回响应报文。如果服务器无法响应范围请求，则会返回 200 OK。</p>
+</blockquote>
+<p>结合Range Request和multipart/bytesranges的说明可以这样理解：请求可以要求服务端只返回数据中的某一段，若服务器能响应<code>Range</code>，则把请求头置位<code>206</code>并把Content-Type置为multipart/byteranges。如果不支持<code>Range</code>，则直接返回整个数据并置状态码为<code>200</code>。</p>
+<p>我们可以动手试试：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 请求一个图片，要求返回31个字节，从0开始，30结束，[0,30]</span></span><br><span class="line">fetch(<span class="string">&#x27;https://developer.mozilla.org/static/media/search.db31d27c.svg&#x27;</span>, &#123;</span><br><span class="line">    headers: &#123;</span><br><span class="line">        Range: <span class="string">&#x27;bytes=0-30&#x27;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;).then(<span class="keyword">async</span> (res) =&gt; &#123;</span><br><span class="line">    <span class="keyword">const</span> svg = <span class="keyword">await</span> res.text();</span><br><span class="line">    <span class="built_in">console</span>.log(svg, svg.length)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqrdgs01r9j31040aa75w.jpg" alt="content-type3"></p>
+<p>嗯，看起来没毛病，但是multipart/byteranges似乎没看出？只是多了content-range，content-length也发生了变化<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqrdvogdckj30yi0u0q8j.jpg" alt="content-type4"></p>
+<p>重新看看图解http那段说明，Range是支持多段区间的<br>那我们重新试试</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 请求两个区间的数据 [0,30] [90,120]</span></span><br><span class="line">fetch(<span class="string">&#x27;https://developer.mozilla.org/static/media/search.db31d27c.svg&#x27;</span>, &#123;</span><br><span class="line">    headers: &#123;</span><br><span class="line">        Range: <span class="string">&#x27;bytes=0-30, 90-120&#x27;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;).then(<span class="keyword">async</span> (res) =&gt; &#123;</span><br><span class="line">    <span class="keyword">const</span> svg = <span class="keyword">await</span> res.text();</span><br><span class="line">    <span class="built_in">console</span>.log(svg, svg.length)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>多个区间是，可以看到相应body通过boundary区分开来了<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqrdxfyj8gj318m0k6wih.jpg" alt="content-type5"></p>
+<p>请求头中的MIME-TYPE也不再是原来的基础类型<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqrdzhgldvj314s0nc42r.jpg" alt="content-type6"></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><blockquote>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Content-Type">Content-Type</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Basics_of_HTTP/MIME_types">MIME Type</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.iana.org/assignments/media-types/media-types.xhtml">mime-types 速查</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Range_requests">HTTP请求范围</a></li>
+<li><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000013056786">Http请求中的Content-Type</a></li>
+</ul>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Web/" rel="tag"># Web</a>
+              <a href="/tags/Http/" rel="tag"># Http</a>
+              <a href="/tags/Content-Type/" rel="tag"># Content-Type</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/05/19/JavaScript-%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86%E4%B8%8E%E8%B0%83%E8%AF%95/" rel="prev" title="JavaScript-错误处理与调试">
+      <i class="fa fa-chevron-left"></i> JavaScript-错误处理与调试
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/05/30/Vue2%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-vue%E5%88%9D%E5%A7%8B%E5%8C%96/" rel="next" title="Vue2源码细读-vue初始化">
+      Vue2源码细读-vue初始化 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-Content-Type"><span class="nav-number">1.</span> <span class="nav-text">什么是 Content-Type</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#MIME"><span class="nav-number">2.</span> <span class="nav-text">MIME</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MIME%E7%B1%BB%E5%9E%8B"><span class="nav-number">2.1.</span> <span class="nav-text">MIME类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MIME%E7%BB%93%E6%9E%84"><span class="nav-number">2.2.</span> <span class="nav-text">MIME结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MIME%E6%9C%89%E5%93%AA%E4%BA%9B%E7%B1%BB%E5%9E%8B"><span class="nav-number">2.3.</span> <span class="nav-text">MIME有哪些类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E7%9A%84%E7%8B%AC%E7%AB%8B%E7%B1%BB%E5%9E%8B"><span class="nav-number">2.3.1.</span> <span class="nav-text">基本的独立类型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#document-contentType"><span class="nav-number">2.4.</span> <span class="nav-text">document.contentType</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MIME%E6%B2%A1%E6%9C%89%E8%AE%BE%E7%BD%AE%E6%88%96%E9%94%99%E8%AF%AF%E8%AE%BE%E7%BD%AE%E7%9A%84%E6%83%85%E5%86%B5"><span class="nav-number">2.5.</span> <span class="nav-text">MIME没有设置或错误设置的情况</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E7%9A%84-Content-Type-%E8%AE%B2%E8%A7%A3"><span class="nav-number">3.</span> <span class="nav-text">常见的 Content-Type 讲解</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#application-x-www-form-urlencoded"><span class="nav-number">3.1.</span> <span class="nav-text">application&#x2F;x-www-form-urlencoded</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#application-json"><span class="nav-number">3.2.</span> <span class="nav-text">application&#x2F;json</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#text-plain"><span class="nav-number">3.3.</span> <span class="nav-text">text&#x2F;plain</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#multipart%E7%B1%BB%E5%9E%8B"><span class="nav-number">3.4.</span> <span class="nav-text">multipart类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#multipart-form-data"><span class="nav-number">3.4.1.</span> <span class="nav-text">multipart&#x2F;form-data</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#multipart-byteranges"><span class="nav-number">3.4.2.</span> <span class="nav-text">multipart&#x2F;byteranges</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">3.5.</span> <span class="nav-text">参考</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ninnka</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">52</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ninnka</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
