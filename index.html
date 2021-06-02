@@ -284,7 +284,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-31 17:27:07" itemprop="dateModified" datetime="2021-05-31T17:27:07+08:00">2021-05-31</time>
+                <time title="修改时间：2021-06-02 17:49:19" itemprop="dateModified" datetime="2021-06-02T17:49:19+08:00">2021-06-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -311,13 +311,19 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="一个数据更新的demo"><a href="#一个数据更新的demo" class="headerlink" title="一个数据更新的demo"></a>一个数据更新的demo</h2><p>先来看一个常见的案例，点击click后会循环1000次，每次都给this.number+1</p>
+          <p>在 <code>响应式原理</code> 提到过数据更新时会把 watcher 推入 <code>queue</code> 队列，在下一个 <code>tick</code> 中遍历逐个执行</p>
+<p>这次我们从一个 demo 开始一探究竟，从数据更新到 <code>nextTick</code> 的过程</p>
+<h2 id="一个数据更新的demo"><a href="#一个数据更新的demo" class="headerlink" title="一个数据更新的demo"></a>一个数据更新的demo</h2><p>先来看一个常见的案例，点击click后会循环1000次，每次都给this.number+1</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">  &lt;div&gt;</span><br><span class="line">    &lt;div&gt;&#123;&#123;number&#125;&#125;&lt;&#x2F;div&gt;</span><br><span class="line">    &lt;div @click&#x3D;&quot;onClick&quot;&gt;click&lt;&#x2F;div&gt;</span><br><span class="line">  &lt;&#x2F;div&gt;</span><br><span class="line">&lt;&#x2F;template&gt;</span><br><span class="line">export default &#123;</span><br><span class="line">    data () &#123;</span><br><span class="line">        return &#123;</span><br><span class="line">            number: 0,</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;,</span><br><span class="line">    methods: &#123;</span><br><span class="line">        onClick () &#123;</span><br><span class="line">            for(let i &#x3D; 0; i &lt; 1000; i++) &#123;</span><br><span class="line">                this.number +&#x3D; 1;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>按照我们对vue响应式的理解，number变化后会触发setter函数，进而触发Dept.notify，最后通过Watcher.update()来更新视图，循环1000次会导致视图的更新1000次。</p>
 <p>但是连续更新1000次会造成不必要的视图更新，频繁操作DOM的效率也非常低，为了减少布局和渲染，Vue把DOM更新设计为异步更新，每次侦听到数据变化，将开启一个队列，并缓冲在同一事件循环中发生的所有数据变更。如果同一个 watcher 被多次触发，只会被推入到队列中一次。然后在下一个的事件循环tick中，Vue才会真正执行队列中的数据变更，然后页面才会重新渲染。相当于把多个地方的DOM更新放到一个地方一次性全部更新。</p>
+<h2 id="回顾响应式原理"><a href="#回顾响应式原理" class="headerlink" title="回顾响应式原理"></a>回顾响应式原理</h2><p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gr32nsmyerj32dn0u047q.jpg"></p>
+<p>在了解了响应式原理后，大家应该都清楚触发 <code>setter</code> 后会通知 <code>watcher</code> 需要更新，这之后的过程是我们这次关注的重点</p>
+<p>对应图中触发 <code>dep.notify()</code> 后到 <code>watcher.run()</code> 执行的部分</p>
 <h2 id="更新队列-queue"><a href="#更新队列-queue" class="headerlink" title="更新队列 queue"></a>更新队列 queue</h2><p>为了避免频繁操作DOM，造成不必要的视图更新，Vue在数据发生变化时，触发setter方法后，setter会把Watcher push到队列queue中。</p>
 <p>为此，Vue提供了异步更新的监听接口 —— Vue.nextTick(callback) 或 this.$nextTick(callback) 。当数据发生改变，异步DOM更新完成后，callback回调将被调用。开发者可以在回调中，操作更新后的DOM。</p>
+<p>通知的关键在与 Watcher 中的 update 函数，update 实际最终会调用 queueWatcher 把当前 watcher 推入 queue 队列中</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2021/05/30/Vue2%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E4%BB%8E%E6%95%B0%E6%8D%AE%E6%9B%B4%E6%96%B0%E5%88%B0nextTick/#more" rel="contents">
