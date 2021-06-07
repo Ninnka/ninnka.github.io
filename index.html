@@ -155,6 +155,195 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/06/07/JavaScript-%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E6%B5%AE%E7%82%B9%E6%95%B0%E7%B2%BE%E5%BA%A6%E9%97%AE%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="某科学の前端杂货铺">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/06/07/JavaScript-%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E6%B5%AE%E7%82%B9%E6%95%B0%E7%B2%BE%E5%BA%A6%E9%97%AE%E9%A2%98/" class="post-title-link" itemprop="url">JavaScript-深入理解浮点数精度问题</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-06-07 19:39:57 / 修改时间：20:22:05" itemprop="dateCreated datePublished" datetime="2021-06-07T19:39:57+08:00">2021-06-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/JavaScript/%E6%B5%AE%E7%82%B9%E6%95%B0/" itemprop="url" rel="index"><span itemprop="name">浮点数</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>本文将从这几个方面带大家去理解JavaScript中的浮点数问题</p>
+<p>1、介绍JS的Number</p>
+<p>2、0.1 + 0.2 为什么不等于 0.3</p>
+<p>3、最大安全数为什么是 2^53 - 1</p>
+<h1 id="JS中的Number到底是什么"><a href="#JS中的Number到底是什么" class="headerlink" title="JS中的Number到底是什么"></a>JS中的Number到底是什么</h1><p>在深入问题之前，我们先来了解下JS的Number在二进制中是怎么存储的</p>
+<h2 id="双精度浮点数"><a href="#双精度浮点数" class="headerlink" title="双精度浮点数"></a>双精度浮点数</h2><p>JS中的Number是以双精度浮点数的形式计算的，双精度浮点数总共有8个字节（byte），每字节有8比特（bit-位），即 8bit/byet，所以总共占位64位。</p>
+<p>根据IEEE754的标准，双精度浮点数中的占位分为3个部分</p>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gr9yip71jjj30xc0deq4d.jpg"></p>
+<p>这三个部分组成这样一个公式</p>
+<p><img src="https://pic4.zhimg.com/80/v2-368cd672a75ea343193af2e7fa5e2987_1440w.jpg"></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/06/07/JavaScript-%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E6%B5%AE%E7%82%B9%E6%95%B0%E7%B2%BE%E5%BA%A6%E9%97%AE%E9%A2%98/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/06/06/Loader%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-Vue-Loader-v15/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="某科学の前端杂货铺">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/06/06/Loader%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-Vue-Loader-v15/" class="post-title-link" itemprop="url">Loader源码分析-Vue Loader v15</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-06-06 17:52:54" itemprop="dateCreated datePublished" datetime="2021-06-06T17:52:54+08:00">2021-06-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-07 19:38:53" itemprop="dateModified" datetime="2021-06-07T19:38:53+08:00">2021-06-07</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Webpack/" itemprop="url" rel="index"><span itemprop="name">Webpack</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Webpack/Vue-Loader-v15/" itemprop="url" rel="index"><span itemprop="name">Vue Loader v15</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="什么是-vue-loader"><a href="#什么是-vue-loader" class="headerlink" title="什么是 vue-loader"></a>什么是 vue-loader</h1><p>简单来说，<code>vue-loader</code> 是把 <code>.Vue</code> 文件编译成 <code>.js</code>，即可在浏览器中运行，也可以通过 <code>vue-server-render</code> 在 node 环境运行。</p>
+<h1 id="vue-loader-15"><a href="#vue-loader-15" class="headerlink" title="vue-loader 15"></a>vue-loader 15</h1><p><code>vue-loader 15</code> 向较于过去的版本，有许多重要的改动，这些改动体现在：</p>
+<ol>
+<li>loader推导策略变化</li>
+<li>独立出 <code>VueLoaderPlugin</code></li>
+<li>…等等</li>
+</ol>
+<p>更多细节可以查阅官方迁移指南：<a target="_blank" rel="noopener" href="https://vue-loader.vuejs.org/zh/migrating.html">Vue Loader 迁移</a></p>
+<h1 id="vue-loader-编译过程"><a href="#vue-loader-编译过程" class="headerlink" title="vue-loader 编译过程"></a>vue-loader 编译过程</h1><p>vue-loader 的处理流程可以大致分为几个部分</p>
+<ol>
+<li>入口函数解析 <code>.vue</code> 文件</li>
+<li><code>parse</code> 解析 <code>.vue</code> 文件，生成包含不同模块的 <code>descriptor</code></li>
+<li>根据不同模块做 <code>loader</code> 推导</li>
+<li><code>VueLoaderPlugin</code> 处理</li>
+</ol>
+<h2 id="vue-loader-入口函数"><a href="#vue-loader-入口函数" class="headerlink" title="vue-loader 入口函数"></a>vue-loader 入口函数</h2><p>vue-loader 入口代码不多，我把入口函数的流程做成了一个简单的 UML 图，通过图也能快速对流程有个初步的印象</p>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gr8mbc91ibj322z0u0as3.jpg"></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/06/06/Loader%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-Vue-Loader-v15/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/06/02/Vue2%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E5%93%8D%E5%BA%94%E5%BC%8F%E5%8E%9F%E7%90%86/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -953,232 +1142,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/23/TypeScript%E6%8A%80%E5%B7%A7%E4%B9%8B%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%A3%85%E9%80%BC/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ninnka">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="某科学の前端杂货铺">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/08/23/TypeScript%E6%8A%80%E5%B7%A7%E4%B9%8B%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%A3%85%E9%80%BC/" class="post-title-link" itemprop="url">TypeScript技巧之从入门到装逼</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2019-08-23 14:55:08" itemprop="dateCreated datePublished" datetime="2019-08-23T14:55:08+08:00">2019-08-23</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-19 19:03:05" itemprop="dateModified" datetime="2021-05-19T19:03:05+08:00">2021-05-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/TypeScript/" itemprop="url" rel="index"><span itemprop="name">TypeScript</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="预备动作"><a href="#预备动作" class="headerlink" title="预备动作"></a>预备动作</h2><blockquote>
-<p>阅读本篇之前你可能需要一定的TypeScript基础，如果还没开始上手建议从这里开始</p>
-</blockquote>
-<blockquote>
-<p>以下是传送门</p>
-<ol>
-<li><a target="_blank" rel="noopener" href="http://www.typescriptlang.org/docs/home.html">TypeScript Document 官方文档</a></li>
-<li><a target="_blank" rel="noopener" href="https://zhongsp.gitbooks.io/typescript-handbook/content/">TypeScript HandBook 小手册</a></li>
-<li><a target="_blank" rel="noopener" href="http://www.typescriptlang.org/play/index.html">TypeScript Playground 旧版练习场</a></li>
-<li><a target="_blank" rel="noopener" href="http://www.typescriptlang.org/v2/en/play">TypeScript Playground 新版练习场 (比上面那个高级，写作期间是beta版)</a></li>
-</ol>
-</blockquote>
-<h2 id="正片开始"><a href="#正片开始" class="headerlink" title="正片开始"></a>正片开始</h2><blockquote>
-<p>主要介绍 TypeScript 的常用和不常用的各种技巧，包括用这些技巧创建一些高级类型函数，会附上 Playground 的链接。</p>
-</blockquote>
-<h3 id="关键词"><a href="#关键词" class="headerlink" title="关键词"></a>关键词</h3><blockquote>
-<p>用于更加细粒度的处理接口和类型别名**</p>
-</blockquote>
-<blockquote>
-<ul>
-<li>@scope <em>runtime</em> 运行时</li>
-<li>@scope <em>lexical</em> 静态分析/词法分析</li>
-</ul>
-</blockquote>
-<p><strong>类型断言 / 类型守卫 / 类型约束</strong></p>
-<blockquote>
-<p>可以获取，确定，约束变量类型</p>
-</blockquote>
-<h4 id="typeof-scope-runtime"><a href="#typeof-scope-runtime" class="headerlink" title="typeof @scope runtime"></a><code>typeof</code> @scope <em>runtime</em></h4><blockquote>
-<p>获取变量的类型，常用于一些需要确认变量的类型然后进行不同操作的场景</p>
-</blockquote>
-<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> AOrB = &#123; <span class="attr">s</span>: <span class="built_in">string</span>; &#125; | <span class="built_in">string</span>;</span><br><span class="line"><span class="keyword">const</span> val: AOrB = &#123; <span class="attr">s</span>: <span class="string">&#x27;a&#x27;</span> &#125;;</span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">typeof</span> val === <span class="string">&#x27;object&#x27;</span>) &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(val.s);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(val);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><a target="_blank" rel="noopener" href="http://www.typescriptlang.org/v2/en/play#code/C4TwDgpgBAgg8gJwEJQLxQN5QM4C4fAICWAdgOYDcUAvlAD4HHkUCwAUAMYD2J2wUANwCGAG3zxkaTDnwByIbJqs2RAGZQAFKEhd1wkWlTpZXAEYArCB2CyAlJnZQo3XlxEQAdCK5kN+j9i2yrQQItjQGI7OPNhunt6++kHs1EA">Playground Link</a></p>
-<h4 id="extends-scope-lexical"><a href="#extends-scope-lexical" class="headerlink" title="extends @scope lexical"></a><code>extends</code> @scope <em>lexical</em></h4><blockquote>
-<p>类型约束，通常用在泛型传参时约束参数范围</p>
-</blockquote>
-<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> Gen &#123;</span><br><span class="line">    s: <span class="built_in">string</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> Others &#123;</span><br><span class="line">    d: <span class="built_in">number</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">BaseFunc</span>&lt;<span class="title">P</span> <span class="title">extends</span> <span class="title">Gen</span>&gt;(<span class="params">p: P</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(p);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> s1: Gen = &#123;</span><br><span class="line">    s: <span class="string">&#x27;something&#x27;</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> s2: Others = &#123;</span><br><span class="line">    d: <span class="number">1</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">BaseFunc(s1); <span class="comment">// good</span></span><br><span class="line"></span><br><span class="line">BaseFunc(s2); <span class="comment">// bad, error</span></span><br></pre></td></tr></table></figure>
-
-<p><a href="http://www.typescriptlang.org/v2/en/play?target=7#code/JYOwLgpgTgZghgYwgAgOIRMg3gWAFDKHIDOAXCWFKAOYDc+AvvvqJLIigPJgAW0x2fEWQATciACuAWwBG0eniZ58MCSARhgAe0wAhOMQgAxNQgA8ABWQQAHpBAiB6EAD4AFAAdyFgJSCCRAg6xFoANhAAdKFa1J4+Ckr4QSDEYCQAjOTOyAC8-sJkyADkIVIQvDRFADSMCknBacQATOTcfFACebgBhGLI6TWKdXj6hibqbsTp8cgA9LPI1FpaIswjBsamk00z88gycCJV1lBQWlBAA">Playground Link</a></p>
-<h4 id="instanceof-scope-runtime"><a href="#instanceof-scope-runtime" class="headerlink" title="instanceof @scope runtime"></a><code>instanceof</code> @scope <em>runtime</em></h4><blockquote>
-<p>确认目标是是否在指定对象的原型链上</p>
-</blockquote>
-<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Animal</span> </span>&#123;</span><br><span class="line">    name: <span class="built_in">string</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params">name: <span class="built_in">string</span></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Dog</span> <span class="keyword">extends</span> <span class="title">Animal</span> </span>&#123;</span><br><span class="line">    wang: <span class="built_in">number</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params">name: (<span class="keyword">typeof</span> Animal)[<span class="string">&#x27;name&#x27;</span>], wang: <span class="built_in">number</span></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(name);</span><br><span class="line">        <span class="built_in">this</span>.wang = wang;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">wangwang</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">&#x27;wangwang&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Cat</span> <span class="keyword">extends</span> <span class="title">Animal</span> </span>&#123;</span><br><span class="line">    miao: <span class="built_in">number</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params">name: (<span class="keyword">typeof</span> Animal)[<span class="string">&#x27;name&#x27;</span>], miao: <span class="built_in">number</span></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(name);</span><br><span class="line">        <span class="built_in">this</span>.miao = miao;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">miaomiao</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">&#x27;miaomiao&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> dog: Dog = <span class="keyword">new</span> Dog(<span class="string">&#x27;dog&#x27;</span>, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> cat: Cat = <span class="keyword">new</span> Cat(<span class="string">&#x27;cat&#x27;</span>, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">doS</span>&lt;<span class="title">C</span> <span class="title">extends</span> <span class="title">Animal</span>&gt;(<span class="params">cls: C</span>) </span>&#123;</span><br><span class="line">    <span class="comment">/** bad */</span></span><br><span class="line">    cls.wangwang(); <span class="comment">// error</span></span><br><span class="line">    cls.miaomiao(); <span class="comment">// error</span></span><br><span class="line">    <span class="comment">/** good */</span></span><br><span class="line">    <span class="comment">/** 函数已经限制了 cls 的约束范围 */</span></span><br><span class="line">    <span class="keyword">if</span> (cls <span class="keyword">instanceof</span> Dog) &#123;</span><br><span class="line">        <span class="comment">/** 通过 instanceof 类型守卫 进一步确认类型 */</span></span><br><span class="line">        cls.wangwang();</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (cls <span class="keyword">instanceof</span> Cat)  &#123;</span><br><span class="line">        <span class="comment">/** 同上 */</span></span><br><span class="line">        cls.miaomiao();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><a href="http://www.typescriptlang.org/v2/en/play?target=7#code/MYGwhgzhAECCB2BLAtmE0DeBYAUNf08YyApgFzQQAuATovAOYDcuuB0wA9vNTQK7AqnGgAoipCr3oMAlJjbsCVABaIIAOnEloAXkLESLPAQC+uMzlyhIMACKcG0EgA8qJeABMYCFGnnH8AHcwRgp4PmQAIxIaIwV8Lh5aASFRLQoRKgBPAAcSTgAzOCRUEBkAbQByLUqAXQAaaGDQwgjomjlsAMUIPjy0gxkjRSVVDWbHPQnh01ZuiYmRTvjFRIhOEBJ1EAcRSoWQhkqhlYsLK3AoaABhMConV3cvYt90LvZkRDBOMLaYuO6a2SgmEYgMGWyeUKL1KFWqBjqjU+31+URiy267F6-TBpBOmNGanUyM4umgJJm+HO3RJJKW-hGCW4602212lVpX04x0p0DOcyB0A8Dgo9kmhBIgWgYr2wqOjQAjPirMz7sA7hRbvc9PBJTc7nt1VRKorlTgCnx4IJENwhZwAMoAHmuDzcnm8JTQAD4RKAIJqMewAPQAKhD0EiYA80BDQZWfvUB0YSyY0CDQacNBownjIA0nO+KbTGZi2ZoK1D4YYnE40djFbD0EAv4qAB1NAE+6gHm-QAKaYA2JUAYXIcPPQQAhboAyv0A+uaAYGDAC9qMbj3UQRV9Q-o1BCwHyRTFgcZleggCwEwDj8dBV1R15voIBvH0A0eqACO1ANbK0EA2-GAADlAKbWgDsPQAl0Te5yt2AmSYMCmpxOHm2iLtAy4wKe57QlqcgMrujaADAqgBQcn+BIJHmxJcnS+LsGcQA">Playground Link</a></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2019/08/23/TypeScript%E6%8A%80%E5%B7%A7%E4%B9%8B%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%A3%85%E9%80%BC/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/01/%E7%88%AC%E5%8F%96%E5%8A%A8%E6%80%81%E7%BD%91%E7%AB%99%E6%95%B0%E6%8D%AE%20-%20puppeteer%20(headless%20browser)/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ninnka">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="某科学の前端杂货铺">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/06/01/%E7%88%AC%E5%8F%96%E5%8A%A8%E6%80%81%E7%BD%91%E7%AB%99%E6%95%B0%E6%8D%AE%20-%20puppeteer%20(headless%20browser)/" class="post-title-link" itemprop="url">爬取动态网站数据 - puppeteer (headless browser)</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2018-06-01 18:22:04" itemprop="dateCreated datePublished" datetime="2018-06-01T18:22:04+08:00">2018-06-01</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-19 18:59:45" itemprop="dateModified" datetime="2021-05-19T18:59:45+08:00">2021-05-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Web/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <blockquote>
-<p>我在之前有提到过pixiv用React重写了部分页面，导致以前的方法不能爬取那部分的页面了。<br>熟悉 <code>React/Vue/Angular</code> 开发的同学应该很清楚，这类框架开发的Web应用有个很明显的特征，web应用的原始页面的DOM只有简单body和一个id为root的节点（当然，其他人为加入的也会存在）。如果用以前的superagent配合request只能把这部分下载下来，如果pixiv使用了service-side rendering的还好，但是pixiv并没有使用（我觉得以后pixiv可能大概会用上）。</p>
-</blockquote>
-<p>说回正题，因为pixiv的部分页面改为“动态加载”后，直接获取文档不能获取到DOM，那么有没有什么办法能够获取代码然后执行js生成DOM，再获取页面的内容呢？<br>仔细想想这种行为不就像是一个浏览器了吗？<br>其实这种情况我之前就遇到过，当时是因为有要求爬取京东和淘宝的部分页面，但是京东和淘宝的首页出了靠近顶部部分以外的都是懒加载。顺着上面所说的思路，我很快想到了以前看到过的 <code>headless browser</code>，然后找到了 <code>puppeteer</code>，中文名是木偶戏</p>
-<blockquote>
-<p>Puppeteer 是一个提供了高集成API，通过开发者工具协议来控制无页面Chrome或者Chromium的 node 库. 它同样能用来控制正常的 Chrome 和 Chromium。<br>我们可以用 Puppeteer 做什么？</p>
-<ul>
-<li>生成一个快照或者PDF。</li>
-<li>爬取SPA（单页应用）并生成预渲染的内容 (比如： “SSR”)。</li>
-<li>自动化提交，输入，UI测试等。</li>
-<li>创建一个最新的，全自动测试的环境。在最新Chrome上使用最新的javascript和浏览器特性运行测试代码。</li>
-<li>按照时间线来跟踪捕获网站的运行，用来帮助诊断性能问题。</li>
-</ul>
-</blockquote>
-<p>Bingo，这正是我在这次爬虫中要用到的，接下来将使用它爬取pixiv的React App。</p>
-<p><strong><a target="_blank" rel="noopener" href="https://github.com/Rennzh/node-pixiv-crawler">源代码</a>，源代码已经是最新的，如果想看以前的方法的可以 <code>git checkout</code> 到以前的仓库节点。</strong></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/06/01/%E7%88%AC%E5%8F%96%E5%8A%A8%E6%80%81%E7%BD%91%E7%AB%99%E6%95%B0%E6%8D%AE%20-%20puppeteer%20(headless%20browser)/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1248,20 +1211,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-count">23</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-count">20</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">52</span>
+        <span class="site-state-item-count">56</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
