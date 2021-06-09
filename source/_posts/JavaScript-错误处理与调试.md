@@ -60,7 +60,7 @@ script资源加载与图片等其他资源加载没有太大区别
 
 这里说的“看不到stack和正确的错误信息”是指使用 onerror 或者 addEventListener 捕获的错误对象
 如果想知道详细信息还是可以通过打开控制台，查看error窗口来获取真正的信息
-![跨域脚本错误2](https://tva1.sinaimg.cn/large/008i3skNgy1gqnpm3xokej30k103s74m.jpg)
+![跨域脚本错误2](https://tva1.sinaimg.cn/large/008i3skNgy1grc5x4wzqyj30vi0a7mzp.jpg)
 
 如果想要获取正确的信息，则加载跨域脚本时，需要添加 `crossorigin` 属性，并且资源的请求头需要带上 `Access-Control-Allow-Origin: http://www.yourdomain.com`
 错误事件中的 message、lineno、filename 会显示正确
@@ -94,7 +94,6 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 ```javascript
 Promise.resolve().then(() => console.log(c));
 ```
-![Promise异常1](https://tva1.sinaimg.cn/large/008i3skNgy1gqnpmraue8j30k207sgmr.jpg)
 
 当promise被reject并且错误信息没有被处理的时候，会抛出一个unhandledrejection，并且这个错误不会被window.onerror以及window.addEventListener('error')捕获。
 
@@ -106,7 +105,6 @@ window.addEventListener("unhandledrejection", event => {
 });
 Promise.resolve().then(() => console.log(c));
 ```
-![Promise异常2](https://tva1.sinaimg.cn/large/008i3skNgy1gqnpn8sv2rj30js04zq3s.jpg)
 
 如果需要在全局捕获unhandledrejection，需要用专门的window.addEventListener('unhandledrejection')捕获处理。
 使用 `event.preventDefault()` 可以阻止在开控制台输出默认的错误信息。
@@ -120,7 +118,6 @@ window.onunhandledrejection = event => {
 });
 Promise.resolve().then(() => console.log(c));
 ```
-![Promise异常3](https://tva1.sinaimg.cn/large/008i3skNgy1gqnpo7md9nj30jf0fwtbt.jpg)
 
 ## Ajax请求异常
 
