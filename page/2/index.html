@@ -155,6 +155,106 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/26/%E6%9C%BA%E9%83%BD%E7%BB%99%E4%BD%A0%E5%BC%80%E5%A5%BD%E4%BA%86-%E4%B8%8D%E6%9D%A5%E7%8E%A9Service-Worker%E5%90%97/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="某科学の前端杂货铺">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/10/26/%E6%9C%BA%E9%83%BD%E7%BB%99%E4%BD%A0%E5%BC%80%E5%A5%BD%E4%BA%86-%E4%B8%8D%E6%9D%A5%E7%8E%A9Service-Worker%E5%90%97/" class="post-title-link" itemprop="url">机都给你开好了，来玩Service Worker呀！</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-10-26 14:55:38" itemprop="dateCreated datePublished" datetime="2019-10-26T14:55:38+08:00">2019-10-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-19 18:59:24" itemprop="dateModified" datetime="2021-05-19T18:59:24+08:00">2021-05-19</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>本文主要讲 service worker 的主要基本特性以及使用方法，从实际开发的 PWA 中学习 service worker。</p>
+</blockquote>
+<h2 id="Service-Worker-是什么"><a href="#Service-Worker-是什么" class="headerlink" title="Service Worker 是什么"></a>Service Worker 是什么</h2><p>Service Worker 是一个运行在在浏览器后台，独立于网页运行的由事件驱动的脚本。<br>本质上是 Web Worker 的一种具体实现，通常与 Cache API 相结合使用，因为 Worker 线程执行的脚本与网页脚本相独立的缘故，<br>Worker 线程内不能访问到 window 以及 dom 相关的数据。同时，在 Service Worker 中处理大量数据时也不会阻塞的主线程。所以通常可以在 Service Worker 线程中拦截浏览器的请求，读取和存储请求内容，进而实现离线应用。</p>
+<h2 id="Service-Worker-能做什么"><a href="#Service-Worker-能做什么" class="headerlink" title="Service Worker 能做什么"></a>Service Worker 能做什么</h2><ul>
+<li><p><img src="https://i.loli.net/2020/01/21/ISGNLpAicBjsDWO.png" alt="网络优先"><br>当客户端发起请求时，<code>Service worker</code>会先请求对应的资源，并把结果返回，同时在<code>cache storage</code>中存储一份。</p>
+<p>在出现网络不可访问或服务出错时可以从缓存中获取相同的资源做容灾处理。</p>
+</li>
+<li><p><img src="https://i.loli.net/2020/01/21/ltMkrZxgoPsEcFR.png" alt="缓存优先.png"><br>当客户端发起请求时，<code>Service worker</code>会先从<code>cache storage</code>中读取资源，并把结果返回，同时请求一份资源，成功的话更新到缓存中。</p>
+<p>  这样可以保持极快的响应速度，适用于更新频率不高的资源。</p>
+</li>
+</ul>
+<h2 id="Service-Worker-的基本架构"><a href="#Service-Worker-的基本架构" class="headerlink" title="Service Worker 的基本架构"></a>Service Worker 的基本架构</h2><ul>
+<li>独立的声明周期</li>
+<li>基于 <code>Web Worker</code> 的事件机制</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2019/10/26/%E6%9C%BA%E9%83%BD%E7%BB%99%E4%BD%A0%E5%BC%80%E5%A5%BD%E4%BA%86-%E4%B8%8D%E6%9D%A5%E7%8E%A9Service-Worker%E5%90%97/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/23/TypeScript%E6%8A%80%E5%B7%A7%E4%B9%8B%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%A3%85%E9%80%BC/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1053,95 +1153,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/04/12/%E4%BB%8E%E9%9B%B6%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E5%9F%BA%E4%BA%8Enodejs%E7%9A%84%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ninnka">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="某科学の前端杂货铺">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/04/12/%E4%BB%8E%E9%9B%B6%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E5%9F%BA%E4%BA%8Enodejs%E7%9A%84%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7/" class="post-title-link" itemprop="url">从零创建基于nodejs的命令行工具</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2017-04-12 14:28:49" itemprop="dateCreated datePublished" datetime="2017-04-12T14:28:49+08:00">2017-04-12</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-19 18:58:43" itemprop="dateModified" datetime="2021-05-19T18:58:43+08:00">2021-05-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Nodejs/" itemprop="url" rel="index"><span itemprop="name">Nodejs</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <blockquote>
-<p>有时突然奇想，想要快速获取某些网站的页面数据，但是没有合适的工具。<br>其实，开发一个爬虫工具是非常简单的。<br>这次我准备以爬取著名的<a target="_blank" rel="noopener" href="https://www.pixiv.net/">插画网站:pixiv</a>为案例，介绍如何爬取网站的页面数据<br>代码已经准备好，<a target="_blank" rel="noopener" href="https://github.com/Rennzh/node-pixiv-crawler">github地址</a><br><strong>pixiv已用React重写，没有使用Service-side Rendering，所以普通的爬取方法是行不通的，日后再使用 <code>puppeteer</code> 进行重写爬取方法。</strong></p>
-</blockquote>
-<h2 id="创建项目"><a href="#创建项目" class="headerlink" title="创建项目"></a>创建项目</h2><ul>
-<li>现在任意文件夹中创建一个名为 test-crawler</li>
-<li>进入 test-crawler 文件夹，开启 bash 或者 cmd 并cd到这个文件内，使用 <code>npm init --yes</code> 快速初始化 <code>package.json</code> 文件</li>
-</ul>
-<p>创建好后，文件夹中会有如下的文件：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">-(test-crawler)</span><br><span class="line">|- package.json</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2017/04/12/%E4%BB%8E%E9%9B%B6%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E5%9F%BA%E4%BA%8Enodejs%E7%9A%84%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1211,20 +1222,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-count">24</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-count">21</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">56</span>
+        <span class="site-state-item-count">57</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
