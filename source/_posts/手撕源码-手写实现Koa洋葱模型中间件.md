@@ -19,6 +19,10 @@ tags:
 
 ![洋葱模型](https://camo.githubusercontent.com/d80cf3b511ef4898bcde9a464de491fa15a50d06/68747470733a2f2f7261772e6769746875622e636f6d2f66656e676d6b322f6b6f612d67756964652f6d61737465722f6f6e696f6e2e706e67)
 
+这张图大家应该都见过，但是只有一张图的情况下很难对内部的逻辑有深入了解
+
+下面从简单的例子开始一起探讨洋葱模型中间件
+
 ## 中间件的执行机制
 
 先来看个简单例子
@@ -144,13 +148,17 @@ function compose (middleware) {
 ```
 
 `koa-compose` 会返回一个中间件启动函数，这个函数主要负责了两件事
-1、记录最后执行的那个中间件的下标，也就是在中间件数组中的位置
-2、启动第一个中间件执行器（dispatch(0)）
+- 记录最后执行的那个中间件的下标，也就是在中间件数组中的位置
+- 启动第一个中间件执行器（dispatch(0)）
 
 `dispatch` 中间件执行器对中间件进行了一层包装，主要负责三件事
-1、通过下标取出当前需要执行中间件
-2、执行中间件，参数中的 `next` 预先绑定为下一个中间件执行器
-3、返回Promise
+- 通过下标取出当前需要执行中间件
+- 执行中间件，参数中的 `next` 预先绑定为下一个中间件执行器
+- 返回Promise
+
+回想一下开头的洋葱图，是不是又有些不同的理解了呢，再把刚刚的内容再整理成一张简单图
+
+![](https://tva1.sinaimg.cn/large/008i3skNgy1grfirue0crj339h0u0qaj.jpg)
 
 ## 思考🤔
 
@@ -188,40 +196,28 @@ return Promise.resolve(middleware1(ctx, async () => {
 分析完koa的洋葱模型中间件后，我们动手实现一个自己的中间件模型执行器
 
 ```javascript
-const middleware1 = async (ctx, next) => {
-  console.log('middleware1 before next');
-  await next();
-  console.log('middleware1 after next');
-};
-const middleware2 = async (ctx, next) => {
-  console.log('middleware2 before next');
-  await next();
-  console.log('middleware2 after next');
-};
-const middlewares = [
-  middleware1,
-  middleware2,
-];
-
-// 模拟获取context
-function getCurrContext() {
-  const ctx = {};
-  // ... 一堆操作
-  return ctx;
-}
+const middlewares = [];
+const ctx = { /* 模拟获取context */ };
 
 // 执行器入口
 function composeMiddles() {
   let i = 0;
-  let middle = middlewares[i];
-  const ctx = getCurrContext();
-  return Promise.resolve(
-    middle(ctx, middlewares[i + 1] || (async => {}))
-  );
+  async function composed(idx) {
+    let middle = middlewares[idx];
+    if (idx >= middlewares.length) {
+      return Promise.resolve();
+    }
+    try {
+      return await middle(ctx, composed.bind(null, idx + 1))
+    } catch (error) {
+      return promise.reject(error);
+    }
+  }
+  return composed(i);
 }
 
 async function invoke() {
-    composeMiddles();
+    await composeMiddles();
 }
 invoke();
 
