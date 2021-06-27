@@ -68,6 +68,8 @@ export default function App() {
 
 案例的视图很简单，就只有一个按钮和一个值，当点击 click 时，会触发 `setState`，视图的值也会发生变化
 
+<!-- more -->
+
 ![](https://tva1.sinaimg.cn/large/008i3skNgy1groqdmp4p4j312s0t4ad2.jpg)
 
 了解 `react setState`  机制的朋友都知道，`react18` 之前的批量更新是区分场景的，这里的前三个 `setState` 因为处于事件回调函数的同步调用中，所以在触发 `setState` 时会进入 `enqueueUpdate` 函数
@@ -647,7 +649,7 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
 * 设置截止时间
 * 创建新的 task 对象
 * 如果任务未过期，把任务推入 `timerQueue`，检查是否有执行中的 `hostTimeout`，有的话取消掉，重新开启一个 `hostTimeout`
-* 如果任务已过期，把任务推入 `taskQueue`，开始启动调度
+* 如果任务已过期，把任务推入 `taskQueue`，开始启动调度 `requestHostCallback(flushWork)`，`flushWork` 是真正需要执行的函数
 
 ![](https://img.ninnka.top/1624778324759-Scheduler_scheduleCallback.png)
 
@@ -772,15 +774,18 @@ var IDLE_PRIORITY_TIMEOUT = maxSigned31BitInt;
 
 **requestHostTimeout**
 ```js
-requestHostTimeout = function (cb, ms) {
-  _timeoutID = setTimeout(cb, ms);
+requestHostTimeout = function(callback, ms) {
+  taskTimeoutID = setTimeout(() => {
+    callback(getCurrentTime());
+  }, ms);
 };
 ```
 
 **cancelHostTimeout**
 ```js
-cancelHostTimeout = function () {
-  clearTimeout(_timeoutID);
+cancelHostTimeout = function() {
+  clearTimeout(taskTimeoutID);
+  taskTimeoutID = -1;
 };
 ```
 
@@ -928,12 +933,348 @@ function advanceTimers(currentTime) {
 
 结束了 `hostTimeout` 和 `timers` 的恩恩怨怨，我们回过头来分析下 `requestHostCallback`
 
-`requestHostCallback` 主要
+`requestHostCallback` 是调度的第一步：注册任务，并通知调用
+
+```js
+requestHostCallback = function(callback) {
+  scheduledHostCallback = callback;
+  if (!isMessageLoopRunning) {
+    isMessageLoopRunning = true;
+    port.postMessage(null);
+  }
+};
+```
+
+代码很简单，我们先分析记录一下
+
+* 保存任务到 `scheduledHostCallback`
+* 标记 `isMessageLoopRunning`，标记消息轮询开始
+* `port.postMessage(null)` 发送一个消息通知
+
+这个流程中的关键应该在于 `scheduledHostCallback` 和 `port.postMessage(null)`
+
+但是 `scheduledHostCallback` 用在哪里？`port.postMessage(null)` 中的 `port` 是什么，消息发给谁，是为了做什么？
+
+带着问题我们继续往下看
+
+`requestHostCallback` 在 `react/packages/scheduler/src/forks/SchedulerHostConfig.default.js` 中
+
+观察文件中代码，可以发现，这个文件初次执行时，会初始化 `requestHostTimeout` `cancelHostTimeout` `requestHostCallback` `performWorkUntilDeadline`   `forceFrameRate` 等函数
+
+`requestHostTimeout` `cancelHostTimeout` 现在应该都有了解了
+
+但是 `requestHostCallback` `performWorkUntilDeadline`  `forceFrameRate` `shouldYieldToHost` 就很陌生
+
+别担心，直觉告诉我，刚刚问题的答案很可能在 `performWorkUntilDeadline` 里
+
+## performWorkUntilDeadline
+
+从函数名上分析大概可以知道，这个函数会用来处理任务中的 callback，直到任务超过最大可执行时长
+
+```js
+const channel = new MessageChannel();
+const port = channel.port2;
+channel.port1.onmessage = performWorkUntilDeadline;
+```
+
+```js
+const performWorkUntilDeadline = () => {
+  if (scheduledHostCallback !== null) {
+    const currentTime = getCurrentTime();
+    // 截止时间点，在当前时间上加 yieldInterval
+    // yieldInterval 可以理解为最大可执行时长，也就是常说的时间切片，每片5ms
+    deadline = currentTime + yieldInterval;
+    // 是否有剩余时间
+    const hasTimeRemaining = true;
+    try {
+      // 调用了 scheduledHostCallback，并保存返回结果
+      const hasMoreWork = scheduledHostCallback(
+        hasTimeRemaining,
+        currentTime,
+      );
+      if (!hasMoreWork) {
+        // 如果 scheduledHostCallback 返回 false，那么任务结束
+        isMessageLoopRunning = false;
+        scheduledHostCallback = null;
+      } else {
+        // 如果 scheduledHostCallback 返回不为 false，那么发送消息，重新调度执行
+        port.postMessage(null);
+      }
+    } catch (error) {
+      // 如果 scheduledHostCallback 返回不为 false，那么发送消息，重新调度执行，并抛出错误
+      port.postMessage(null);
+      throw error;
+    }
+  } else {
+    isMessageLoopRunning = false;
+  }
+  needsPaint = false;
+};
+```
+
+果不其然，`performWorkUntilDeadline` 中控制了 `scheduledHostCallback` 的执行
+
+分析总结一下：这里分为两部分
+
+第一部分：
+* 创建一个 `MessageChannel` 实例
+* 为 `port1.onmessage` 注册 `performWorkUntilDeadline`
+
+第二部分：
+* 设置截止时间点，在当前时间上加 `yieldInterval`，`yieldInterval` 可以理解为最大可执行时长，也就是常说的时间切片，每片5ms
+* 调用了 scheduledHostCallback，并保存返回结果
+* 如果 scheduledHostCallback 返回 false，那么任务结束
+* 如果 scheduledHostCallback 返回不为 false，那么发送消息，重新调度执行
+* 如果 scheduledHostCallback 返回不为 false，那么发送消息，重新调度执行，并抛出错误
+* `isMessageLoopRunning` 置为 false，标记消息轮询结束
+
+细心的小伙伴应该发现了，`port1.onmessage = performWorkUntilDeadline`，在 `performWorkUntilDeadline` 中调用 `port.postMessage(null)`，不是会触发 `performWorkUntilDeadline` 的执行吗？？？
+
+是的，没错！这就是实现恢复执行的第一步，到此还不算恢复中断任务，先留个坑接着往下看
+
+## MessageChannel
+
+大家肯定听说过 `requestIdleCallback`，`requestAnimationFrame`，但是这两个 api 的不稳定让 `Scheduler` 放弃了它们，最终利用 `MessageChannel` 来人为控制调度频率，这个调度频率可以理解为每个任务的可执行最大时长
+
+说到这里可能大家对 `MessageChannel` 还是不了解，可以回想下 `iframe`，与父页面通信时，通常会使用 `postMessage`，它们的兼容性是真的好
+
+![](https://img.ninnka.top/1624794783571.png)
+
+而且用起来也简单
+
+```js
+var channel = new MessageChannel();
+function handleMessage(e) {
+  alert(e.data);
+}
+channel.port1.onmessage = handleMessage;
+channel.port2.postMessage('hello react scheduler~');
+```
+
+![](https://img.ninnka.top/1624795445360.png)
+
+`MessageChannel` 的任务是 `macrotask`，优先级要比 `Promise` 低
+
+![](https://img.ninnka.top/1624795518834.png)
+
+这个 `MessageChannel` 同样可以使用 `postMessage` 在两个端口之间实现通信，具体可以自行查阅[MDN-MessageChannel](https://developer.mozilla.org/zh-CN/docs/Web/API/MessageChannel/MessageChannel)
+
+## yieldInterval & forceFrameRate
+
+终于到大家都熟知的”时间切片“了😄，每个任务的可执行最大时长默认设置为 5ms，每帧16ms总时长，任务执行占5ms，配合 `MessageChannel` 后粒度控制比起原生的 `requestIdleCallback`，`requestAnimationFrame` 要稳定的多了。
+
+```js
+// 默认为 5ms
+let yieldInterval = 5;
+```
+
+前面提到了 `yieldInterval` 默认为 5ms 是对于 60Hz 刷新率的显示器，这个可能还不错，但是对于刷新率底的显示器，可能就是那么合理了
+
+所以，`Scheduler` 内部会自行设置 `yieldInterval` 的方法，当然也提供了入口让外部设置
+
+```js
+// 可以自行设置 fps，范围在 0 ~ 125
+forceFrameRate = function(fps) {
+  if (fps < 0 || fps > 125) {
+    console['error'](
+      'forceFrameRate takes a positive int between 0 and 125, ' +
+        'forcing frame rates higher than 125 fps is not supported',
+    );
+    return;
+  }
+  if (fps > 0) {
+    // 0 ~ 125 之间的刷新率可以自动计算
+    yieldInterval = Math.floor(1000 / fps);
+  } else {
+    // reset the framerate
+    yieldInterval = 5;
+  }
+};
+```
+
+到此关于 `Scheduler` 的调度流程都已经结束了
+
+![](https://img.ninnka.top/1624796966538-performWorkUntilDeadline%20%26%20Messagechannel.png)
+
+`Scheduler` 实际是分为 `任务调度` 和 `任务执行` 两个部分的，前面留下的”恢复中断任务“的坑需要在执行中探讨
 
 # Scheduler 如何执行
 
-# Scheduler 任务中断与任务恢复
+`Scheduler` 中负责执行的角色其实在前面已经提到了
 
-# 参考
+在 `unstable_scheduleCallback` 中提到过 `requestHostCallback(flushWork)`，`flushWork` 才是真正负责执行任务的 **执行者**
 
-[postmessage & scheduler](https://www.yuque.com/docs/share/8c167e39-1f5e-4c6d-8004-e57cf3851751)
+```js
+function flushWork(hasTimeRemaining, initialTime) {
+  isHostCallbackScheduled = false;
+  if (isHostTimeoutScheduled) {
+    // 要开始执行了，不需要再等待 待调度任务 进入调度队列了，直接取消掉
+    isHostTimeoutScheduled = false;
+    cancelHostTimeout();
+  }
+  // 标记在执行中了
+  isPerformingWork = true;
+  // 保存当前的优先级
+  const previousPriorityLevel = currentPriorityLevel;
+  try {
+    // ... 这里有些开发环境的性能收集代码，忽略即可
+    // 交给小弟 workLoop 去做任务中断与恢复了
+    return workLoop(hasTimeRemaining, initialTime);
+  } finally {
+    // 标记当前无任务执行
+    currentTask = null;
+    // 恢复优先级
+    currentPriorityLevel = previousPriorityLevel;
+    // 标记执行结束
+    isPerformingWork = false;
+    // ... 这里有些开发环境的性能收集代码，忽略即可
+  }
+}
+```
+
+分析总计一下 `flushWork` 做了啥：
+
+* 取消掉 `hostTimeout`，因为要开始执行了，不需要再等待 待调度任务 进入调度队列了
+* 标记在执行中了 `isPerformingWork = true`
+* 保存当前的优先级
+* 交给小弟 `workLoop` 去做任务中断与恢复了
+* 执行结束后，标记当前无任务执行，恢复优先级，标记执行结束 `isPerformingWork = false`
+
+`flushWork` 代码还是挺简单的，因为负责的事情都交给小弟 `workLoop` 去干了
+
+我们常说的任务恢复与中断都在小弟 `workLoop` 中执行
+
+## workLoop 任务中断与任务恢复
+
+虽说刚刚提到 `flushWork` 是执行者，但是很多脏活累活都是 `workLoop` 在做，比如老生常谈的 `任务中断与任务恢复`
+
+<div align="center">
+<img width=180 style="background: #fff" src="https://img.ninnka.top/1624803015163-a7s52-ifhqj.png"/>
+</div>
+
+我们看看 `workLoop` 具体是怎么做的，代码还挺长，下面会做详细解读
+
+```js
+function workLoop(hasTimeRemaining, initialTime) {
+  let currentTime = initialTime;
+  // 熟悉的 advanceTimers，先把过期的任务从 timerQueue 捞出来丢到 taskQueue 打包一块执行了
+  advanceTimers(currentTime);
+  // 获取优先级最高的任务
+  currentTask = peek(taskQueue);
+  // 循环任务队列
+  while (
+    currentTask !== null &&
+    !(enableSchedulerDebugging && isSchedulerPaused)
+  ) {
+    if (
+      currentTask.expirationTime > currentTime &&
+      (!hasTimeRemaining || shouldYieldToHost())
+    ) {
+      // 如果没有剩余时间或者该停止了就退出循环
+      break;
+    }
+    const callback = currentTask.callback;
+    if (typeof callback === 'function') {
+      // 只有 callback 为函数时才会被识别为有效的任务
+      currentTask.callback = null;
+      // 设置执行任务的优先级，回想下 flushWork中的恢复优先级，关键就在这
+      currentPriorityLevel = currentTask.priorityLevel;
+      const didUserCallbackTimeout = currentTask.expirationTime <= currentTime;
+      // 。。。
+      const continuationCallback = callback(didUserCallbackTimeout);
+      currentTime = getCurrentTime();
+      if (typeof continuationCallback === 'function') {
+        // 这里是真正的恢复任务，等待下一轮循环时执行
+        currentTask.callback = continuationCallback;
+        // ....
+      } else {
+        // ... 不需要恢复任务了，标识当前任务已执行完，把任务从队列中移除掉
+        // 因为被中断的任务是
+        if (currentTask === peek(taskQueue)) {
+          pop(taskQueue);
+        }
+      }
+      // 熟悉的 advanceTimers，先把过期的任务从 timerQueue 捞出来丢到 taskQueue 打包一块执行了
+      advanceTimers(currentTime);
+    } else {
+      // callback 为空，不是有效的任务或者已经执行完了，直接移除掉
+      pop(taskQueue);
+    }
+    // 获取最高优先级的任务（不一定是下一个任务）
+    currentTask = peek(taskQueue);
+  }
+  
+  if (currentTask !== null) {
+    // 还有任务说明调度被暂停了，返回true标明需要恢复任务
+    return true;
+  } else {
+    const firstTimer = peek(timerQueue);
+    if (firstTimer !== null) {
+      // 任务都跑完了，又到了熟悉的 requestHostTimeout(handleTimeout, firstTimer.startTime - currentTime)
+      requestHostTimeout(handleTimeout, firstTimer.startTime - currentTime);
+    }
+    // 返回false意味着当前任务都执行完了，不需要恢复
+    return false;
+  }
+}
+```
+
+相信”代码太长，不想看“的各位已经直接翻到这里了
+
+老规矩，总结分析一波：
+
+* 在循环 `taskQueue` 之前，先通过 `advanceTimers` 把过期的任务从 `timerQueue` 捞出来丢到 `taskQueue` 打包一块执行了
+* 获取优先级最高的任务作为第一个处理的任务
+* 进入循环，在执行任务前，先看看还有没有时间
+* 如果没有时间，跳出循环，返回 true，标明需要恢复任务
+* 如果有时间，正常执行任务，并保存任务的返回值
+* 如果返回值是函数，说明任务执行时长不够了，需要恢复
+* 如果返回值不是函数，说明已经执行完了，从队列中移除当前任务
+* 每个任务执行后（不一定执行完），都通过 `advanceTimers` 把过期的任务从 `timerQueue` 捞出来丢到 `taskQueue`，因为在执行过程中有可能部分任务也过期了
+
+结合 `flushWork` 和 `workLoop` 来看，流程大概是这样的
+
+![](https://img.ninnka.top/1624801928271-flushWork%20%26%20workLoop.png)
+
+
+## shouldYieldToHost
+
+执行的流程基本已结束，但有一个还需要提一嘴的函数 `shouldYieldToHost`
+
+这个函数用来判断是否需要等待
+
+```js
+const scheduling = navigator.scheduling;
+shouldYieldToHost = function() {
+  const currentTime = getCurrentTime();
+  if (currentTime >= deadline) {
+    // 任务执行已超出时间分片的允许范围
+    // 判断一下浏览器的渲染进程是否在工作中，是否有用户交互
+    if (needsPaint || scheduling.isInputPending()) {
+      // 如果有，就认为当前任务需要停止了
+      return true;
+    }
+    // 如果浏览器很空闲，那么再给些时间执行任务
+    return currentTime >= maxYieldInterval;
+  } else {
+    // 时间还充足，不需要停下
+    return false;
+  }
+};
+```
+
+函数主要通过比较当前时间和任务执行截止时间，如果 `currentTime >= deadline` 那么任务超出时间分片的允许范围，需要暂停
+
+比较惊喜的是，这个函数用到了一个新的web api，`navigator.scheduling`
+
+这个新的 api 就很有意思了，它是 facebook 对浏览器贡献的第一个 api [isinputpending-api](https://engineering.fb.com/2019/04/22/developer-tools/isinputpending-api/)
+
+![](https://habrastorage.org/webt/ot/me/yt/otmeytc2idaafvqyj9c3dcekdw4.jpeg)
+
+感兴趣的小伙伴可以自行查阅
+
+# 总结
+
+到此，对 `Scheduler` 解读就暂告一段落了，主要是对主流程分支的代码做了一次解读，其实分支流程中还有些等待发现的奥秘。目前基于 `react v17.0.2` `scheduler v0.20.0` 分析，以后源码若有更新会尽早同步
+
+潇潇洒洒 35300+ 字，希望看到这里的小伙伴给个赞👍🏻
