@@ -255,7 +255,7 @@ export function scheduleUpdateOnFiber(
 
 ## ensureRootIsScheduled 函数
 
-`ensureRootIsScheduled` 函数是 `react` 把任务交由 `scheduler` 调度的最有一步
+`ensureRootIsScheduled` 函数是 `react` 把任务交由 `scheduler` 调度的最后一步
 
 `ensureRootIsScheduled` 同样有处理分支场景和边缘场景，还有最高 `Lane` 优先级的获取处理，这里暂且不深入
 
@@ -417,7 +417,7 @@ export function scheduleSyncCallback(callback: SchedulerCallback) {
 
 在 `scheduleSyncCallback` 中提到过，`flushSyncCallbackQueueImpl` 用来遍历 `syncQueue`，执行 `callback`，实际可以理解为它是一个同步任务调度器，不同于 `Scheduler_scheduleCallback`，`flushSyncCallbackQueueImpl` 利用的是 `Scheduler` 提供的 `unstable_runWithPriority` 函数来进行任务调度
 
-函数内部的细节不比过于深究，我们只需要知道它做了这样一件事：
+函数内部的细节不必过于深究，我们只需要知道它做了这样一件事：
 
 遍历 `syncQueue`，利用的是 `Scheduler` 提供的 `unstable_runWithPriority` 函数来执行 `callback`
 
@@ -713,7 +713,7 @@ type Node = {|
 
 `最小堆` 有两个比较关键的操作，上浮和下层
 
-通过代码可以看出，新增的节点时push到数组最末尾的，要构成最小堆，就需要判断新增的节点是否满足“数据值均不大于其左子节点和右子节点的值“这一条件
+通过代码可以看出，新增的节点是push到数组最末尾的，要构成最小堆，就需要判断新增的节点是否满足“数据值均不大于其左子节点和右子节点的值“这一条件
 
 如果不满足，则需要把新增的节点上浮，这个过程在 `siftUp` 中
 
@@ -921,7 +921,7 @@ function advanceTimers(currentTime) {
 
 虽说 `advanceTimers` 是个 `while` 循环，但是触发条件必须在 `taskQueue` 为空的时候
 
-综上所述，`advanceTimers` 其实是任务分配器，用于”把不需要再等待调度的任务从 `timerQueue` 移动到 `taskQueue`“（这也更提不提前没啥关系呀，确实没啥关系）
+综上所述，`advanceTimers` 其实是任务分配器，用于”把不需要再等待调度的任务从 `timerQueue` 移动到 `taskQueue`“（这也跟提不提前没啥关系呀，确实没啥关系）
 
 把 `advanceTimers` 和 `handleTimeout` 的结合起来重新思考下，它们的流程大概是这样的
 
@@ -1269,7 +1269,7 @@ shouldYieldToHost = function() {
 
 这个新的 api 就很有意思了，它是 facebook 对浏览器贡献的第一个 api [isinputpending-api](https://engineering.fb.com/2019/04/22/developer-tools/isinputpending-api/)
 
-![](https://habrastorage.org/webt/ot/me/yt/otmeytc2idaafvqyj9c3dcekdw4.jpeg)
+![](https://img.ninnka.top/1624804223052-otmeytc2idaafvqyj9c3dcekdw4.jpg)
 
 感兴趣的小伙伴可以自行查阅
 
