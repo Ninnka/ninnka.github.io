@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="terser-webpack-plugin 是什么terser-webpack-plugin 内部封装了 terser 库，用于处理 js 的压缩和混淆，通过 webpack plugin 的方式对代码进行处理 terser-webpack-plugin 的使用方式也很简单 官方文档提供了一份通用的配置：terser 配置的使用和具体含义可以参考 minify-options 1234567891">
+<meta property="og:type" content="article">
+<meta property="og:title" content="源码细读-深入了解terser-webpack-plugin的实现">
+<meta property="og:url" content="http://yoursite.com/2021/06/14/%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3terser-webpack-plugin%E7%9A%84%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="某科学の前端杂货铺">
+<meta property="og:description" content="terser-webpack-plugin 是什么terser-webpack-plugin 内部封装了 terser 库，用于处理 js 的压缩和混淆，通过 webpack plugin 的方式对代码进行处理 terser-webpack-plugin 的使用方式也很简单 官方文档提供了一份通用的配置：terser 配置的使用和具体含义可以参考 minify-options 1234567891">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://user-images.githubusercontent.com/9619419/121899669-3762c200-cd57-11eb-9140-173b26bdb0de.png">
+<meta property="og:image" content="https://user-images.githubusercontent.com/9619419/121899779-4f3a4600-cd57-11eb-9c1c-2163c71e3405.png">
+<meta property="og:image" content="https://user-images.githubusercontent.com/9619419/121899893-6a0cba80-cd57-11eb-9127-daced5b3cdd6.png">
+<meta property="og:image" content="https://user-images.githubusercontent.com/9619419/121900401-f7e8a580-cd57-11eb-99ad-6717eab39c49.png">
+<meta property="article:published_time" content="2021-06-14T13:29:55.000Z">
+<meta property="article:modified_time" content="2021-06-15T02:12:09.799Z">
+<meta property="article:author" content="Ninnka">
+<meta property="article:tag" content="Web">
+<meta property="article:tag" content="前端">
+<meta property="article:tag" content="Webpack">
+<meta property="article:tag" content="plugin">
+<meta property="article:tag" content="terser-webpack-plugin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://user-images.githubusercontent.com/9619419/121899669-3762c200-cd57-11eb-9140-173b26bdb0de.png">
+
+<link rel="canonical" href="http://yoursite.com/2021/06/14/%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3terser-webpack-plugin%E7%9A%84%E5%AE%9E%E7%8E%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>源码细读-深入了解terser-webpack-plugin的实现 | 某科学の前端杂货铺</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">某科学の前端杂货铺</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/06/14/%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3terser-webpack-plugin%E7%9A%84%E5%AE%9E%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="某科学の前端杂货铺">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          源码细读-深入了解terser-webpack-plugin的实现
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-06-14 21:29:55" itemprop="dateCreated datePublished" datetime="2021-06-14T21:29:55+08:00">2021-06-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-15 10:12:09" itemprop="dateModified" datetime="2021-06-15T10:12:09+08:00">2021-06-15</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Webpack/" itemprop="url" rel="index"><span itemprop="name">Webpack</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Webpack/plugin/" itemprop="url" rel="index"><span itemprop="name">plugin</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Webpack/plugin/terser-webpack-plugin/" itemprop="url" rel="index"><span itemprop="name">terser-webpack-plugin</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="terser-webpack-plugin-是什么"><a href="#terser-webpack-plugin-是什么" class="headerlink" title="terser-webpack-plugin 是什么"></a>terser-webpack-plugin 是什么</h2><p><code>terser-webpack-plugin</code> 内部封装了 <a target="_blank" rel="noopener" href="https://github.com/terser/terser">terser</a> 库，用于处理 js 的压缩和混淆，通过 <code>webpack plugin</code> 的方式对代码进行处理</p>
+<p><code>terser-webpack-plugin</code> 的使用方式也很简单</p>
+<p>官方文档提供了一份通用的配置：<code>terser</code> 配置的使用和具体含义可以参考 <a target="_blank" rel="noopener" href="https://github.com/terser/terser#minify-options">minify-options</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  optimization: &#123;</span><br><span class="line">    minimize: <span class="literal">true</span>,</span><br><span class="line">    minimizer: [</span><br><span class="line">      <span class="keyword">new</span> TerserPlugin(&#123;</span><br><span class="line">        terserOptions: &#123;</span><br><span class="line">          ecma: <span class="literal">undefined</span>,</span><br><span class="line">          parse: &#123;&#125;,</span><br><span class="line">          compress: &#123;&#125;,</span><br><span class="line">          mangle: <span class="literal">true</span>,</span><br><span class="line">          <span class="built_in">module</span>: <span class="literal">false</span>,</span><br><span class="line">          output: <span class="literal">null</span>,</span><br><span class="line">          format: <span class="literal">null</span>,</span><br><span class="line">          toplevel: <span class="literal">false</span>,</span><br><span class="line">          nameCache: <span class="literal">null</span>,</span><br><span class="line">          ie8: <span class="literal">false</span>,</span><br><span class="line">          keep_classnames: <span class="literal">undefined</span>,</span><br><span class="line">          keep_fnames: <span class="literal">false</span>,</span><br><span class="line">          safari10: <span class="literal">false</span>,</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;),</span><br><span class="line">    ],</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="terser-webpack-plugin-执行机制"><a href="#terser-webpack-plugin-执行机制" class="headerlink" title="terser-webpack-plugin 执行机制"></a>terser-webpack-plugin 执行机制</h2><p><code>terser-webpack-plugin</code> 本质是个 webpack-plugin，通过注册运行时的某个钩子，可以在合适的时间点对代码做压缩和混淆的优化</p>
+<p>那么 <code>terser-webpack-plugin</code> 是在哪个钩子中做这件事的呢，我们先看看插件的 <code>apply</code> 函数</p>
+<p><code>apply</code> 是 <code>webpack-plugin</code> 插件的初始化入口函数，<code>terser-webpack-plugin</code> 本身并不复杂且易读，简化后的代码如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">apply</span>(<span class="params">compiler</span>)</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; devtool, output, plugins &#125; = compiler.options;</span><br><span class="line">    <span class="keyword">const</span> pluginName = <span class="built_in">this</span>.constructor.name;</span><br><span class="line">    <span class="comment">// ... 中间做了一些别的处理</span></span><br><span class="line">    <span class="comment">// 比如 sourceMap 处理，弱缓存的初始化 weakCache，terserOptions 的初始化</span></span><br><span class="line">    </span><br><span class="line">    compiler.hooks.compilation.tap(pluginName, <span class="function">(<span class="params">compilation</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// ...</span></span><br><span class="line">      <span class="comment">// 注册 optimizeChunkAssets 钩子，这个钩子对应了 webpack4 中 optimise 配置</span></span><br><span class="line">      compilation.hooks.optimizeChunkAssets.tapPromise(pluginName, <span class="function">(<span class="params">assets</span>) =&gt;</span></span><br><span class="line">          <span class="comment">// 优化处理的真正入口</span></span><br><span class="line">          <span class="built_in">this</span>.optimize(compiler, compilation, assets, CacheEngine, weakCache)</span><br><span class="line">        );</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过代码很容易了解到，<code>terser-webpack-plugin</code> 先通过 compilation 钩子获取到 <code>compiler</code> 的 <code>compilation</code> 实例（这里不展开讨论 <code>webpack-plugin</code> 插件系统架构和 <code>tapable</code> 的设计，会在后面的篇幅中展开解读 <code>webpack-plugin</code> 插件系统架构 和 <code>tapable v2</code>）</p>
+<p>注册 <code>webpack compilation</code> 提供的 <code>hooks: optimizeChunkAssets</code> 运行时钩子，注册时使用了 <code>tapPromise</code> 异步注册的方式，注册的回调函数返回一个 <code>Promise</code></p>
+<p>在 <code>webpack</code> 执行 <code>optimise</code> 阶段，每个 <code>chunk</code> 都会触发这个异步钩子然后执行回调函数，回调函数本质是通过 <code>optimise</code> 执行代码的优化任务处理</p>
+<p>可以理解为 <code>terser-webpack-plugin</code> 中的实际任务处理入口是 <code>optimise</code> 函数</p>
+<p><img src="https://user-images.githubusercontent.com/9619419/121899669-3762c200-cd57-11eb-9140-173b26bdb0de.png" alt="apply流程"></p>
+<a id="more"></a>
+
+<h3 id="optimise"><a href="#optimise" class="headerlink" title="optimise"></a>optimise</h3><p><code>optimise</code> 的源码很长，下面做代码解读会简化很多代码，比如 <code>cache</code> <code>comments</code> 相关的处理会被省略，把中心放在执行流程上</p>
+<p><img src="https://user-images.githubusercontent.com/9619419/121899779-4f3a4600-cd57-11eb-9c1c-2163c71e3405.png" alt="optimise流程"></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="function"><span class="title">optimize</span>(<span class="params">compiler, compilation, assets, CacheEngine, weakCache</span>)</span> &#123;</span><br><span class="line">  <span class="keyword">let</span> assetNames;</span><br><span class="line">  assetNames = [<span class="comment">/* 获取资源文件名 */</span>]</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 获取 cpu core 数，用于并行模式处理</span></span><br><span class="line">  <span class="keyword">const</span> availableNumberOfCores = TerserPlugin.getAvailableNumberOfCores(</span><br><span class="line">    <span class="built_in">this</span>.options.parallel</span><br><span class="line">  );</span><br><span class="line"></span><br><span class="line">  <span class="keyword">let</span> concurrency = <span class="literal">Infinity</span>;</span><br><span class="line">  <span class="keyword">let</span> worker;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (availableNumberOfCores &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// 如果开启 parallel 并行模式，会创建新的 `Worker` 线程池来做多进程处理</span></span><br><span class="line">    worker = <span class="keyword">new</span> Worker(<span class="built_in">require</span>.resolve(<span class="string">&#x27;./minify&#x27;</span>), &#123; numWorkers &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// promise 的并发数量限制</span></span><br><span class="line">  <span class="keyword">const</span> limit = pLimit(concurrency);</span><br><span class="line">  <span class="comment">// 处理任务队列</span></span><br><span class="line">  <span class="keyword">const</span> scheduledTasks = [];</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">const</span> name <span class="keyword">of</span> assetNames) &#123;</span><br><span class="line">    scheduledTasks.push(</span><br><span class="line">      limit(<span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">        <span class="comment">// 任务处理函数的开始</span></span><br><span class="line">        <span class="comment">// asset 资源的基本信息和代码</span></span><br><span class="line">        <span class="keyword">const</span> &#123; info, <span class="attr">source</span>: inputSource &#125; = TerserPlugin.getAsset(</span><br><span class="line">          compilation,</span><br><span class="line">          name</span><br><span class="line">        );</span><br><span class="line">        <span class="comment">// 避免二次压缩</span></span><br><span class="line">        <span class="keyword">if</span> (info.minimized) &#123;</span><br><span class="line">          <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">let</span> input;</span><br><span class="line">        <span class="keyword">let</span> inputSourceMap;</span><br><span class="line"></span><br><span class="line">        input = inputSource.source();</span><br><span class="line">        inputSourceMap = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">const</span> minimizerOptions = &#123;<span class="comment">/* 压缩配置 */</span>&#125;;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="comment">// 启动 worker 做处理，没有worker的情况则在主线程做压缩处理</span></span><br><span class="line">          output = <span class="keyword">await</span> (worker</span><br><span class="line">            ? worker.transform(serialize(minimizerOptions))</span><br><span class="line">            : minifyFn(minimizerOptions));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (error) &#123;</span><br><span class="line">          compilation.errors.push(</span><br><span class="line">            TerserPlugin.buildError(</span><br><span class="line">              error,</span><br><span class="line">              name,</span><br><span class="line">              inputSourceMap &amp;&amp; TerserPlugin.isSourceMap(inputSourceMap)</span><br><span class="line">                ? <span class="keyword">new</span> SourceMapConsumer(inputSourceMap)</span><br><span class="line">                : <span class="literal">null</span>,</span><br><span class="line">              <span class="keyword">new</span> RequestShortener(compiler.context)</span><br><span class="line">            )</span><br><span class="line">          );</span><br><span class="line"></span><br><span class="line">          <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 根据优化后的代码生成新的代码</span></span><br><span class="line">        output.source = <span class="keyword">new</span> RawSource(output.code);</span><br><span class="line">        <span class="comment">// 缓存起来做增量编译</span></span><br><span class="line">        <span class="keyword">await</span> cache.store(&#123; ...output, ...cacheData &#125;);</span><br><span class="line">        <span class="keyword">const</span> newInfo = &#123; ...info, <span class="attr">minimized</span>: <span class="literal">true</span> &#125;;</span><br><span class="line">        <span class="keyword">const</span> &#123; source, <span class="comment">/** ... */</span> &#125; = output;</span><br><span class="line">        <span class="comment">// 更新资源的内容</span></span><br><span class="line">        TerserPlugin.updateAsset(compilation, name, source, newInfo);</span><br><span class="line">      &#125;)</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 启动任务队列</span></span><br><span class="line">  <span class="keyword">await</span> <span class="built_in">Promise</span>.all(scheduledTasks);</span><br><span class="line">  <span class="comment">// 等待任务结束</span></span><br><span class="line">  <span class="keyword">if</span> (worker) &#123;</span><br><span class="line">    <span class="keyword">await</span> worker.end();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>总结一下，<code>optimise</code> 函数主要做了这几件事：</p>
+<ol>
+<li>组装资源文件名，便于后续从 <code>compilation</code> 中获取对应的资源文件</li>
+<li>获取 cpu core 数，用于 parallel 并行模式处理，并行模式的实现使用 worker_thread 实现</li>
+<li>使用 pLimit 对 promise 任务队列做并发处理限制</li>
+<li>遍历 assetNames 资源队列并创建对应的任务体 scheduleTask</li>
+<li>启动任务队列，await Promise.all(scheduledTasks) 等待 Promise 任务执行完毕</li>
+<li>await worker.end() 等待 worker 线程关闭</li>
+</ol>
+<p><code>optimise</code> 做的事情并不复杂</p>
+<p>我们继续分析 <code>任务体 scheduleTask</code> 做了哪些事：</p>
+<ol>
+<li>获取 <code>asset</code> 资源的基本信息和代码</li>
+<li>根据 <code>minimized</code> 标识判断是否已处理，避免二次压缩</li>
+<li>启动 <code>worker</code> 线程做 <code>minify</code> 处理，没有 worker 的情况则在主线程 调用 <code>minifyFn</code> 函数做压缩处理</li>
+<li>根据优化后的代码生成新的代码 <code>RawSource</code></li>
+<li>缓存起来做增量编译</li>
+<li>更新 <code>compilation</code> 中对应资源的内容</li>
+</ol>
+<h3 id="parallel"><a href="#parallel" class="headerlink" title="parallel"></a>parallel</h3><p><code>terser-webpack-plugin</code> 提供了 <code>parallel</code> 用于做并行模式处理</p>
+<p>内部执行时会先获取当前 cpu 核心数，如果开启 <code>parallel 模式</code>，会启动 cpu 核心数 - 1 个 <code>worker</code></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="function"><span class="title">getAvailableNumberOfCores</span>(<span class="params">parallel</span>)</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> cpus = os.cpus() || &#123; <span class="attr">length</span>: <span class="number">1</span> &#125;;</span><br><span class="line">    <span class="keyword">return</span> parallel === <span class="literal">true</span></span><br><span class="line">      ? cpus.length - <span class="number">1</span></span><br><span class="line">      : <span class="built_in">Math</span>.min(<span class="built_in">Number</span>(parallel) || <span class="number">0</span>, cpus.length - <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">apply</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (availableNumberOfCores &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// 如果开启 parallel 并行模式，会创建新的 `Worker` 线程池来做多进程处理 numWorkers 就是 cpu 核心数 - 1</span></span><br><span class="line">        worker = <span class="keyword">new</span> Worker(<span class="built_in">require</span>.resolve(<span class="string">&#x27;./minify&#x27;</span>), &#123; numWorkers &#125;);</span><br><span class="line">      &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Worker"><a href="#Worker" class="headerlink" title="Worker"></a>Worker</h3><p><code>terser-webpack-plugin</code> 使用的 <code>Worker</code> 线程池管理是基于 <code>jest</code> 提供的 <code>jest-worker</code></p>
+<p><code>jest</code> 大家都熟悉，是 <code>Facebook</code> 开源的自动化测试工具</p>
+<p><code>jest-worker</code> 本身是一个复杂的线程池管理模块，这里先对其做一个较为简单的解读</p>
+<p><code>jest-worker</code> 的线程池 <code>WorkerPool</code> 使用了两种线程模式</p>
+<ol>
+<li><code>worker_threads</code></li>
+<li><code>child_process</code></li>
+</ol>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">WorkerPool</span> <span class="keyword">extends</span> <span class="title">_BaseWorkerPool</span>.<span class="title">default</span> </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="function"><span class="title">createWorker</span>(<span class="params">workerOptions</span>)</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> Worker;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>._options.enableWorkerThreads &amp;&amp; canUseWorkerThreads()) &#123;</span><br><span class="line">      <span class="comment">// 使用 worker_threads 模式，需要高版本的node支持</span></span><br><span class="line">      Worker = <span class="built_in">require</span>(<span class="string">&#x27;./workers/NodeThreadsWorker&#x27;</span>).default;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 不支持 worker_threads 时的降级处理</span></span><br><span class="line">      Worker = <span class="built_in">require</span>(<span class="string">&#x27;./workers/ChildProcessWorker&#x27;</span>).default;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Worker(workerOptions);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对于 高版本的 node，会优先使用 <code>worker_threads</code> 模式，如果不支持 <code>worker_threads</code> 则降级处理使用 <code>child_process</code></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> canUseWorkerThreads = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="built_in">require</span>(<span class="string">&#x27;worker_threads&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">  &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><code>jest-worker</code> 本身在管理线程池的同时，也会管理任务队列，在 <code>new Worker()</code> 时，<code>jest-worker</code> 会把任务队列保存在 <code>Worker</code> 实例中的 <code>_taskQueue</code> 上，同时实例上暴露出一些 <code>public api</code> 给外部使用，言外之意，这个 <code>_taskQueue</code> 是私有只读属性，外部尽量避免直接依赖它</p>
+<p><img src="https://user-images.githubusercontent.com/9619419/121899893-6a0cba80-cd57-11eb-9127-daced5b3cdd6.png" alt="parallel机制"></p>
+<h4 id="taskQueue"><a href="#taskQueue" class="headerlink" title="_taskQueue"></a><code>_taskQueue</code></h4><p><code>_taskQueue</code> 使用 <code>先进先出队列</code> 进行维护</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="class"><span class="keyword">class</span> <span class="title">FifoQueue</span> <span class="title">implements</span> <span class="title">TaskQueue</span> </span>&#123;</span><br><span class="line">  private _workerQueues: <span class="built_in">Array</span>&lt;InternalQueue&lt;WorkerQueueValue&gt; | <span class="literal">undefined</span>&gt; =</span><br><span class="line">    [];</span><br><span class="line">  private _sharedQueue = <span class="keyword">new</span> InternalQueue&lt;QueueChildMessage&gt;();</span><br><span class="line"></span><br><span class="line">  enqueue(task: QueueChildMessage, workerId?: number): <span class="keyword">void</span> &#123;</span><br><span class="line">    <span class="comment">// ....</span></span><br><span class="line">    workerQueue.enqueue(item);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  dequeue(workerId: number): QueueChildMessage | <span class="literal">null</span> &#123;</span><br><span class="line">    <span class="comment">// ....</span></span><br><span class="line">    <span class="keyword">if</span> (workerTop != <span class="literal">null</span> &amp;&amp; sharedTaskIsProcessed) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">this</span>._workerQueues[workerId]?.dequeue()?.task ?? <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>._sharedQueue.dequeue();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Fifo</code> 队列维护了两份 <code>queue</code>，分别对应 <code>独立 workerId</code> 和 <code>共用 worker</code> 的场景，这里不展开说明</p>
+<h3 id="minify"><a href="#minify" class="headerlink" title="minify"></a>minify</h3><p><code>minify</code> 函数是用于处理代码的入口，内部实现很简单，就是使用了 <code>terser</code> 这个库对代码做了压缩和混淆处理（<code>terser</code> 本身是一个功能强大且较为复杂的包，在后面的篇幅会单独作为一个系列去解读，这里就不展开了）</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">minify</span>(<span class="params">options</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> &#123;</span><br><span class="line">    name,</span><br><span class="line">    input,</span><br><span class="line">    inputSourceMap,</span><br><span class="line">    minify: minifyFn,</span><br><span class="line">    minimizerOptions,</span><br><span class="line">  &#125; = options;</span><br><span class="line">  <span class="keyword">if</span> (minifyFn) &#123;</span><br><span class="line">    <span class="keyword">return</span> minifyFn(&#123; [name]: input &#125;, inputSourceMap, minimizerOptions);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">const</span> terserOptions = buildTerserOptions(minimizerOptions);</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 省略了 comments 的处理</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 调用 terser export 的 api 对代码做处理</span></span><br><span class="line">  <span class="keyword">const</span> result = <span class="keyword">await</span> terserMinify(&#123; [name]: input &#125;, terserOptions);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> &#123; ...result, extractedComments &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>minify</code> 函数做的事情很简单：</p>
+<ol>
+<li>合并 <code>terserOptions</code> terser配置</li>
+<li>处理 <code>comments</code></li>
+<li>调用 <code>terser export</code> 的 api 对代码做处理</li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>terser-webpack-plugin</code> 优化代码的流程主要体现在这几个方面：</p>
+<ol>
+<li>异步注册 <code>compilation.hooks.optimizeChunkAssets</code></li>
+<li>在回调中调用 <code>plugin</code> 实例的 <code>optimise</code> 方法</li>
+<li>并行模式：创建 <code>Worker</code> 进行多线程编译</li>
+<li><code>minify</code> 过程调用 <code>terser</code> 库对代码进行处理</li>
+</ol>
+<p><img src="https://user-images.githubusercontent.com/9619419/121900401-f7e8a580-cd57-11eb-99ad-6717eab39c49.png" alt="terser-webpack-plugin v4 流程"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Web/" rel="tag"># Web</a>
+              <a href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag"># 前端</a>
+              <a href="/tags/Webpack/" rel="tag"># Webpack</a>
+              <a href="/tags/plugin/" rel="tag"># plugin</a>
+              <a href="/tags/terser-webpack-plugin/" rel="tag"># terser-webpack-plugin</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/06/11/JavaScript-%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E5%92%8C%E6%89%A7%E8%A1%8C%E6%A0%88/" rel="prev" title="JavaScript-执行上下文和执行栈">
+      <i class="fa fa-chevron-left"></i> JavaScript-执行上下文和执行栈
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/06/19/React%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3scheduler-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E6%97%B6%E9%97%B4%E7%AE%A1%E7%90%86%E5%A4%A7%E5%B8%88/" rel="next" title="React源码细读-深入了解scheduler"多任务时间管理大师"">
+      React源码细读-深入了解scheduler"多任务时间管理大师" <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#terser-webpack-plugin-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">1.</span> <span class="nav-text">terser-webpack-plugin 是什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#terser-webpack-plugin-%E6%89%A7%E8%A1%8C%E6%9C%BA%E5%88%B6"><span class="nav-number">2.</span> <span class="nav-text">terser-webpack-plugin 执行机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#optimise"><span class="nav-number">2.1.</span> <span class="nav-text">optimise</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#parallel"><span class="nav-number">2.2.</span> <span class="nav-text">parallel</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Worker"><span class="nav-number">2.3.</span> <span class="nav-text">Worker</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#taskQueue"><span class="nav-number">2.3.1.</span> <span class="nav-text">_taskQueue</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#minify"><span class="nav-number">2.4.</span> <span class="nav-text">minify</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ninnka</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">63</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ninnka</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -155,6 +155,311 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/06/19/JSON-Web-Token%E8%A7%A3%E6%83%91/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="某科学の前端杂货铺">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/06/19/JSON-Web-Token%E8%A7%A3%E6%83%91/" class="post-title-link" itemprop="url">JSON Web Token解惑</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-06-19 23:24:35" itemprop="dateCreated datePublished" datetime="2021-06-19T23:24:35+08:00">2021-06-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-21 10:22:07" itemprop="dateModified" datetime="2021-06-21T10:22:07+08:00">2021-06-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Auth-%E9%89%B4%E6%9D%83/" itemprop="url" rel="index"><span itemprop="name">Auth 鉴权</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Auth-%E9%89%B4%E6%9D%83/JSON-Web-Token/" itemprop="url" rel="index"><span itemprop="name">JSON Web Token</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="JSON-Web-Token-是什么"><a href="#JSON-Web-Token-是什么" class="headerlink" title="JSON Web Token 是什么"></a>JSON Web Token 是什么</h2><p><code>JSON Web Token</code> 是基于开放标准（RFC 7519）定制的字符串，可以安全地把各方之间的信息作为 JSON 字符串传输</p>
+<p><code>JSON Web Token</code> 通过 RSA 或 ECDSA（具有HMAC算法），公共/私钥和消息体生成 JWT 签名，保证 <code>JSON Web Token</code> 的安全性和唯一性</p>
+<p><code>JSON Web Token</code> 定义为紧凑自包含的形式，可以做到无依赖校验和解析</p>
+<h2 id="JSON-Web-Token-的结构"><a href="#JSON-Web-Token-的结构" class="headerlink" title="JSON Web Token 的结构"></a>JSON Web Token 的结构</h2><p>JWT由三部分组成，每部分都通过 <code>.</code> 链接起来，大概长这样：xxx.yyy.zzz</p>
+<p>每部分都经过 base64 编码</p>
+<h3 id="第一部分-header"><a href="#第一部分-header" class="headerlink" title="第一部分 header"></a>第一部分 header</h3><p><code>header</code> 原文是一个 JSON 字符串，其中包含两部分信息</p>
+<ol>
+<li>typ: ‘JWT’ token类型</li>
+<li>alg: ‘HS256’ 加密算法类型</li>
+</ol>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    alg: <span class="string">&#x27;HS256&#x27;</span>,</span><br><span class="line">    typ: <span class="string">&#x27;JWT&#x27;</span>,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后，用Base64对这个JSON编码就得到JWT的第一部分</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> headerBase64 = <span class="built_in">window</span>.btoa(<span class="built_in">JSON</span>.stringify(&#123; <span class="attr">alg</span>: <span class="string">&#x27;HS256&#x27;</span>, <span class="attr">typ</span>: <span class="string">&#x27;JWT&#x27;</span> &#125;));</span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/API/WindowOrWorkerGlobalScope/btoa">MDNS btoa</a></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/06/19/JSON-Web-Token%E8%A7%A3%E6%83%91/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/06/19/React%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3scheduler-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E6%97%B6%E9%97%B4%E7%AE%A1%E7%90%86%E5%A4%A7%E5%B8%88/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="某科学の前端杂货铺">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/06/19/React%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3scheduler-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E6%97%B6%E9%97%B4%E7%AE%A1%E7%90%86%E5%A4%A7%E5%B8%88/" class="post-title-link" itemprop="url">React源码细读-深入了解scheduler"多任务时间管理大师"</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-06-19 16:43:43" itemprop="dateCreated datePublished" datetime="2021-06-19T16:43:43+08:00">2021-06-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-29 15:59:06" itemprop="dateModified" datetime="2021-06-29T15:59:06+08:00">2021-06-29</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/JavaScript/React/" itemprop="url" rel="index"><span itemprop="name">React</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/JavaScript/React/Scheduler/" itemprop="url" rel="index"><span itemprop="name">Scheduler</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Scheduler-多任务时间管理大师"><a href="#Scheduler-多任务时间管理大师" class="headerlink" title="Scheduler 多任务时间管理大师"></a>Scheduler 多任务时间管理大师</h1><p>在 <code>react</code> 提出 <code>Fiber</code> 之前，复杂耗时任务会阻塞页面的渲染，降低页面的响应速度，为了缓解耗时任务与渲染等其他进程之间资源争夺的情况，<code>react</code> 增加了 <code>scheduler</code> 这一模块，通过 <code>scheduler</code> 更好的调度多任务，控制任务的执行顺序</p>
+<p><code>scheduler</code> 通过划分任务优先级, 时间切片, 任务中断、任务恢复等机制来保证高优任务的执行，只占用每一帧中尽可能短的时间用于处理任务，把主要资源在有必要的情况下交还给其他线程，以此提高页面响应速度，提升用户体验</p>
+<p>能做到的这些不得不说是“多任务时间管理大师”了😁</p>
+<p><strong>此文基于 <code>react v17.0.2</code> <code>scheduler v0.20.0</code> 分析，<a target="_blank" rel="noopener" href="https://github.com/facebook/react">仓库传送门</a></strong></p>
+<h1 id="React-amp-Scheduler-缠缠绵绵"><a href="#React-amp-Scheduler-缠缠绵绵" class="headerlink" title="React &amp; Scheduler 缠缠绵绵"></a>React &amp; Scheduler 缠缠绵绵</h1><p>前面提到 <code>scheduler</code> 可以帮助 <code>react</code> 更好的去调度和控制多任务的执行，那么 <code>react</code> 是怎么把交给 <code>scheduler</code> 调度和控制执行的呢？</p>
+<p><strong>这里不对react到scheduler的流程做深入解读，仅用于交代从react到scheduler的流程过渡</strong></p>
+<p>话不多说，老规矩，我们先来看一个简单的 demo</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> React <span class="keyword">from</span> <span class="string">&quot;react&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">PureComponent</span> </span>&#123;</span><br><span class="line">  state = &#123;</span><br><span class="line">    val: <span class="number">1</span></span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">	onClickBtn = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.setState(&#123; <span class="attr">val</span>: <span class="number">2</span> &#125;);</span><br><span class="line">    <span class="built_in">this</span>.setState(&#123; <span class="attr">val</span>: <span class="number">3</span> &#125;);</span><br><span class="line">    <span class="built_in">this</span>.setState(&#123; <span class="attr">val</span>: <span class="number">4</span> &#125;);</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="built_in">this</span>.setState(&#123; <span class="attr">val</span>: <span class="number">5</span> &#125;);</span><br><span class="line">      <span class="built_in">this</span>.setState(&#123; <span class="attr">val</span>: <span class="number">6</span> &#125;);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">render</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; val &#125; = <span class="built_in">this</span>.state;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      &lt;p&gt;</span><br><span class="line">        &lt;button onClick=&#123;<span class="built_in">this</span>.onClickBtn&#125;&gt;click&lt;/button&gt;</span><br><span class="line">        &#123;val&#125;</span><br><span class="line">      &lt;/p&gt;</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="function"><span class="keyword">function</span> <span class="title">App</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;A /&gt;</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>案例的视图很简单，就只有一个按钮和一个值，当点击 click 时，会触发 <code>setState</code>，视图的值也会发生变化</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/06/19/React%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3scheduler-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E6%97%B6%E9%97%B4%E7%AE%A1%E7%90%86%E5%A4%A7%E5%B8%88/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/06/14/%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3terser-webpack-plugin%E7%9A%84%E5%AE%9E%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="某科学の前端杂货铺">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/06/14/%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3terser-webpack-plugin%E7%9A%84%E5%AE%9E%E7%8E%B0/" class="post-title-link" itemprop="url">源码细读-深入了解terser-webpack-plugin的实现</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-06-14 21:29:55" itemprop="dateCreated datePublished" datetime="2021-06-14T21:29:55+08:00">2021-06-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-15 10:12:09" itemprop="dateModified" datetime="2021-06-15T10:12:09+08:00">2021-06-15</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Webpack/" itemprop="url" rel="index"><span itemprop="name">Webpack</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Webpack/plugin/" itemprop="url" rel="index"><span itemprop="name">plugin</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Webpack/plugin/terser-webpack-plugin/" itemprop="url" rel="index"><span itemprop="name">terser-webpack-plugin</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="terser-webpack-plugin-是什么"><a href="#terser-webpack-plugin-是什么" class="headerlink" title="terser-webpack-plugin 是什么"></a>terser-webpack-plugin 是什么</h2><p><code>terser-webpack-plugin</code> 内部封装了 <a target="_blank" rel="noopener" href="https://github.com/terser/terser">terser</a> 库，用于处理 js 的压缩和混淆，通过 <code>webpack plugin</code> 的方式对代码进行处理</p>
+<p><code>terser-webpack-plugin</code> 的使用方式也很简单</p>
+<p>官方文档提供了一份通用的配置：<code>terser</code> 配置的使用和具体含义可以参考 <a target="_blank" rel="noopener" href="https://github.com/terser/terser#minify-options">minify-options</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  optimization: &#123;</span><br><span class="line">    minimize: <span class="literal">true</span>,</span><br><span class="line">    minimizer: [</span><br><span class="line">      <span class="keyword">new</span> TerserPlugin(&#123;</span><br><span class="line">        terserOptions: &#123;</span><br><span class="line">          ecma: <span class="literal">undefined</span>,</span><br><span class="line">          parse: &#123;&#125;,</span><br><span class="line">          compress: &#123;&#125;,</span><br><span class="line">          mangle: <span class="literal">true</span>,</span><br><span class="line">          <span class="built_in">module</span>: <span class="literal">false</span>,</span><br><span class="line">          output: <span class="literal">null</span>,</span><br><span class="line">          format: <span class="literal">null</span>,</span><br><span class="line">          toplevel: <span class="literal">false</span>,</span><br><span class="line">          nameCache: <span class="literal">null</span>,</span><br><span class="line">          ie8: <span class="literal">false</span>,</span><br><span class="line">          keep_classnames: <span class="literal">undefined</span>,</span><br><span class="line">          keep_fnames: <span class="literal">false</span>,</span><br><span class="line">          safari10: <span class="literal">false</span>,</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;),</span><br><span class="line">    ],</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="terser-webpack-plugin-执行机制"><a href="#terser-webpack-plugin-执行机制" class="headerlink" title="terser-webpack-plugin 执行机制"></a>terser-webpack-plugin 执行机制</h2><p><code>terser-webpack-plugin</code> 本质是个 webpack-plugin，通过注册运行时的某个钩子，可以在合适的时间点对代码做压缩和混淆的优化</p>
+<p>那么 <code>terser-webpack-plugin</code> 是在哪个钩子中做这件事的呢，我们先看看插件的 <code>apply</code> 函数</p>
+<p><code>apply</code> 是 <code>webpack-plugin</code> 插件的初始化入口函数，<code>terser-webpack-plugin</code> 本身并不复杂且易读，简化后的代码如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">apply</span>(<span class="params">compiler</span>)</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; devtool, output, plugins &#125; = compiler.options;</span><br><span class="line">    <span class="keyword">const</span> pluginName = <span class="built_in">this</span>.constructor.name;</span><br><span class="line">    <span class="comment">// ... 中间做了一些别的处理</span></span><br><span class="line">    <span class="comment">// 比如 sourceMap 处理，弱缓存的初始化 weakCache，terserOptions 的初始化</span></span><br><span class="line">    </span><br><span class="line">    compiler.hooks.compilation.tap(pluginName, <span class="function">(<span class="params">compilation</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// ...</span></span><br><span class="line">      <span class="comment">// 注册 optimizeChunkAssets 钩子，这个钩子对应了 webpack4 中 optimise 配置</span></span><br><span class="line">      compilation.hooks.optimizeChunkAssets.tapPromise(pluginName, <span class="function">(<span class="params">assets</span>) =&gt;</span></span><br><span class="line">          <span class="comment">// 优化处理的真正入口</span></span><br><span class="line">          <span class="built_in">this</span>.optimize(compiler, compilation, assets, CacheEngine, weakCache)</span><br><span class="line">        );</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过代码很容易了解到，<code>terser-webpack-plugin</code> 先通过 compilation 钩子获取到 <code>compiler</code> 的 <code>compilation</code> 实例（这里不展开讨论 <code>webpack-plugin</code> 插件系统架构和 <code>tapable</code> 的设计，会在后面的篇幅中展开解读 <code>webpack-plugin</code> 插件系统架构 和 <code>tapable v2</code>）</p>
+<p>注册 <code>webpack compilation</code> 提供的 <code>hooks: optimizeChunkAssets</code> 运行时钩子，注册时使用了 <code>tapPromise</code> 异步注册的方式，注册的回调函数返回一个 <code>Promise</code></p>
+<p>在 <code>webpack</code> 执行 <code>optimise</code> 阶段，每个 <code>chunk</code> 都会触发这个异步钩子然后执行回调函数，回调函数本质是通过 <code>optimise</code> 执行代码的优化任务处理</p>
+<p>可以理解为 <code>terser-webpack-plugin</code> 中的实际任务处理入口是 <code>optimise</code> 函数</p>
+<p><img src="https://user-images.githubusercontent.com/9619419/121899669-3762c200-cd57-11eb-9140-173b26bdb0de.png" alt="apply流程"></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/06/14/%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3terser-webpack-plugin%E7%9A%84%E5%AE%9E%E7%8E%B0/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/06/11/JavaScript-%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E5%92%8C%E6%89%A7%E8%A1%8C%E6%A0%88/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -849,298 +1154,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/05/19/JavaScript-%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86%E4%B8%8E%E8%B0%83%E8%AF%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ninnka">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="某科学の前端杂货铺">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/05/19/JavaScript-%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86%E4%B8%8E%E8%B0%83%E8%AF%95/" class="post-title-link" itemprop="url">JavaScript-错误处理与调试</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-05-19 14:07:08" itemprop="dateCreated datePublished" datetime="2021-05-19T14:07:08+08:00">2021-05-19</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-09 18:00:59" itemprop="dateModified" datetime="2021-06-09T18:00:59+08:00">2021-06-09</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Web/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="静态资源加载的错误处理"><a href="#静态资源加载的错误处理" class="headerlink" title="静态资源加载的错误处理"></a>静态资源加载的错误处理</h2><h3 id="图片资源加载的错误处理"><a href="#图片资源加载的错误处理" class="headerlink" title="图片资源加载的错误处理"></a>图片资源加载的错误处理</h3><p>当一项资源（如img或script）加载失败，加载资源的元素会触发一个Event接口的error事件，并执行该元素上的onerror()处理函数。这些error事件不会向上冒泡到window，不过能被单一的window.addEventListener捕获。</p>
-<p>图片也支持 error 事件，可以使用 addEventListener 或者 onerror 来添加。</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> image = <span class="keyword">new</span> Image();</span><br><span class="line">image.addEventListener(<span class="string">&quot;load&quot;</span>, <span class="function">(<span class="params">event</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;Image loaded!&quot;</span>);</span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">// 使用 onerror 函数监听错误事件</span></span><br><span class="line">image.onerror = <span class="function">(<span class="params">event</span>) =&gt;</span> &#123;<span class="built_in">console</span>.log(<span class="string">&quot;Image not loaded!&quot;</span>)&#125;;</span><br><span class="line">image.src = <span class="string">&quot;123&quot;</span>; <span class="comment">// 不存在，资源会加载失败</span></span><br></pre></td></tr></table></figure>
-<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnqh9teh6j31160jmgpr.jpg" alt="图片资源加载错误1"></p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> image = <span class="keyword">new</span> Image();</span><br><span class="line">image.addEventListener(<span class="string">&quot;load&quot;</span>, <span class="function">(<span class="params">event</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;Image loaded!&quot;</span>);</span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">// 使用 addEventListener error 函数监听错误事件</span></span><br><span class="line">image.addEventListener(<span class="string">&quot;error&quot;</span>, <span class="function">(<span class="params">event</span>) =&gt;</span> &#123;</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">&quot;Image not loaded!&quot;</span>); &#125;);</span><br><span class="line">image.src = <span class="string">&quot;doesnotexist.gif&quot;</span>; <span class="comment">// 不存在，资源会加载失败</span></span><br></pre></td></tr></table></figure>
-<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqnqhwbuvnj310o0kwwjl.jpg" alt="图片资源加载错误2"></p>
-<p>window.onerror 和 window.addListener(‘error’, () =&gt; {}) 都可以捕获到js的错误<br>区别是：<br>1.捕获到的错误参数不同<br>2.window.addEventListener(‘error’)可以捕获资源加载错误，但是window.onerror不能捕获到资源加载错误，window.addEventListener(‘error’)捕获到的错误，可以通过target?.src || target?.href区分是资源加载错误还是js运行时错误</p>
-<h3 id="script资源加载的错误处理"><a href="#script资源加载的错误处理" class="headerlink" title="script资源加载的错误处理"></a>script资源加载的错误处理</h3><p>script资源加载与图片等其他资源加载没有太大区别</p>
-<p>但是有需要注意的地方：<br>当加载自不同域的脚本中发生语法错误时，为避免信息泄露（参见bug 363897），语法错误的细节将不会报告，而代之简单的”Script error.”。在某些浏览器中，通过在script使用crossorigin属性并要求服务器发送适当的 CORS HTTP 响应头，该行为可被覆盖。一个变通方案是单独处理”Script error.”，告知错误详情仅能通过浏览器控制台查看，无法通过JavaScript访问。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/05/19/JavaScript-%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86%E4%B8%8E%E8%B0%83%E8%AF%95/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/05/15/%E6%89%8B%E6%92%95%E6%BA%90%E7%A0%81-redux%E4%BB%8E%E5%8E%9F%E7%90%86%E5%88%B0%E5%AE%9E%E7%8E%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ninnka">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="某科学の前端杂货铺">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/05/15/%E6%89%8B%E6%92%95%E6%BA%90%E7%A0%81-redux%E4%BB%8E%E5%8E%9F%E7%90%86%E5%88%B0%E5%AE%9E%E7%8E%B0/" class="post-title-link" itemprop="url">手撕源码-redux从原理到实现</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-05-15 16:36:58" itemprop="dateCreated datePublished" datetime="2021-05-15T16:36:58+08:00">2021-05-15</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-19 19:00:27" itemprop="dateModified" datetime="2021-05-19T19:00:27+08:00">2021-05-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/JavaScript/redux/" itemprop="url" rel="index"><span itemprop="name">redux</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本文主要分为两部分，第一部分是分析redux的原理，第二部分是根据我们分析的结果来实现一个五脏六腑俱全的mini-redux</p>
-<p>分析redux原理的过程中，会对必要但不是全部的概念都解释一遍，所以需要对 <code>redux</code> 有基础的认识</p>
-<blockquote>
-<p><a target="_blank" rel="noopener" href="https://redux.js.org/tutorials/essentials/part-1-overview-concepts">redux 官方教程传送门</a></p>
-</blockquote>
-<p>在认识 <code>redux</code> 之前，我只知道 <code>react-redux</code>，并且认为 redux 是 react 的一部分，相信大多入门的新人也会有这样的误解</p>
-<p>正文开始之前，先同步一下我们的认识点</p>
-<ul>
-<li>redux 与 react 没有任何关系，redux 可以用在任何框架中，比如 React，Vue 等等；</li>
-<li>redux 是一个数据状态管理器，用来实现数据的中心化管理</li>
-<li>正文不会对 react-router 做原理分析，react-router 会另开一篇做分析</li>
-</ul>
-<h1 id="Redux"><a href="#Redux" class="headerlink" title="Redux"></a>Redux</h1><p>redux 基础功能是数据管理和通知订阅，redux是如何实现的呢？</p>
-<h2 id="Store"><a href="#Store" class="headerlink" title="Store"></a>Store</h2><p>先来看一段官方demo</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; createStore &#125; <span class="keyword">from</span> <span class="string">&#x27;redux&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">counterReducer</span>(<span class="params">state = &#123; value: <span class="number">0</span> &#125;, action</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">switch</span> (action.type) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">&#x27;counter/incremented&#x27;</span>:</span><br><span class="line">      <span class="keyword">return</span> &#123; <span class="attr">value</span>: state.value + <span class="number">1</span> &#125;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">&#x27;counter/decremented&#x27;</span>:</span><br><span class="line">      <span class="keyword">return</span> &#123; <span class="attr">value</span>: state.value - <span class="number">1</span> &#125;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">      <span class="keyword">return</span> state</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> store = createStore(counterReducer, &#123; <span class="attr">value</span>: <span class="number">0</span> &#125;)</span><br><span class="line"></span><br><span class="line">store.subscribe(<span class="function">() =&gt;</span> <span class="built_in">console</span>.log(store.getState()))</span><br><span class="line"></span><br><span class="line">store.dispatch(&#123; <span class="attr">type</span>: <span class="string">&#x27;counter/incremented&#x27;</span> &#125;)</span><br><span class="line"><span class="comment">// &#123;value: 1&#125;</span></span><br><span class="line">store.dispatch(&#123; <span class="attr">type</span>: <span class="string">&#x27;counter/incremented&#x27;</span> &#125;)</span><br><span class="line"><span class="comment">// &#123;value: 2&#125;</span></span><br><span class="line">store.dispatch(&#123; <span class="attr">type</span>: <span class="string">&#x27;counter/decremented&#x27;</span> &#125;)</span><br><span class="line"><span class="comment">// &#123;value: 1&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>redux 通过 <code>createStore</code> 创建一个数据中心管理器 <code>store</code><br>createStore 可以说是数据流的入口</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src/createStore.ts</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">createStore</span>(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  reducer: Reducer&lt;S, A&gt;,</span></span></span><br><span class="line"><span class="function"><span class="params">  preloadedState?: PreloadedState&lt;S&gt; | StoreEnhancer&lt;Ext, StateExt&gt;,</span></span></span><br><span class="line"><span class="function"><span class="params">  enhancer?: StoreEnhancer&lt;Ext, StateExt&gt;</span></span></span><br><span class="line"><span class="function"><span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 对 reducer，preloader，enhancer做了很多空值校验</span></span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 把 reducer，state，listener 都保存到闭包中，供下面的函数处理时使用</span></span><br><span class="line">  <span class="keyword">let</span> currentReducer = reducer</span><br><span class="line">  <span class="keyword">let</span> currentState = preloadedState <span class="keyword">as</span> S</span><br><span class="line">  <span class="keyword">let</span> currentListeners: (<span class="function">() =&gt;</span> <span class="keyword">void</span>)[] | <span class="literal">null</span> = []</span><br><span class="line">  <span class="keyword">let</span> nextListeners = currentListeners</span><br><span class="line">  <span class="keyword">let</span> isDispatching = <span class="literal">false</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 创建了若干函数用于操作数据流</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 获取当前的数据状态</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">getState</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 订阅</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">subscribe</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 派发事件</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">dispatch</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 替换 reducer</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">replaceReducer</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 监听 state 变化的观测器</span></span><br><span class="line">  <span class="comment">// https://github.com/tc39/proposal-observable</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">observable</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 发起初始化的 action，这个是内部的action，需要在业务代码中有对应的 reducer 才会触发响应</span></span><br><span class="line">  dispatch(&#123; <span class="attr">type</span>: ActionTypes.INIT &#125; <span class="keyword">as</span> A)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> store = &#123;</span><br><span class="line">    dispatch: dispatch <span class="keyword">as</span> Dispatch&lt;A&gt;,</span><br><span class="line">    subscribe,</span><br><span class="line">    getState,</span><br><span class="line">    replaceReducer,</span><br><span class="line">    [$$observable]: observable</span><br><span class="line">  &#125; <span class="keyword">as</span> unknown <span class="keyword">as</span> Store&lt;ExtendState&lt;S, StateExt&gt;, A, StateExt, Ext&gt; &amp; Ext</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 最后返回了一个大对象，把上述创建的函数都丢了出去</span></span><br><span class="line">  <span class="keyword">return</span> store;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/05/15/%E6%89%8B%E6%92%95%E6%BA%90%E7%A0%81-redux%E4%BB%8E%E5%8E%9F%E7%90%86%E5%88%B0%E5%AE%9E%E7%8E%B0/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/05/15/%E6%89%8B%E6%92%95%E6%BA%90%E7%A0%81-%E6%89%8B%E5%86%99%E5%AE%9E%E7%8E%B0Koa%E6%B4%8B%E8%91%B1%E6%A8%A1%E5%9E%8B%E4%B8%AD%E9%97%B4%E4%BB%B6/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ninnka">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="某科学の前端杂货铺">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/05/15/%E6%89%8B%E6%92%95%E6%BA%90%E7%A0%81-%E6%89%8B%E5%86%99%E5%AE%9E%E7%8E%B0Koa%E6%B4%8B%E8%91%B1%E6%A8%A1%E5%9E%8B%E4%B8%AD%E9%97%B4%E4%BB%B6/" class="post-title-link" itemprop="url">手撕源码-手写实现Koa洋葱模型中间件</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-05-15 15:11:45" itemprop="dateCreated datePublished" datetime="2021-05-15T15:11:45+08:00">2021-05-15</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-19 19:01:09" itemprop="dateModified" datetime="2021-05-19T19:01:09+08:00">2021-05-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Web/Nodejs/" itemprop="url" rel="index"><span itemprop="name">Nodejs</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="Koa洋葱模型分析"><a href="#Koa洋葱模型分析" class="headerlink" title="Koa洋葱模型分析"></a>Koa洋葱模型分析</h1><p>在实现Koa的洋葱模型之前，先回顾一下洋葱模型的运作方式</p>
-<p><img src="https://camo.githubusercontent.com/d80cf3b511ef4898bcde9a464de491fa15a50d06/68747470733a2f2f7261772e6769746875622e636f6d2f66656e676d6b322f6b6f612d67756964652f6d61737465722f6f6e696f6e2e706e67" alt="洋葱模型"></p>
-<h2 id="中间件的执行机制"><a href="#中间件的执行机制" class="headerlink" title="中间件的执行机制"></a>中间件的执行机制</h2><p>先来看个简单例子</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 声明一个异步函数作为中间件</span></span><br><span class="line">app.use(<span class="keyword">async</span> (ctx, next) =&gt; &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="number">1</span>);</span><br><span class="line">  <span class="keyword">await</span> next();</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="number">2</span>);</span><br><span class="line">&#125;);</span><br><span class="line">app.use(<span class="keyword">async</span> (ctx, next) =&gt; &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="number">3</span>);</span><br><span class="line">  <span class="keyword">await</span> next();</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="number">4</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 输出顺序是：</span></span><br><span class="line"><span class="comment">// 1</span></span><br><span class="line"><span class="comment">// 3</span></span><br><span class="line"><span class="comment">// 4</span></span><br><span class="line"><span class="comment">// 2</span></span><br></pre></td></tr></table></figure>
-
-<p>所有的请求经过一个中间件的时候都会执行两次，执行next前和执行next后的代码分为两部分执行。</p>
-<h2 id="中间件是怎么保存的"><a href="#中间件是怎么保存的" class="headerlink" title="中间件是怎么保存的"></a>中间件是怎么保存的</h2><p>通过上面的案例，可以把中间件的注册关键方法锁定在 <code>app.use</code> 上</p>
-<p>我们先看 <code>use</code> 方法</p>
-<p>koa/lib/application.js<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqj59zns7nj31b20fmn0m.jpg" alt="koa-application-use"></p>
-<p>简化一下可以得到</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">use</span>(<span class="params">fn</span>)</span> &#123;</span><br><span class="line">  <span class="comment">// 保存在middleware数组中</span></span><br><span class="line">  <span class="built_in">this</span>.middleware.push(fn);</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>在 <code>app.use</code> 中，中间件会被推入到一个 <code>middleware</code> 数组中保存起来。</p>
-<p>中间件被保存起来后，在什么时候，用什么方式调用的呢？</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/05/15/%E6%89%8B%E6%92%95%E6%BA%90%E7%A0%81-%E6%89%8B%E5%86%99%E5%AE%9E%E7%8E%B0Koa%E6%B4%8B%E8%91%B1%E6%A8%A1%E5%9E%8B%E4%B8%AD%E9%97%B4%E4%BB%B6/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1210,20 +1223,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-count">27</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-count">27</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">57</span>
+        <span class="site-state-item-count">63</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

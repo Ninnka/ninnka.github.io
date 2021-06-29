@@ -155,6 +155,295 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/05/Vue2%E7%9A%84%E7%BB%84%E4%BB%B6%E7%BB%A7%E6%89%BF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="某科学の前端杂货铺">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/06/05/Vue2%E7%9A%84%E7%BB%84%E4%BB%B6%E7%BB%A7%E6%89%BF/" class="post-title-link" itemprop="url">Vue2的组件继承</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-06-05 11:41:31" itemprop="dateCreated datePublished" datetime="2017-06-05T11:41:31+08:00">2017-06-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-19 19:02:11" itemprop="dateModified" datetime="2021-05-19T19:02:11+08:00">2021-05-19</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>接触过面向对象语言的同学肯定清楚，面向对象中有一个非常重要的特性，那就是继承。通过继承可以更好的封装一个类，良好的封装能够减少耦合，并且可以对成员进行更精确的控制，Vue也提供了类型的继承方法。</p>
+</blockquote>
+<h2 id="一个基础的状态组件"><a href="#一个基础的状态组件" class="headerlink" title="一个基础的状态组件"></a>一个基础的状态组件</h2><p>在考虑继承组件前，我们先创建一个基础的状态组件。组件的运用场景比较简单，有一个列表，列表的每一项有自己的状态，这个状态组件显示在列表中每一项的右上角或者左上角，并显示出具体的状态文本。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- status.vue --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;item-status&quot;</span> <span class="attr">:style</span>=<span class="string">&quot;&#123;</span></span></span><br><span class="line"><span class="tag"><span class="string">    ...statusStyles,</span></span></span><br><span class="line"><span class="tag"><span class="string">    ...positionStyles,</span></span></span><br><span class="line"><span class="tag"><span class="string">&#125;&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">span</span>&gt;</span>&#123;&#123; statusText &#125;&#125;<span class="tag">&lt;/<span class="name">span</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/06/05/Vue2%E7%9A%84%E7%BB%84%E4%BB%B6%E7%BB%A7%E6%89%BF/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/05/03/vue-swipe-tab-layout%20%E4%BB%BFAndroid%E7%AB%AF%E7%9A%84tabLayout/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="某科学の前端杂货铺">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/05/03/vue-swipe-tab-layout%20%E4%BB%BFAndroid%E7%AB%AF%E7%9A%84tabLayout/" class="post-title-link" itemprop="url">vue-swipe-tab-layout 仿Android端的 TabLayout + ViewPager</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-05-03 19:08:02" itemprop="dateCreated datePublished" datetime="2017-05-03T19:08:02+08:00">2017-05-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-19 19:02:01" itemprop="dateModified" datetime="2021-05-19T19:02:01+08:00">2021-05-19</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>公司最近要开发新的移动端项目，项目中有很多页面都用到了tab分组。<br>想起在 Android 中看到的 TabLayout + ViewPager 的组合，决定动手做一个类似的 Vue 组件。<br><a target="_blank" rel="noopener" href="https://github.com/Rennzh/vue-swipe-tab-layout">github地址</a></p>
+</blockquote>
+<h2 id="组件设计"><a href="#组件设计" class="headerlink" title="组件设计"></a>组件设计</h2><blockquote>
+<p>组件的功能基本参照 Android 端，首先把组件的设计要点列出来</p>
+</blockquote>
+<ul>
+<li>顶部是一个可以横向的 tab-nav 容器；容器内需要填充 nav-item；使用者可以自定义 nav-Item 的具体内容，然后通过 template 与 slot 分发到这个容器中。</li>
+<li>tab-nav 容器有两种模式：<ol>
+<li>nav-item 会自动扩展，平分容器宽度(每一个 nav-item 的宽度是一样的)。</li>
+<li>nav-item 不会自动扩展，每一个 nav-item 的宽度由使用者决定。</li>
+</ol>
+</li>
+<li>tab-nav 容器内有导航条，nav-indicator (导航条) 可以在 tab-nav 会根据当前 nav-item 的 激活状态变化来滑动；可以定义 nav-indicator 的宽度缩放比，缩放比相对所在的 nav-item 的宽度；可以定义 nav-indicator 的位置(顶部或者底部)；可以设置 nav-indicator 的位置偏移值；</li>
+<li>除去顶部的 tab-nav，剩下的就是内容 tab-content，tab-content 的容器水平排列，宽度为浏览器可视区域的宽度。</li>
+<li>tab-content 的具体DOM结构同样通过 template 与 slot 分发到组件中。</li>
+<li>tab-content的父级可以水平滑动，滑动使用 translate3d。<ul>
+<li>在第一屏手指向右滑动时，禁止滑动，手指向左时可滑动，先向右再向左可以触发滑动。</li>
+<li>在最后一屏手指向左滑动时，禁止滑动，手指向右滑动时可滑动，先向左再向右可以触发滑动。</li>
+<li>除去上述两种情况，其他均可任意滑动。</li>
+<li>触发滑动到下一页(前一页)的条件默认是手指滑动距离为屏幕宽度1/3以上。</li>
+</ul>
+</li>
+<li>tab-content 滑动时，nav-indicator 需要跟着一起滑动</li>
+<li>nav-indicator 滑动到目标位置后，如果当前 nav-item 不在浏览器可视区域的正中间，tab-nav 容器会尽可能的滑动使当前 nav-item 到达可视区域的正中间，如果允许的滑动距离不够的话，使用最大的可滑动距离。</li>
+</ul>
+<p>在实际写代码前，尽可能的列出需求可以防止开发中突然发现新需求而不得不破坏当前结构的情况。(说的就是我o(╥﹏╥)o)<br>下面开始分析代码如何写。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/05/03/vue-swipe-tab-layout%20%E4%BB%BFAndroid%E7%AB%AF%E7%9A%84tabLayout/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/04/16/vue-pwd-input%20%E6%94%AF%E4%BB%98%E5%AF%86%E7%A0%81%E8%BE%93%E5%85%A5%E7%BB%84%E4%BB%B6%E7%9A%84%E5%AE%9E%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="某科学の前端杂货铺">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/04/16/vue-pwd-input%20%E6%94%AF%E4%BB%98%E5%AF%86%E7%A0%81%E8%BE%93%E5%85%A5%E7%BB%84%E4%BB%B6%E7%9A%84%E5%AE%9E%E7%8E%B0/" class="post-title-link" itemprop="url">vue-pwd-input 支付密码输入组件的实现</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-04-16 13:08:02" itemprop="dateCreated datePublished" datetime="2017-04-16T13:08:02+08:00">2017-04-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-19 19:01:27" itemprop="dateModified" datetime="2021-05-19T19:01:27+08:00">2021-05-19</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>这次记录的是一个类似移动端支付密码输入框组件的实现。当然，这种组件并不局限于在移动端使用，在PC端也可以使用，比如：在京东，淘宝下单输入支付密码时。<br><a target="_blank" rel="noopener" href="https://github.com/Rennzh/vue-pwd-inputs">仓库地址</a></p>
+</blockquote>
+<h2 id="初步设计"><a href="#初步设计" class="headerlink" title="初步设计"></a>初步设计</h2><p>既然要用来输入密码，那肯定是需要输入框的，假设默认输入位数是6位，那么需要准备6个输入框。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- pwd-inputs.vue --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;inputs&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;input-wrap&quot;</span> <span class="attr">v-for</span>=<span class="string">&quot;(pwd, index) of pwdLength&quot;</span> <span class="attr">:key</span>=<span class="string">&quot;index&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;password&quot;</span> <span class="attr">maxlength</span>=<span class="string">&quot;1&quot;</span> <span class="attr">v-model</span>=<span class="string">&quot;pwds[index]&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/04/16/vue-pwd-input%20%E6%94%AF%E4%BB%98%E5%AF%86%E7%A0%81%E8%BE%93%E5%85%A5%E7%BB%84%E4%BB%B6%E7%9A%84%E5%AE%9E%E7%8E%B0/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/04/12/%E4%BB%8E%E9%9B%B6%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E5%9F%BA%E4%BA%8Enodejs%E7%9A%84%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -599,20 +888,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-count">27</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-count">27</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">57</span>
+        <span class="site-state-item-count">63</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
