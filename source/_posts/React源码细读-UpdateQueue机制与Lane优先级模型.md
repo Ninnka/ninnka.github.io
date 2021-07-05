@@ -1,5 +1,5 @@
 ---
-title: React源码细读-UpdateQueue机制与Lane优先级
+title: React源码细读-UpdateQueue机制与Lane优先级模型
 date: 2021-07-03 18:56:30
 categories:
 	- Web
@@ -15,13 +15,9 @@ tags:
 
 # React UpdateQueue
 
-`React` 在发布 `Concurrent` 模式的同时，提出了任务优先级的概念，优先级最早是用 `expirationTime`，通过 `expirationTime` la
-
 使用过 `React` 的小伙伴肯定也都知道 `React` 在事件回调或生命周期回调中会对同步任务内的更新做批量处理
 
 那么这里的批量更新又是通过什么机制去实现的呢？
-
-`React` 中
 
 > **此文基于 `react v17.0.2` 分析，[仓库传送门](https://github.com/facebook/react)**
 
@@ -88,9 +84,11 @@ export type UpdateQueue<State> = {|
 |};
 ```
 
-谈到队列，普遍印像中的队列应该是先进先出，先进来排前面，按照进入的时间顺序排列
+谈到队列，普遍印象中的队列应该是先进先出，先进来排前面，按照进入的时间顺序排列
 
 但是 `React UpdateQueue` 的结构比较，`pending` 指向的是最后一个 `Update` 对象，第一个进入 `Update` 对象排在第一个，后面依次按照进入的顺序排列
+
+<!-- more -->
 
 假设有这样一串代码，点击按钮后，会依次执行四次 `setState`
 
@@ -459,8 +457,75 @@ TL;DR😂
 
 ### getStateFromUpdate
 
-从 `Update` 对象计算出新的 `state`
+在 `processUpdateQueue` 的流程中可以看到，计算 `newState` 时会通过 `getStateFromUpdate` 从 `Update` 对象计算出新的 `state`
 
+对于不同的更新标识 `update.tag` 会做不同的处理，我们这次主要了解 `UpdateState` 这个流程，其他几个流程会做个简单介绍
+
+先看看简化后的代码
+
+```js
+function getStateFromUpdate<State>(
+  workInProgress: Fiber,
+  queue: UpdateQueue<State>,
+  update: Update<State>,
+  prevState: State,
+  nextProps: any,
+  instance: any,
+): any {
+  // 根据不同的更新标识来做处理
+  switch (update.tag) {
+    // state 替换
+    case ReplaceState: {
+      const payload = update.payload;
+      if (typeof payload === 'function') {
+        // ... 
+        const nextState = payload.call(instance, prevState, nextProps);
+        // ...
+        return nextState;
+      }
+      return payload;
+    }
+    // update 捕获
+    case CaptureUpdate: {
+      workInProgress.flags =
+        (workInProgress.flags & ~ShouldCapture) | DidCapture;
+    }
+    // setState 的更新 state 基本流程
+    case UpdateState: {
+      const payload = update.payload;
+      let partialState;
+      if (typeof payload === 'function') {
+        // ...
+        // setState 接收的如果是函数
+        partialState = payload.call(instance, prevState, nextProps);
+        // ...
+      } else {
+        // 新的局部 state 对象，用于接下来的对象合并
+        partialState = payload;
+      }
+      if (partialState === null || partialState === undefined) {
+        // null 和 undefined 会直接忽略掉
+        return prevState;
+      }
+      // 合并新旧 state
+      return Object.assign({}, prevState, partialState);
+    }
+    // 熟悉的 this.forceUpdate
+    case ForceUpdate: {
+      hasForceUpdate = true;
+      return prevState;
+    }
+  }
+  return prevState;
+}
+```
+
+简单总结一下 `getStateFromUpdate` 做的事情：
+
+* `UpdateState` 是 `setState` 的更新 `state` 基本流程，这一步中主要是判断当前 `partialState` 是否函数，如果是函数则调用后获取返回值，否则直接把 `partialState` 作为 `newState` 的一部分，最后与原来的 `state` 做一次合并后返回
+* `ReplaceState` 大致流程与 `UpdateState` 相似，但是最后不会做合并，而是直接把结果作为新的 `state` 返回
+* `ForceUpdate` 大家应该都熟悉，这个阶段不会做 `state` 计算，只是把 `hasForceUpdate` 标记为 `true`，后续会用到
+* `CaptureUpdate` 这个大家应该都没有怎么关注过，这个比较特别，在整个 `react` 的生命周期内，只有在渲染报错被 `componentDidCatch` 捕获之后，走 `getDerivedStateFromError` 流程，创建一个新的 `Update` 对象，这个对象会收集当前报错的一些信息，并更新到组件状态中
 
 ## Lane 优先级机制
 
@@ -468,5 +533,130 @@ TL;DR😂
 
 但这次提到的 `Lane` 机制是 `React` 内部中的一套优先级机制
 
+`React` 在早期提出了任务优先级的概念，优先级最早是用 `expirationTime`，通过 `expirationTime` 来做任务调度，由于 `expirationTime` 的一些缺陷，`React` 又提出了新的 `Lane` 优先级模型
 
-# 总结
+`Lane` 模型是 `react` 为了解决 `ExpirationTime` 模型导致的低优先级任务 `长时间等待/饿死` 的问题
+
+目前 `react` 中共有 31 种不同的 `lane` 值，其中区分了不同的 `lane 车道` 与 `lanes 车道组`
+
+我们想象一下赛车场，假设这个赛车场有31条车道，每5条车道组成一个车道区间，数字靠前的车道区间起点靠前，可以比别的车道更快出发，车道区间内的车道优先级一致，只是数字区分了不同的车道，比如：1，2，3，4，5是一个车道区间，分别在5个不同车道，一块出发
+
+画了一个简易图的便于理解
+
+![](https://img.ninnka.top/1625473060724-lanes%E8%BD%A6%E9%81%93%E5%8C%BA%E9%97%B4%E6%A8%A1%E5%9E%8B-%E8%B5%9B%E9%81%93%E5%9B%BE%20%281%29.png)
+
+为了便于查找，这里把所有 `Lane/Lanes` 都列举了，感兴趣的可以仔细研究看看
+
+```js
+export type Lanes = number;
+export type Lane = number;
+
+export const TotalLanes = 31;
+
+export const NoLanes: Lanes = /*                        */ 0b0000000000000000000000000000000;
+export const NoLane: Lane = /*                          */ 0b0000000000000000000000000000000;
+
+export const SyncLane: Lane = /*                        */ 0b0000000000000000000000000000001;
+
+export const InputContinuousHydrationLane: Lane = /*    */ 0b0000000000000000000000000000010;
+export const InputContinuousLane: Lanes = /*            */ 0b0000000000000000000000000000100;
+
+export const DefaultHydrationLane: Lane = /*            */ 0b0000000000000000000000000001000;
+export const DefaultLane: Lanes = /*                    */ 0b0000000000000000000000000010000;
+
+const TransitionHydrationLane: Lane = /*                */ 0b0000000000000000000000000100000;
+const TransitionLanes: Lanes = /*                       */ 0b0000000001111111111111111000000;
+const TransitionLane1: Lane = /*                        */ 0b0000000000000000000000001000000;
+const TransitionLane2: Lane = /*                        */ 0b0000000000000000000000010000000;
+const TransitionLane3: Lane = /*                        */ 0b0000000000000000000000100000000;
+const TransitionLane4: Lane = /*                        */ 0b0000000000000000000001000000000;
+const TransitionLane5: Lane = /*                        */ 0b0000000000000000000010000000000;
+const TransitionLane6: Lane = /*                        */ 0b0000000000000000000100000000000;
+const TransitionLane7: Lane = /*                        */ 0b0000000000000000001000000000000;
+const TransitionLane8: Lane = /*                        */ 0b0000000000000000010000000000000;
+const TransitionLane9: Lane = /*                        */ 0b0000000000000000100000000000000;
+const TransitionLane10: Lane = /*                       */ 0b0000000000000001000000000000000;
+const TransitionLane11: Lane = /*                       */ 0b0000000000000010000000000000000;
+const TransitionLane12: Lane = /*                       */ 0b0000000000000100000000000000000;
+const TransitionLane13: Lane = /*                       */ 0b0000000000001000000000000000000;
+const TransitionLane14: Lane = /*                       */ 0b0000000000010000000000000000000;
+const TransitionLane15: Lane = /*                       */ 0b0000000000100000000000000000000;
+const TransitionLane16: Lane = /*                       */ 0b0000000001000000000000000000000;
+
+const RetryLanes: Lanes = /*                            */ 0b0000111110000000000000000000000;
+const RetryLane1: Lane = /*                             */ 0b0000000010000000000000000000000;
+const RetryLane2: Lane = /*                             */ 0b0000000100000000000000000000000;
+const RetryLane3: Lane = /*                             */ 0b0000001000000000000000000000000;
+const RetryLane4: Lane = /*                             */ 0b0000010000000000000000000000000;
+const RetryLane5: Lane = /*                             */ 0b0000100000000000000000000000000;
+
+export const SomeRetryLane: Lane = RetryLane1;
+
+export const SelectiveHydrationLane: Lane = /*          */ 0b0001000000000000000000000000000;
+
+const NonIdleLanes = /*                                 */ 0b0001111111111111111111111111111;
+
+export const IdleHydrationLane: Lane = /*               */ 0b0010000000000000000000000000000;
+export const IdleLane: Lanes = /*                       */ 0b0100000000000000000000000000000;
+
+export const OffscreenLane: Lane = /*                   */ 0b1000000000000000000000000000000;
+```
+
+### Lane 的计算
+
+既然 `Lane` 可以用作优先级比较，那么这个比较过程是怎样的呢？
+
+一般来说，比较不就是大于小于等于吗？比如两个 `lane` 值通过 `lane1 > lane2` 的方式得到结果
+
+但是回想一下，刚刚不是才提到过 `Lane` 车道模型是有区间性质的，比如 `TransitionLanes` 有 16 个车道，从 `TransitionLane1` 到 `TransitionLane16`
+
+这个需求如果是通过简单的 `>/=/<` 显然很难处理这种需求了
+
+细心的小伙伴肯定已经发现，上面列举出的 `Lane` 都是二进制表示的
+
+在 `processUpdateQueue` 函数中有用到两个比较关键的 `Lane` 操作函数
+
+* `isSubsetOfLanes`
+* `mergeLanes`
+
+```js
+export function isSubsetOfLanes(set: Lanes, subset: Lanes | Lane) {
+  return (set & subset) === subset;
+}
+
+export function mergeLanes(a: Lanes | Lane, b: Lanes | Lane): Lanes {
+  return a | b;
+}
+```
+
+`isSubsetOfLanes` 用于判断当前的 `lane` 是否处在目标 `lanes` 上，如果满足这个条件，可以认为这个 `lane` 在对应的车道区间中
+
+比如：有个 `lane` 是 `TransitionLane1`，当这个 `lane` 满足 `TransitionLanes` 的条件时，就做对应的更新流程。由于 `TransitionLanes` 是个范围区间，我们需要知道 `lane` 是否在 `TransitionLanes` 中，首先需要对他们进行 `&` 操作，然后把结果与 `TransitionLane1` 比较；因为如果 `TransitionLanes` 包含 `TransitionLane1`，那么 `&` 后的结果一定是 `TransitionLane1` 自身，那么最后肯定与 `TransitionLane1` 相等
+
+`mergeLanes` 则是把目标 `lane` 或者 `lanes` 加入到当前的 `lane/lanes` 中
+
+比如：当前有个 `lane` 是 `InputContinuousHydrationLane`，如果想让当前的 `lane` 满足 `InputContinuousLane` 的条件，我们可以在保持原本属性不变的情况，新增一个 `lane`，通过 `|` 操作可以合并两个 `lane/lanes`
+
+此外，`react` 还提供了 `removeLanes` `includesSomeLane` 等常用的 `lane` 操作函数，原理就是基本的位运算，感兴趣的小伙伴可以看看源码
+
+```js
+// 文件路径 react/packages/react-reconciler/src/ReactFiberLane.js
+export function includesSomeLane(a: Lanes | Lane, b: Lanes | Lane) {
+  return (a & b) !== NoLanes;
+}
+// ...
+export function removeLanes(set: Lanes, subset: Lanes | Lane): Lanes {
+  return set & ~subset;
+}
+
+export function laneToLanes(lane: Lane): Lanes {
+  return lane;
+}
+```
+
+# 顺带说两句
+
+看到这里的小伙伴应该对 `UpdateQueue` 的批处理机制有一定的了解了，同时对 `react` 的 `Lane` 优先级模型也有了初步的认识
+
+对于 `Lane` 优先级模型这里先做了一些简单的介绍，后续会对 `Lane` 优先级模型和 `expirationTime` 模型做一些更加具体的对比分析
+
