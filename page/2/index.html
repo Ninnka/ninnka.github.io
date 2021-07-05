@@ -155,6 +155,122 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/05/22/HTTP%E8%A7%A3%E6%83%91-Content-Type/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="某科学の前端杂货铺">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/05/22/HTTP%E8%A7%A3%E6%83%91-Content-Type/" class="post-title-link" itemprop="url">HTTP解惑-Content-Type</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-22 20:28:13" itemprop="dateCreated datePublished" datetime="2021-05-22T20:28:13+08:00">2021-05-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-27 21:27:31" itemprop="dateModified" datetime="2021-05-27T21:27:31+08:00">2021-05-27</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Http/" itemprop="url" rel="index"><span itemprop="name">Http</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Http/Content-Type/" itemprop="url" rel="index"><span itemprop="name">Content-Type</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="什么是-Content-Type"><a href="#什么是-Content-Type" class="headerlink" title="什么是 Content-Type"></a>什么是 Content-Type</h1><p>HTTP协议（RFC2616）采用了请求/响应模型。<br>客户端向服务器发送一个请求，请求头包含请求的方法、URI、协议版本、以及包含请求修饰符、客户信息和内容的类似于MIME的消息结构。<br>服务器以一个状态行作为响应，相应的内容包括消息协议的版本，成功或者错误编码加上包含服务器信息、实体元信息以 及可能的实体内容。</p>
+<p>通常HTTP消息由一个起始行，一个或者多个头域，一个只是头域结束的空行和可选的消息体组成。<br>HTTP的头域包括通用头，请求头，响应头和实体头四个部分。每个头域由一个域名，冒号（:）和域值三部分组成。域名是大小写无关的，域值前可以添加任何数量的空格符，头域可以被扩展为多行，在每行开始处，使用至少一个空格或制表符。</p>
+<p>请求消息和响应消息都可以包含实体信息，实体信息一般由实体头域和实体组成。实体头域包含关于实体的原信息，实体头包括Allow、Content- Base、Content-Encoding、Content-Language、 Content-Length、Content-Location、Content-MD5、Content-Range、Content-Type、 Etag、Expires、Last-Modified、extension-header。</p>
+<p>Content-Type是返回消息中非常重要的内容，表示后面的文档属于什么MIME类型。</p>
+<p>Content-Type: [type]/[subtype]; parameter。例如最常见的就是text/html，它的意思是说返回的内容是文本类型，这个文本又是HTML格式的。原则上浏览器会根据Content-Type来决定如何显示返回的消息体内容。</p>
+<p>在请求中，Content-Type 是实体头部用于指示资源的MIME类型 media type，服务端根据这个类型来做不同的处理。</p>
+<p>在响应中，Content-Type标头告诉客户端实际返回的内容的内容类型，浏览器根据Content-Type来对文件做不同的处理。<br>比如对请求 google.com 返回的content-type: text/html，charset=uft8，浏览器会把文本作为html进行解析，最终渲染到页面中。<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gqralnkznwj31b20okn1z.jpg" alt="response_content-type1"></p>
+<p>响应头中的 Content-Type 类型与请求头中的 Content-Type 并没有太多区别，但是有一些content-type只能在响应头中设置。</p>
+<table>
+<thead>
+<tr>
+<th>Content-Type</th>
+<th>说明</th>
+<th>案例</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>请求头中的content-type</td>
+<td>描述请求实体对应的MIME信息</td>
+<td>Content-Type: application/json</td>
+<td>简单理解就是：客户端告诉服务端，我传的数据是什么类型</td>
+</tr>
+<tr>
+<td>响应头中的content-type</td>
+<td>描述响应实体对应的MIME信息</td>
+<td>text/html; charset=UTF8</td>
+<td>简单理解就是：服务端告诉客户端，我返回的数据是什么类型</td>
+</tr>
+</tbody></table>
+<h1 id="MIME"><a href="#MIME" class="headerlink" title="MIME"></a>MIME</h1><h2 id="MIME类型"><a href="#MIME类型" class="headerlink" title="MIME类型"></a>MIME类型</h2><p>媒体类型（通常称为 Multipurpose Internet Mail Extensions 或 MIME 类型 ）是一种标准，用来表示文档、文件或字节流的性质和格式。它在IETF RFC 6838中进行了定义和标准化。</p>
+<p>互联网号码分配机构（IANA）是负责跟踪所有官方MIME类型的官方机构，您可以在媒体类型页面中找到最新的完整列表。(在文章的最后)</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/05/22/HTTP%E8%A7%A3%E6%83%91-Content-Type/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/05/19/JavaScript-%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86%E4%B8%8E%E8%B0%83%E8%AF%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1069,95 +1185,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/08/05/Vue2%E9%A6%96%E5%B1%8F%E5%8A%A0%E8%BD%BD%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ninnka">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="某科学の前端杂货铺">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/08/05/Vue2%E9%A6%96%E5%B1%8F%E5%8A%A0%E8%BD%BD%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="post-title-link" itemprop="url">Vue2加载优化</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2017-08-05 17:39:37" itemprop="dateCreated datePublished" datetime="2017-08-05T17:39:37+08:00">2017-08-05</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-19 19:02:24" itemprop="dateModified" datetime="2021-05-19T19:02:24+08:00">2021-05-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Web/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <blockquote>
-<p>以vue-cli2作为开发脚手架为前提，虽然内部做了不少的打包优化来减少文件体积，但是仍然有提升的空间。提升的方向大致就为两种：1. 代码结构；2. webpack的打包配置</p>
-</blockquote>
-<h2 id="调整代码结构"><a href="#调整代码结构" class="headerlink" title="调整代码结构"></a>调整代码结构</h2><h3 id="配合vue-router使用异步加载"><a href="#配合vue-router使用异步加载" class="headerlink" title="配合vue-router使用异步加载"></a>配合vue-router使用异步加载</h3><p>如何配合vue-router使用异步加载在官方文档中已有说明，简单的来说就是在需要的时候再加载特定的js，这部分js在打包的时候会被单独打包到一个js中，以此达到减少bundle的体积的目的。</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> TestView = <span class="function">() =&gt;</span> <span class="keyword">import</span>(<span class="string">&#x27;@/views/test-view&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> routerOptions = &#123;</span><br><span class="line">  routes: [</span><br><span class="line">    &#123;</span><br><span class="line">      path: <span class="string">&#x27;/&#x27;</span>,</span><br><span class="line">      component: TestView,</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  ],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2017/08/05/Vue2%E9%A6%96%E5%B1%8F%E5%8A%A0%E8%BD%BD%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1227,20 +1254,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-count">28</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">63</span>
+        <span class="site-state-item-count">65</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

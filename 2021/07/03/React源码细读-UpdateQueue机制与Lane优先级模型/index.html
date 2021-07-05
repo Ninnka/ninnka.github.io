@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="React UpdateQueue使用过 React 的小伙伴肯定也都知道 React 在事件回调或生命周期回调中会对同步任务内的更新做批量处理 那么这里的批量更新又是通过什么机制去实现的呢？  此文基于 react v17.0.2 分析，仓库传送门  UpdateQueue 的创建Update 的结构每次更新都新创建一个 Update 对象，这个 Update 对象的结构如下 123456789">
+<meta property="og:type" content="article">
+<meta property="og:title" content="React源码细读-UpdateQueue机制与Lane优先级模型">
+<meta property="og:url" content="http://yoursite.com/2021/07/03/React%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-UpdateQueue%E6%9C%BA%E5%88%B6%E4%B8%8ELane%E4%BC%98%E5%85%88%E7%BA%A7%E6%A8%A1%E5%9E%8B/index.html">
+<meta property="og:site_name" content="某科学の前端杂货铺">
+<meta property="og:description" content="React UpdateQueue使用过 React 的小伙伴肯定也都知道 React 在事件回调或生命周期回调中会对同步任务内的更新做批量处理 那么这里的批量更新又是通过什么机制去实现的呢？  此文基于 react v17.0.2 分析，仓库传送门  UpdateQueue 的创建Update 的结构每次更新都新创建一个 Update 对象，这个 Update 对象的结构如下 123456789">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1grorehzctkj30zq0l0gq1.jpg">
+<meta property="og:image" content="https://img.ninnka.top/1625371355182.png">
+<meta property="og:image" content="https://img.ninnka.top/1625371473204.png">
+<meta property="og:image" content="https://img.ninnka.top/1625372015491-%E6%9B%B4%E6%96%B0%E9%98%9F%E5%88%97.png">
+<meta property="og:image" content="https://img.ninnka.top/1625378527601.png">
+<meta property="og:image" content="https://img.ninnka.top/1625385692857.png">
+<meta property="og:image" content="https://img.ninnka.top/1625382865726-updateQueue%20with%20lane.png">
+<meta property="og:image" content="https://img.ninnka.top/1625417693795-processUpdateQueue.png">
+<meta property="og:image" content="https://img.ninnka.top/1625473060724-lanes%E8%BD%A6%E9%81%93%E5%8C%BA%E9%97%B4%E6%A8%A1%E5%9E%8B-%E8%B5%9B%E9%81%93%E5%9B%BE%20%281%29.png">
+<meta property="article:published_time" content="2021-07-03T10:56:30.000Z">
+<meta property="article:modified_time" content="2021-07-05T11:45:36.980Z">
+<meta property="article:author" content="Ninnka">
+<meta property="article:tag" content="React">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="Lane">
+<meta property="article:tag" content="UpdateQueue">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1grorehzctkj30zq0l0gq1.jpg">
+
+<link rel="canonical" href="http://yoursite.com/2021/07/03/React%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-UpdateQueue%E6%9C%BA%E5%88%B6%E4%B8%8ELane%E4%BC%98%E5%85%88%E7%BA%A7%E6%A8%A1%E5%9E%8B/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>React源码细读-UpdateQueue机制与Lane优先级模型 | 某科学の前端杂货铺</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">某科学の前端杂货铺</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/07/03/React%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-UpdateQueue%E6%9C%BA%E5%88%B6%E4%B8%8ELane%E4%BC%98%E5%85%88%E7%BA%A7%E6%A8%A1%E5%9E%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="某科学の前端杂货铺">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          React源码细读-UpdateQueue机制与Lane优先级模型
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-03 18:56:30" itemprop="dateCreated datePublished" datetime="2021-07-03T18:56:30+08:00">2021-07-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-07-05 19:45:36" itemprop="dateModified" datetime="2021-07-05T19:45:36+08:00">2021-07-05</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/JavaScript/React/" itemprop="url" rel="index"><span itemprop="name">React</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/JavaScript/React/Lane/" itemprop="url" rel="index"><span itemprop="name">Lane</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="React-UpdateQueue"><a href="#React-UpdateQueue" class="headerlink" title="React UpdateQueue"></a>React UpdateQueue</h1><p>使用过 <code>React</code> 的小伙伴肯定也都知道 <code>React</code> 在事件回调或生命周期回调中会对同步任务内的更新做批量处理</p>
+<p>那么这里的批量更新又是通过什么机制去实现的呢？</p>
+<blockquote>
+<p><strong>此文基于 <code>react v17.0.2</code> 分析，<a target="_blank" rel="noopener" href="https://github.com/facebook/react">仓库传送门</a></strong></p>
+</blockquote>
+<h2 id="UpdateQueue-的创建"><a href="#UpdateQueue-的创建" class="headerlink" title="UpdateQueue 的创建"></a>UpdateQueue 的创建</h2><h3 id="Update-的结构"><a href="#Update-的结构" class="headerlink" title="Update 的结构"></a>Update 的结构</h3><p>每次更新都新创建一个 <code>Update</code> 对象，这个 <code>Update</code> 对象的结构如下</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// @flow</span></span><br><span class="line"><span class="keyword">export</span> type Update&lt;State&gt; = &#123;|</span><br><span class="line">	<span class="comment">// eventTime 是临时属性，后续会通过在 root 节点存储一个 transition 映射到 event-time 的 map 来替他这个属性</span></span><br><span class="line">  eventTime: number,</span><br><span class="line">  lane: Lane,</span><br><span class="line"></span><br><span class="line">  tag: <span class="number">0</span> | <span class="number">1</span> | <span class="number">2</span> | <span class="number">3</span>,</span><br><span class="line">  payload: any,</span><br><span class="line">  callback: (<span class="function">() =&gt;</span> mixed) | <span class="literal">null</span>,</span><br><span class="line"></span><br><span class="line">  next: Update&lt;State&gt; | <span class="literal">null</span>,</span><br><span class="line">|&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>从 <code>Update</code> 的数据结构可以简单了解到，<code>Update</code> 是用来描述当前的对象操作的一些基本信息：时间（eventTime）、优先级（lane）、回调函数（callback）、下一个更新对象（next）等</p>
+<p><code>Update</code> 对象创建后，会通过 <code>enqueueUpdate</code> 函数，挂载到 <code>Fiber</code> 实例的 <code>updateQueue</code> 队列中</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">enqueueUpdate</span>&lt;<span class="title">State</span>&gt;(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  fiber: Fiber,</span></span></span><br><span class="line"><span class="function"><span class="params">  update: Update&lt;State&gt;,</span></span></span><br><span class="line"><span class="function"><span class="params">  lane: Lane,</span></span></span><br><span class="line"><span class="function"><span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> updateQueue = fiber.updateQueue;</span><br><span class="line">  <span class="keyword">const</span> sharedQueue: SharedQueue&lt;State&gt; = (updateQueue: any).shared;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (isInterleavedUpdate(fiber, lane)) &#123;</span><br><span class="line">    <span class="comment">// ....</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> pending = sharedQueue.pending;</span><br><span class="line">    <span class="keyword">if</span> (pending === <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="comment">// This is the first update. Create a circular list.</span></span><br><span class="line">      update.next = update;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      update.next = pending.next;</span><br><span class="line">      pending.next = update;</span><br><span class="line">    &#125;</span><br><span class="line">    sharedQueue.pending = update;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="UpdateQueue-的结构"><a href="#UpdateQueue-的结构" class="headerlink" title="UpdateQueue 的结构"></a>UpdateQueue 的结构</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> type UpdateQueue&lt;State&gt; = &#123;|</span><br><span class="line">  baseState: State,</span><br><span class="line">  firstBaseUpdate: Update&lt;State&gt; | <span class="literal">null</span>,</span><br><span class="line">  lastBaseUpdate: Update&lt;State&gt; | <span class="literal">null</span>,</span><br><span class="line">  shared: SharedQueue&lt;State&gt;,</span><br><span class="line">  effects: <span class="built_in">Array</span>&lt;Update&lt;State&gt;&gt; | <span class="literal">null</span>,</span><br><span class="line">|&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>谈到队列，普遍印象中的队列应该是先进先出，先进来排前面，按照进入的时间顺序排列</p>
+<p>但是 <code>React UpdateQueue</code> 的结构比较，<code>pending</code> 指向的是最后一个 <code>Update</code> 对象，第一个进入 <code>Update</code> 对象排在第一个，后面依次按照进入的顺序排列</p>
+<a id="more"></a>
+
+<p>假设有这样一串代码，点击按钮后，会依次执行四次 <code>setState</code></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">PureComponent</span> </span>&#123;</span><br><span class="line">  state = &#123;</span><br><span class="line">    val: <span class="number">1</span></span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  onClickBtn = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.setState(&#123; <span class="attr">val</span>: <span class="number">2</span> &#125;);</span><br><span class="line">    <span class="built_in">this</span>.setState(&#123; <span class="attr">val</span>: <span class="number">3</span> &#125;);</span><br><span class="line">    <span class="built_in">this</span>.setState(&#123; <span class="attr">val</span>: <span class="number">4</span> &#125;);</span><br><span class="line">    <span class="built_in">this</span>.setState(&#123; <span class="attr">val</span>: <span class="number">5</span> &#125;);</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">render</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; val &#125; = <span class="built_in">this</span>.state;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      &lt;p&gt;</span><br><span class="line">        &lt;button onClick=&#123;<span class="built_in">this</span>.onClickBtn&#125;&gt;click&lt;/button&gt;</span><br><span class="line">        &#123;val&#125;</span><br><span class="line">      &lt;/p&gt;</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后会得到一个怎样的 <code>UpdateQueue</code> 呢？我们一步一步分析</p>
+<p>当第一个 <code>setState</code> 执行后，可以看到生成的 <code>Update</code> 对象结构以及数据是这样的</p>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1grorehzctkj30zq0l0gq1.jpg"></p>
+<p>经过 <code>enqueueUpdate</code> 处理后</p>
+<p><img src="https://img.ninnka.top/1625371355182.png"></p>
+<p><img src="https://img.ninnka.top/1625371473204.png"></p>
+<p>这里的链表其实是一个环形结构，<code>pending</code> 永远指向最新的 <code>update</code>，最新的 <code>update</code> 排在第一个位置</p>
+<p>这么说可能会很绕，我们来看看关键代码</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> pending = sharedQueue.pending;</span><br><span class="line"><span class="keyword">if</span> (pending === <span class="literal">null</span>) &#123;</span><br><span class="line">  <span class="comment">// 第一个 update 进入队列，创建一个环形结构</span></span><br><span class="line">  update.next = update;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="comment">// 最新的 update 的下一个指向第一个进入的 update</span></span><br><span class="line">  update.next = pending.next;</span><br><span class="line">  <span class="comment">// 最新的 update 插入到第一个位置中</span></span><br><span class="line">  pending.next = update;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// pending 指向最新的 update</span></span><br><span class="line">sharedQueue.pending = update;</span><br></pre></td></tr></table></figure>
+
+<p>上面的例子中，当我们执行完四个 <code>setState</code> 后</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">this</span>.setState(&#123; <span class="attr">val</span>: <span class="number">2</span> &#125;);</span><br><span class="line"><span class="built_in">this</span>.setState(&#123; <span class="attr">val</span>: <span class="number">3</span> &#125;);</span><br><span class="line"><span class="built_in">this</span>.setState(&#123; <span class="attr">val</span>: <span class="number">4</span> &#125;);</span><br><span class="line"><span class="built_in">this</span>.setState(&#123; <span class="attr">val</span>: <span class="number">5</span> &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>会得到这样一个 <code>UpdateQueue</code></p>
+<p><img src="https://img.ninnka.top/1625372015491-%E6%9B%B4%E6%96%B0%E9%98%9F%E5%88%97.png"></p>
+<p>从 debugger 中的变量可以更加清晰的看到</p>
+<p><img src="https://img.ninnka.top/1625378527601.png"></p>
+<p>有小伙伴可能会问，为什么要做成环形链表？普通的一样可以解决问题</p>
+<p>做成环形链表可以只需要利用一个指针，便能找到第一个进入的节点和最后一个进入的节点，更加方便的找到最后一个 <code>Update</code> 对象，同时插入新的 <code>Update</code> 对象也非常方便。如果使用普通的线性链表，想跟环形一样插入和查找都方便的话，就需要同时记录第一个和最后一个节点的位置，维护成本相较于环形肯定是更高了</p>
+<h2 id="UpdateQueue-状态管理"><a href="#UpdateQueue-状态管理" class="headerlink" title="UpdateQueue 状态管理"></a>UpdateQueue 状态管理</h2><p>上一节中提到了 <code>UpdateQueue</code> 的数据结构，其中有三个用于状态管理的数据节点</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> type UpdateQueue&lt;State&gt; = &#123;|</span><br><span class="line">  baseState: State,</span><br><span class="line">  firstBaseUpdate: Update&lt;State&gt; | <span class="literal">null</span>,</span><br><span class="line">  lastBaseUpdate: Update&lt;State&gt; | <span class="literal">null</span>,</span><br><span class="line">  <span class="comment">// ... 其他节点</span></span><br><span class="line">|&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>这几个 <code>state</code> 分别存储了在创建和更新阶段时的不同状态值</p>
+<p>先来看看 <code>UpdateQueue</code> 的创建</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">initializeUpdateQueue</span>&lt;<span class="title">State</span>&gt;(<span class="params">fiber: Fiber</span>): <span class="title">void</span> </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> queue: UpdateQueue&lt;State&gt; = &#123;</span><br><span class="line">    baseState: fiber.memoizedState,</span><br><span class="line">    firstBaseUpdate: <span class="literal">null</span>,</span><br><span class="line">    lastBaseUpdate: <span class="literal">null</span>,</span><br><span class="line">    shared: &#123;</span><br><span class="line">      pending: <span class="literal">null</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    effects: <span class="literal">null</span>,</span><br><span class="line">  &#125;;</span><br><span class="line">  fiber.updateQueue = queue;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>initializeUpdateQueue</code> 用于初始化 <code>UpdateQueue</code>，我们这次主要关心 <code>baseState</code> <code>firstBaseUpdate</code> <code>lastBaseUpdate</code> 的创建</p>
+<ul>
+<li><code>baseState</code>: 前一次更新计算得出的状态，比如：创建时是声明的初始值 <code>state</code>，更新时是最后得到的 <code>state</code>（除去因优先级不够导致被忽略的 <code>Update</code>）</li>
+<li><code>firstBaseUpdate</code> 更新阶段中由于优先级不够导致被忽略的第一个 <code>Update</code> 对象</li>
+<li><code>lastBaseUpdate</code> 更新阶段中由于优先级不够导致被忽略的最后一个 <code>Update</code> 对象</li>
+</ul>
+<p><code>baseState</code> 应该很好理解，但是 <code>firstBaseUpdate</code> <code>lastBaseUpdate</code> 又是什么鬼</p>
+<div align="center">
+<img width=120 src="https://img.ninnka.top/1625385692857.png"/>
+</div>
+
+<p>对于 <code>firstBaseUpdate</code> <code>lastBaseUpdate</code>，有个很关键的因素，那就是优先级，这两个属性可以理解为一个队列的起点指针和结尾指针，这个队列表示的是“低优先级 <code>UpdateQueue</code>”</p>
+<p>这么说可能有个基本的概念了，我们再回想 <code>Update</code> 对象的基本结构，里面有个很重要的属性：<code>lane</code></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// @flow</span></span><br><span class="line"><span class="keyword">export</span> type Update&lt;State&gt; = &#123;|</span><br><span class="line">  <span class="comment">// ... 其他属性</span></span><br><span class="line">  lane: Lane,</span><br><span class="line">  tag: <span class="number">0</span> | <span class="number">1</span> | <span class="number">2</span> | <span class="number">3</span>,</span><br><span class="line">  <span class="comment">// ... 其他属性</span></span><br><span class="line">|&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>为了方便理解，我们更新一下 <code>UpdateQueue</code> 结构的展示效果</p>
+<p><img src="https://img.ninnka.top/1625382865726-updateQueue%20with%20lane.png"></p>
+<p>我们给不同的 <code>Update</code> 对象添加了一个假设的 <code>lane</code> 值</p>
+<p>到这里大家应该能够对 <code>UpdateQueue</code> 的基本结构和创建过程有一个比较清晰的概念了</p>
+<p>但是我们仍有两个疑问待探讨</p>
+<ul>
+<li>关于 <code>UpdateQueue</code> 的更新过程</li>
+<li><code>Lane 优先级机制</code> 是什么</li>
+</ul>
+<p>我们先来看看 <code>UpdateQueue 更新机制</code></p>
+<h2 id="UpdateQueue-更新机制"><a href="#UpdateQueue-更新机制" class="headerlink" title="UpdateQueue 更新机制"></a>UpdateQueue 更新机制</h2><p>前面描述了 <code>UpdateQueue</code> 是如何创建的，以及 <code>UpdateQueue</code> 中存在哪些关键的属性</p>
+<p>其中关于 <code>firstBaseUpdate</code> <code>lastBaseUpdate</code>，需要在 <code>processUpdateQueue</code> 中慢慢品味</p>
+<h3 id="processUpdateQueue"><a href="#processUpdateQueue" class="headerlink" title="processUpdateQueue"></a>processUpdateQueue</h3><p>这个函数的名字很好猜，顾名思义：处理 <code>UpdateQueue</code></p>
+<p>在 <code>react</code> 的更新流程中，如果是 <code>ClassComponent</code> 或者 <code>HostRoot</code>，会走到 <code>processUpdateQueue</code> 函数内，函数比较长，为了避免陷入各种细节中，我们先来做一个简单的思考：</p>
+<p>现在有一个链表，里面存储着需要更新的数据，每个更新都有自己的优先级，我们给函数传入一个优先级区间 <code>renderLanes</code>，<strong>高于或等于这个优先级区间的更新可以执行，不满足优先级条件的需要暂存起来放到下一次处理流程中</strong></p>
+<p>因为是个环形链表，我们肯定需要遍历进行处理，遍历需要一个停止的点，那么具体是什么呢？先提供两个选择</p>
+<ol>
+<li>判断到当前 <code>Update</code> 为 <code>pending</code> 时指针停止</li>
+<li>把环形链表解开，从头到位遍历即可</li>
+</ol>
+<p>开始循环链表前，把延迟执行的 <code>update</code> 一起拼接起来遍历</p>
+<p>开始遍历后，如果 <code>update</code> 满足条件，就计算新的 <code>state</code>；如果出现 <code>update</code> 不满足条件</p>
+<p>对于更新流程我们做了上述一个简单的思考，带着疑问和思考我们来看看简化后的代码</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">processUpdateQueue</span>&lt;<span class="title">State</span>&gt;(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  workInProgress: Fiber,</span></span></span><br><span class="line"><span class="function"><span class="params">  props: any,</span></span></span><br><span class="line"><span class="function"><span class="params">  instance: any,</span></span></span><br><span class="line"><span class="function"><span class="params">  renderLanes: Lanes,</span></span></span><br><span class="line"><span class="function"><span class="params"></span>): <span class="title">void</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 队列的别名</span></span><br><span class="line">  <span class="keyword">const</span> queue: UpdateQueue&lt;State&gt; = (workInProgress.updateQueue: any);</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 先存了 firstBaseUpdate 和 lastBaseUpdate</span></span><br><span class="line">  <span class="keyword">let</span> firstBaseUpdate = queue.firstBaseUpdate;</span><br><span class="line">  <span class="keyword">let</span> lastBaseUpdate = queue.lastBaseUpdate;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">let</span> pendingQueue = queue.shared.pending;</span><br><span class="line">  <span class="keyword">if</span> (pendingQueue !== <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="comment">// 如果队列不为空，则把 fiber 中的 queue pending 指针置位空</span></span><br><span class="line">    queue.shared.pending = <span class="literal">null</span>;</span><br><span class="line">    <span class="comment">// 记录第一个和最后一个 Update，同时把环形链表的环拆开</span></span><br><span class="line">    <span class="keyword">const</span> lastPendingUpdate = pendingQueue;</span><br><span class="line">    <span class="keyword">const</span> firstPendingUpdate = lastPendingUpdate.next;</span><br><span class="line">    lastPendingUpdate.next = <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">if</span> (lastBaseUpdate === <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="comment">// 如果 lastBaseUpdate 为空，firstBaseUpdate 和 lastBaseUpdate 就被赋值为 queue 的起点和终点</span></span><br><span class="line">      firstBaseUpdate = firstPendingUpdate;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 如果 lastBaseUpdate 不为空，那么会拼接到 queue 的前面</span></span><br><span class="line">      lastBaseUpdate.next = firstPendingUpdate;</span><br><span class="line">    &#125;</span><br><span class="line">    lastBaseUpdate = lastPendingUpdate;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 上述的操作其实是把 queue 环形队列解环</span></span><br><span class="line">    <span class="comment">// 然后把 firstBaseUpdate 和 lastBaseUpdate 构成的队列拼接到 queue 前面</span></span><br><span class="line">    <span class="comment">// 最后构成一个大的线性 UpdateQueue</span></span><br><span class="line">    <span class="comment">// firstBaseUpdate 和 lastBaseUpdate 分别作为队列的起点和终点</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> current = workInProgress.alternate;</span><br><span class="line">    <span class="keyword">if</span> (current !== <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="comment">// 执行类似上述的操作，把 workInProgress 节点中的 queue 同步到 current 节点</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (firstBaseUpdate !== <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="comment">// 新的 state</span></span><br><span class="line">    <span class="keyword">let</span> newState = queue.baseState;</span><br><span class="line">    <span class="comment">// 新的 lane 优先级</span></span><br><span class="line">    <span class="keyword">let</span> newLanes = NoLanes;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> newBaseState = <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">let</span> newFirstBaseUpdate = <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">let</span> newLastBaseUpdate = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 第一个 update</span></span><br><span class="line">    <span class="keyword">let</span> update = firstBaseUpdate;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 队列的循环处理</span></span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> updateLane = update.lane;</span><br><span class="line">      <span class="keyword">const</span> updateEventTime = update.eventTime;</span><br><span class="line">      <span class="keyword">if</span> (!isSubsetOfLanes(renderLanes, updateLane)) &#123;</span><br><span class="line">        <span class="comment">// 这里通过 lane 的工具函数判断出当前 update 的 lane 不满足更新优先级条件</span></span><br><span class="line">        <span class="comment">// 下面是把不满足更新条件的 update 用链表存了起来</span></span><br><span class="line">        <span class="keyword">const</span> clone: Update&lt;State&gt; = &#123;</span><br><span class="line">          eventTime: updateEventTime,</span><br><span class="line">          lane: updateLane,</span><br><span class="line"></span><br><span class="line">          tag: update.tag,</span><br><span class="line">          payload: update.payload,</span><br><span class="line">          callback: update.callback,</span><br><span class="line"></span><br><span class="line">          next: <span class="literal">null</span>,</span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="comment">// newFirstBaseUpdate 和 newLastBaseUpdate 是队列的起点和终点</span></span><br><span class="line">        <span class="keyword">if</span> (newLastBaseUpdate === <span class="literal">null</span>) &#123;</span><br><span class="line">          newFirstBaseUpdate = newLastBaseUpdate = clone;</span><br><span class="line">          <span class="comment">// 这里有个很特殊的处理，如果出现有update被延迟执行，</span></span><br><span class="line">          <span class="comment">// 那么会把当前已经计算好的 newState 先做一次保存</span></span><br><span class="line">          newBaseState = newState;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          newLastBaseUpdate = newLastBaseUpdate.next = clone;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 更新 update 的 lane，往里塞入了满足条件的优先级，这样下次遍历到时才能执行</span></span><br><span class="line">        newLanes = mergeLanes(newLanes, updateLane);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 满足更新条件的 update</span></span><br><span class="line">        <span class="keyword">if</span> (newLastBaseUpdate !== <span class="literal">null</span>) &#123;</span><br><span class="line">          <span class="comment">// 注意这里的分支，如果前面出现过有 update 被推迟</span></span><br><span class="line">          <span class="comment">// 那么后面所有任务都必须进入到被延迟的队列中</span></span><br><span class="line">          <span class="keyword">const</span> clone: Update&lt;State&gt; = &#123;</span><br><span class="line">            eventTime: updateEventTime,</span><br><span class="line">            <span class="comment">// 这里通过设置 NoLane 保证了下一次检查时一定会通过上面的 isSubsetOfLanes</span></span><br><span class="line">            lane: NoLane,</span><br><span class="line"></span><br><span class="line">            tag: update.tag,</span><br><span class="line">            payload: update.payload,</span><br><span class="line">            callback: update.callback,</span><br><span class="line"></span><br><span class="line">            next: <span class="literal">null</span>,</span><br><span class="line">          &#125;;</span><br><span class="line">          newLastBaseUpdate = newLastBaseUpdate.next = clone;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 计算新的 state</span></span><br><span class="line">        newState = getStateFromUpdate(</span><br><span class="line">          workInProgress,</span><br><span class="line">          queue,</span><br><span class="line">          update,</span><br><span class="line">          newState,</span><br><span class="line">          props,</span><br><span class="line">          instance,</span><br><span class="line">        );</span><br><span class="line">        <span class="comment">// 保存 setState 的 callback，就是第二个参数</span></span><br><span class="line">        <span class="keyword">const</span> callback = update.callback;</span><br><span class="line">        <span class="keyword">if</span> (callback !== <span class="literal">null</span>) &#123;</span><br><span class="line">          <span class="comment">// 标记当前 fiber 有 callback</span></span><br><span class="line">          workInProgress.flags |= Callback;</span><br><span class="line">          <span class="keyword">const</span> effects = queue.effects;</span><br><span class="line">          <span class="keyword">if</span> (effects === <span class="literal">null</span>) &#123;</span><br><span class="line">            queue.effects = [update];</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            effects.push(update);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">// 下一个 update 对象</span></span><br><span class="line">      update = update.next;</span><br><span class="line">      <span class="keyword">if</span> (update === <span class="literal">null</span>) &#123;</span><br><span class="line">        pendingQueue = queue.shared.pending;</span><br><span class="line">        <span class="keyword">if</span> (pendingQueue === <span class="literal">null</span>) &#123;</span><br><span class="line">          <span class="comment">// 循环处理结束</span></span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="comment">// 当前的 queue 处理完后，需要检查一下 queue.shared.pending 是否有更新</span></span><br><span class="line">          <span class="comment">// 然后把剩余的 update 都推入到 lastBaseUpdate</span></span><br><span class="line">          <span class="comment">// ... 这里涉及到链表拆环的代码，与上面的拆环没有太大差异</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">while</span> (<span class="literal">true</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (newLastBaseUpdate === <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="comment">// 这里有一个很关键的判断，只有在没出现update被延迟的情况下</span></span><br><span class="line">      <span class="comment">// 才会把整个队列的计算结果赋值给 newBaseState</span></span><br><span class="line">      newBaseState = newState;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// newBaseState 就是新的 baseState，也就是后面界面展示时用到的 fiber.memoizedState</span></span><br><span class="line">    queue.baseState = ((newBaseState: any): State);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 保存被延迟的 update</span></span><br><span class="line">    queue.firstBaseUpdate = newFirstBaseUpdate;</span><br><span class="line">    queue.lastBaseUpdate = newLastBaseUpdate;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 标记哪些区间的update被延迟了</span></span><br><span class="line">    markSkippedUpdateLanes(newLanes);</span><br><span class="line">    workInProgress.lanes = newLanes;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只更新 workInProgress（新节点）的 memoizedState</span></span><br><span class="line">    workInProgress.memoizedState = newState;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>TL;DR😂</p>
+<p>因为太长没看代码的小伙伴估计已经翻到这里了</p>
+<p>那么先总结一波，<code>processUpdateQueue</code> 函数做了这几件事：</p>
+<ul>
+<li>先存了 <code>queue.shared.pending</code> <code>firstBaseUpdate</code> 和 <code>lastBaseUpdate</code> 的别名变量</li>
+<li>如果 <code>pendingQueue</code> 不为空，记录第一个和最后一个 <code>Update</code>，同时把环形链表的环拆开；然后把 <code>firstBaseUpdate</code> 和 <code>lastBaseUpdate</code> 构成的队列拼接到 <code>queue</code> 前面，最后构成一个大的线性 <code>UpdateQueue</code>，<code>firstBaseUpdate</code> 和 <code>lastBaseUpdate</code> 分别作为队列的起点和终点</li>
+<li>把 workInProgress 节点中的 queue 同步到 current 节点</li>
+<li>循环遍历前面得到的线性更新队列，起点是 <code>firstBaseUpdate</code></li>
+<li>通过 <code>lane</code> 的工具函数判断出当前 <code>update</code> 的 <code>lane</code> 是否满足更新队列的优先级</li>
+<li>如果不满足更新优先级条件，把不满足更新条件的 <code>update</code> 用链表存了起来，<code>newFirstBaseUpdate</code> 和 <code>newLastBaseUpdate</code> 是队列的起点和终点，这里有个很特殊的处理，如果出现有 <code>update</code> 被延迟执行，那么会把当前已经计算好的 <code>newState</code> 先做一次保存，然后更新 <code>update</code> 的 <code>lane</code>，往里塞入了满足条件的优先级，这样下次遍历到时才能执行</li>
+<li>如果满足更新优先级条件，注意这里的分支，首先判断前面如果出现过有 update 被推迟那么后面所有任务都必须进入到被延迟的队列中，并且被推迟的 <code>Update</code> 对象的 <code>lane</code> 会被设置为 <code>NoLane</code> 等级了</li>
+<li>然后通过 <code>getStateFromUpdate</code> 计算新的 <code>state</code>，存放在 <code>newState</code>；然后保存 <code>setState</code> 的 <code>callback</code>，就是第二个参数，接着标记当前 <code>fiber</code> 有 <code>callback</code>，存放在 <code>flags</code> 字段中</li>
+<li>遍历到下一个 <code>Update</code> 对象</li>
+<li>开始处理下一个 <code>Update</code> 对象前，查一下 queue.shared.pending 是否有更新，然后把剩余的 update 都推入到 lastBaseUpdate（这里涉及到链表拆环的代码，与上面的拆环没有太大差异）</li>
+<li>这里有一个很关键的判断，只有在没出现update被延迟的情况下，才会把整个队列的计算结果 <code>newState</code> 赋值给 <code>queue.baseState</code></li>
+<li>保存被延迟的 <code>update</code>，标记哪些区间的 <code>update</code> 被延迟了，只更新 <code>workInProgress</code>（新节点）的 <code>memoizedState</code></li>
+</ul>
+<p>一口气梳理完发现就是有不少细节在里头，文字果然还是TL;DR😂</p>
+<p>那么我们还是按老规矩看看图</p>
+<p><img src="https://img.ninnka.top/1625417693795-processUpdateQueue.png"></p>
+<h3 id="getStateFromUpdate"><a href="#getStateFromUpdate" class="headerlink" title="getStateFromUpdate"></a>getStateFromUpdate</h3><p>在 <code>processUpdateQueue</code> 的流程中可以看到，计算 <code>newState</code> 时会通过 <code>getStateFromUpdate</code> 从 <code>Update</code> 对象计算出新的 <code>state</code></p>
+<p>对于不同的更新标识 <code>update.tag</code> 会做不同的处理，我们这次主要了解 <code>UpdateState</code> 这个流程，其他几个流程会做个简单介绍</p>
+<p>先看看简化后的代码</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getStateFromUpdate</span>&lt;<span class="title">State</span>&gt;(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  workInProgress: Fiber,</span></span></span><br><span class="line"><span class="function"><span class="params">  queue: UpdateQueue&lt;State&gt;,</span></span></span><br><span class="line"><span class="function"><span class="params">  update: Update&lt;State&gt;,</span></span></span><br><span class="line"><span class="function"><span class="params">  prevState: State,</span></span></span><br><span class="line"><span class="function"><span class="params">  nextProps: any,</span></span></span><br><span class="line"><span class="function"><span class="params">  instance: any,</span></span></span><br><span class="line"><span class="function"><span class="params"></span>): <span class="title">any</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 根据不同的更新标识来做处理</span></span><br><span class="line">  <span class="keyword">switch</span> (update.tag) &#123;</span><br><span class="line">    <span class="comment">// state 替换</span></span><br><span class="line">    <span class="keyword">case</span> ReplaceState: &#123;</span><br><span class="line">      <span class="keyword">const</span> payload = update.payload;</span><br><span class="line">      <span class="keyword">if</span> (<span class="keyword">typeof</span> payload === <span class="string">&#x27;function&#x27;</span>) &#123;</span><br><span class="line">        <span class="comment">// ... </span></span><br><span class="line">        <span class="keyword">const</span> nextState = payload.call(instance, prevState, nextProps);</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">        <span class="keyword">return</span> nextState;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> payload;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// update 捕获</span></span><br><span class="line">    <span class="keyword">case</span> CaptureUpdate: &#123;</span><br><span class="line">      workInProgress.flags =</span><br><span class="line">        (workInProgress.flags &amp; ~ShouldCapture) | DidCapture;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// setState 的更新 state 基本流程</span></span><br><span class="line">    <span class="keyword">case</span> UpdateState: &#123;</span><br><span class="line">      <span class="keyword">const</span> payload = update.payload;</span><br><span class="line">      <span class="keyword">let</span> partialState;</span><br><span class="line">      <span class="keyword">if</span> (<span class="keyword">typeof</span> payload === <span class="string">&#x27;function&#x27;</span>) &#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">        <span class="comment">// setState 接收的如果是函数</span></span><br><span class="line">        partialState = payload.call(instance, prevState, nextProps);</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 新的局部 state 对象，用于接下来的对象合并</span></span><br><span class="line">        partialState = payload;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (partialState === <span class="literal">null</span> || partialState === <span class="literal">undefined</span>) &#123;</span><br><span class="line">        <span class="comment">// null 和 undefined 会直接忽略掉</span></span><br><span class="line">        <span class="keyword">return</span> prevState;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">// 合并新旧 state</span></span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">Object</span>.assign(&#123;&#125;, prevState, partialState);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 熟悉的 this.forceUpdate</span></span><br><span class="line">    <span class="keyword">case</span> ForceUpdate: &#123;</span><br><span class="line">      hasForceUpdate = <span class="literal">true</span>;</span><br><span class="line">      <span class="keyword">return</span> prevState;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> prevState;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>简单总结一下 <code>getStateFromUpdate</code> 做的事情：</p>
+<ul>
+<li><code>UpdateState</code> 是 <code>setState</code> 的更新 <code>state</code> 基本流程，这一步中主要是判断当前 <code>partialState</code> 是否函数，如果是函数则调用后获取返回值，否则直接把 <code>partialState</code> 作为 <code>newState</code> 的一部分，最后与原来的 <code>state</code> 做一次合并后返回</li>
+<li><code>ReplaceState</code> 大致流程与 <code>UpdateState</code> 相似，但是最后不会做合并，而是直接把结果作为新的 <code>state</code> 返回</li>
+<li><code>ForceUpdate</code> 大家应该都熟悉，这个阶段不会做 <code>state</code> 计算，只是把 <code>hasForceUpdate</code> 标记为 <code>true</code>，后续会用到</li>
+<li><code>CaptureUpdate</code> 这个大家应该都没有怎么关注过，这个比较特别，在整个 <code>react</code> 的生命周期内，只有在渲染报错被 <code>componentDidCatch</code> 捕获之后，走 <code>getDerivedStateFromError</code> 流程，创建一个新的 <code>Update</code> 对象，这个对象会收集当前报错的一些信息，并更新到组件状态中</li>
+</ul>
+<h2 id="Lane-优先级机制"><a href="#Lane-优先级机制" class="headerlink" title="Lane 优先级机制"></a>Lane 优先级机制</h2><p>不久前我们介绍过 <code>Scheduler</code> 的调度和执行机制，<code>Scheduler</code> 中根据一套内置的优先级规则，把任务分成了 <code>timer 待调度</code> 和 <code>task 调度中</code> 两部分</p>
+<p>但这次提到的 <code>Lane</code> 机制是 <code>React</code> 内部中的一套优先级机制</p>
+<p><code>React</code> 在早期提出了任务优先级的概念，优先级最早是用 <code>expirationTime</code>，通过 <code>expirationTime</code> 来做任务调度，由于 <code>expirationTime</code> 的一些缺陷，<code>React</code> 又提出了新的 <code>Lane</code> 优先级模型</p>
+<p><code>Lane</code> 模型是 <code>react</code> 为了解决 <code>ExpirationTime</code> 模型导致的低优先级任务 <code>长时间等待/饿死</code> 的问题</p>
+<p>目前 <code>react</code> 中共有 31 种不同的 <code>lane</code> 值，其中区分了不同的 <code>lane 车道</code> 与 <code>lanes 车道组</code></p>
+<p>我们想象一下赛车场，假设这个赛车场有31条车道，每5条车道组成一个车道区间，数字靠前的车道区间起点靠前，可以比别的车道更快出发，车道区间内的车道优先级一致，只是数字区分了不同的车道，比如：1，2，3，4，5是一个车道区间，分别在5个不同车道，一块出发</p>
+<p>画了一个简易图的便于理解</p>
+<p><img src="https://img.ninnka.top/1625473060724-lanes%E8%BD%A6%E9%81%93%E5%8C%BA%E9%97%B4%E6%A8%A1%E5%9E%8B-%E8%B5%9B%E9%81%93%E5%9B%BE%20%281%29.png"></p>
+<p>为了便于查找，这里把所有 <code>Lane/Lanes</code> 都列举了，感兴趣的可以仔细研究看看</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> type Lanes = number;</span><br><span class="line"><span class="keyword">export</span> type Lane = number;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> TotalLanes = <span class="number">31</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> NoLanes: Lanes = <span class="comment">/*                        */</span> <span class="number">0b0000000000000000000000000000000</span>;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> NoLane: Lane = <span class="comment">/*                          */</span> <span class="number">0b0000000000000000000000000000000</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> SyncLane: Lane = <span class="comment">/*                        */</span> <span class="number">0b0000000000000000000000000000001</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> InputContinuousHydrationLane: Lane = <span class="comment">/*    */</span> <span class="number">0b0000000000000000000000000000010</span>;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> InputContinuousLane: Lanes = <span class="comment">/*            */</span> <span class="number">0b0000000000000000000000000000100</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> DefaultHydrationLane: Lane = <span class="comment">/*            */</span> <span class="number">0b0000000000000000000000000001000</span>;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> DefaultLane: Lanes = <span class="comment">/*                    */</span> <span class="number">0b0000000000000000000000000010000</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> TransitionHydrationLane: Lane = <span class="comment">/*                */</span> <span class="number">0b0000000000000000000000000100000</span>;</span><br><span class="line"><span class="keyword">const</span> TransitionLanes: Lanes = <span class="comment">/*                       */</span> <span class="number">0b0000000001111111111111111000000</span>;</span><br><span class="line"><span class="keyword">const</span> TransitionLane1: Lane = <span class="comment">/*                        */</span> <span class="number">0b0000000000000000000000001000000</span>;</span><br><span class="line"><span class="keyword">const</span> TransitionLane2: Lane = <span class="comment">/*                        */</span> <span class="number">0b0000000000000000000000010000000</span>;</span><br><span class="line"><span class="keyword">const</span> TransitionLane3: Lane = <span class="comment">/*                        */</span> <span class="number">0b0000000000000000000000100000000</span>;</span><br><span class="line"><span class="keyword">const</span> TransitionLane4: Lane = <span class="comment">/*                        */</span> <span class="number">0b0000000000000000000001000000000</span>;</span><br><span class="line"><span class="keyword">const</span> TransitionLane5: Lane = <span class="comment">/*                        */</span> <span class="number">0b0000000000000000000010000000000</span>;</span><br><span class="line"><span class="keyword">const</span> TransitionLane6: Lane = <span class="comment">/*                        */</span> <span class="number">0b0000000000000000000100000000000</span>;</span><br><span class="line"><span class="keyword">const</span> TransitionLane7: Lane = <span class="comment">/*                        */</span> <span class="number">0b0000000000000000001000000000000</span>;</span><br><span class="line"><span class="keyword">const</span> TransitionLane8: Lane = <span class="comment">/*                        */</span> <span class="number">0b0000000000000000010000000000000</span>;</span><br><span class="line"><span class="keyword">const</span> TransitionLane9: Lane = <span class="comment">/*                        */</span> <span class="number">0b0000000000000000100000000000000</span>;</span><br><span class="line"><span class="keyword">const</span> TransitionLane10: Lane = <span class="comment">/*                       */</span> <span class="number">0b0000000000000001000000000000000</span>;</span><br><span class="line"><span class="keyword">const</span> TransitionLane11: Lane = <span class="comment">/*                       */</span> <span class="number">0b0000000000000010000000000000000</span>;</span><br><span class="line"><span class="keyword">const</span> TransitionLane12: Lane = <span class="comment">/*                       */</span> <span class="number">0b0000000000000100000000000000000</span>;</span><br><span class="line"><span class="keyword">const</span> TransitionLane13: Lane = <span class="comment">/*                       */</span> <span class="number">0b0000000000001000000000000000000</span>;</span><br><span class="line"><span class="keyword">const</span> TransitionLane14: Lane = <span class="comment">/*                       */</span> <span class="number">0b0000000000010000000000000000000</span>;</span><br><span class="line"><span class="keyword">const</span> TransitionLane15: Lane = <span class="comment">/*                       */</span> <span class="number">0b0000000000100000000000000000000</span>;</span><br><span class="line"><span class="keyword">const</span> TransitionLane16: Lane = <span class="comment">/*                       */</span> <span class="number">0b0000000001000000000000000000000</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> RetryLanes: Lanes = <span class="comment">/*                            */</span> <span class="number">0b0000111110000000000000000000000</span>;</span><br><span class="line"><span class="keyword">const</span> RetryLane1: Lane = <span class="comment">/*                             */</span> <span class="number">0b0000000010000000000000000000000</span>;</span><br><span class="line"><span class="keyword">const</span> RetryLane2: Lane = <span class="comment">/*                             */</span> <span class="number">0b0000000100000000000000000000000</span>;</span><br><span class="line"><span class="keyword">const</span> RetryLane3: Lane = <span class="comment">/*                             */</span> <span class="number">0b0000001000000000000000000000000</span>;</span><br><span class="line"><span class="keyword">const</span> RetryLane4: Lane = <span class="comment">/*                             */</span> <span class="number">0b0000010000000000000000000000000</span>;</span><br><span class="line"><span class="keyword">const</span> RetryLane5: Lane = <span class="comment">/*                             */</span> <span class="number">0b0000100000000000000000000000000</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> SomeRetryLane: Lane = RetryLane1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> SelectiveHydrationLane: Lane = <span class="comment">/*          */</span> <span class="number">0b0001000000000000000000000000000</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> NonIdleLanes = <span class="comment">/*                                 */</span> <span class="number">0b0001111111111111111111111111111</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> IdleHydrationLane: Lane = <span class="comment">/*               */</span> <span class="number">0b0010000000000000000000000000000</span>;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> IdleLane: Lanes = <span class="comment">/*                       */</span> <span class="number">0b0100000000000000000000000000000</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> OffscreenLane: Lane = <span class="comment">/*                   */</span> <span class="number">0b1000000000000000000000000000000</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Lane-的计算"><a href="#Lane-的计算" class="headerlink" title="Lane 的计算"></a>Lane 的计算</h3><p>既然 <code>Lane</code> 可以用作优先级比较，那么这个比较过程是怎样的呢？</p>
+<p>一般来说，比较不就是大于小于等于吗？比如两个 <code>lane</code> 值通过 <code>lane1 &gt; lane2</code> 的方式得到结果</p>
+<p>但是回想一下，刚刚不是才提到过 <code>Lane</code> 车道模型是有区间性质的，比如 <code>TransitionLanes</code> 有 16 个车道，从 <code>TransitionLane1</code> 到 <code>TransitionLane16</code></p>
+<p>这个需求如果是通过简单的 <code>&gt;/=/&lt;</code> 显然很难处理这种需求了</p>
+<p>细心的小伙伴肯定已经发现，上面列举出的 <code>Lane</code> 都是二进制表示的</p>
+<p>在 <code>processUpdateQueue</code> 函数中有用到两个比较关键的 <code>Lane</code> 操作函数</p>
+<ul>
+<li><code>isSubsetOfLanes</code></li>
+<li><code>mergeLanes</code></li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">isSubsetOfLanes</span>(<span class="params">set: Lanes, subset: Lanes | Lane</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> (set &amp; subset) === subset;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">mergeLanes</span>(<span class="params">a: Lanes | Lane, b: Lanes | Lane</span>): <span class="title">Lanes</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> a | b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>isSubsetOfLanes</code> 用于判断当前的 <code>lane</code> 是否处在目标 <code>lanes</code> 上，如果满足这个条件，可以认为这个 <code>lane</code> 在对应的车道区间中</p>
+<p>比如：有个 <code>lane</code> 是 <code>TransitionLane1</code>，当这个 <code>lane</code> 满足 <code>TransitionLanes</code> 的条件时，就做对应的更新流程。由于 <code>TransitionLanes</code> 是个范围区间，我们需要知道 <code>lane</code> 是否在 <code>TransitionLanes</code> 中，首先需要对他们进行 <code>&amp;</code> 操作，然后把结果与 <code>TransitionLane1</code> 比较；因为如果 <code>TransitionLanes</code> 包含 <code>TransitionLane1</code>，那么 <code>&amp;</code> 后的结果一定是 <code>TransitionLane1</code> 自身，那么最后肯定与 <code>TransitionLane1</code> 相等</p>
+<p><code>mergeLanes</code> 则是把目标 <code>lane</code> 或者 <code>lanes</code> 加入到当前的 <code>lane/lanes</code> 中</p>
+<p>比如：当前有个 <code>lane</code> 是 <code>InputContinuousHydrationLane</code>，如果想让当前的 <code>lane</code> 满足 <code>InputContinuousLane</code> 的条件，我们可以在保持原本属性不变的情况，新增一个 <code>lane</code>，通过 <code>|</code> 操作可以合并两个 <code>lane/lanes</code></p>
+<p>此外，<code>react</code> 还提供了 <code>removeLanes</code> <code>includesSomeLane</code> 等常用的 <code>lane</code> 操作函数，原理就是基本的位运算，感兴趣的小伙伴可以看看源码</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 文件路径 react/packages/react-reconciler/src/ReactFiberLane.js</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">includesSomeLane</span>(<span class="params">a: Lanes | Lane, b: Lanes | Lane</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> (a &amp; b) !== NoLanes;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">removeLanes</span>(<span class="params">set: Lanes, subset: Lanes | Lane</span>): <span class="title">Lanes</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> set &amp; ~subset;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">laneToLanes</span>(<span class="params">lane: Lane</span>): <span class="title">Lanes</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> lane;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="顺带说两句"><a href="#顺带说两句" class="headerlink" title="顺带说两句"></a>顺带说两句</h1><p>看到这里的小伙伴应该对 <code>UpdateQueue</code> 的批处理机制有一定的了解了，同时对 <code>react</code> 的 <code>Lane</code> 优先级模型也有了初步的认识</p>
+<p>对于 <code>Lane</code> 优先级模型这里先做了一些简单的介绍，后续会对 <code>Lane</code> 优先级模型和 <code>expirationTime</code> 模型做一些更加具体的对比分析</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/React/" rel="tag"># React</a>
+              <a href="/tags/JavaScript/" rel="tag"># JavaScript</a>
+              <a href="/tags/Lane/" rel="tag"># Lane</a>
+              <a href="/tags/UpdateQueue/" rel="tag"># UpdateQueue</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/06/19/JSON-Web-Token%E8%A7%A3%E6%83%91/" rel="prev" title="JSON Web Token解惑">
+      <i class="fa fa-chevron-left"></i> JSON Web Token解惑
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#React-UpdateQueue"><span class="nav-number">1.</span> <span class="nav-text">React UpdateQueue</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#UpdateQueue-%E7%9A%84%E5%88%9B%E5%BB%BA"><span class="nav-number">1.1.</span> <span class="nav-text">UpdateQueue 的创建</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Update-%E7%9A%84%E7%BB%93%E6%9E%84"><span class="nav-number">1.1.1.</span> <span class="nav-text">Update 的结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#UpdateQueue-%E7%9A%84%E7%BB%93%E6%9E%84"><span class="nav-number">1.1.2.</span> <span class="nav-text">UpdateQueue 的结构</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#UpdateQueue-%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86"><span class="nav-number">1.2.</span> <span class="nav-text">UpdateQueue 状态管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#UpdateQueue-%E6%9B%B4%E6%96%B0%E6%9C%BA%E5%88%B6"><span class="nav-number">1.3.</span> <span class="nav-text">UpdateQueue 更新机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#processUpdateQueue"><span class="nav-number">1.3.1.</span> <span class="nav-text">processUpdateQueue</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#getStateFromUpdate"><span class="nav-number">1.3.2.</span> <span class="nav-text">getStateFromUpdate</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Lane-%E4%BC%98%E5%85%88%E7%BA%A7%E6%9C%BA%E5%88%B6"><span class="nav-number">1.4.</span> <span class="nav-text">Lane 优先级机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Lane-%E7%9A%84%E8%AE%A1%E7%AE%97"><span class="nav-number">1.4.1.</span> <span class="nav-text">Lane 的计算</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%A1%BA%E5%B8%A6%E8%AF%B4%E4%B8%A4%E5%8F%A5"><span class="nav-number">2.</span> <span class="nav-text">顺带说两句</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ninnka</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">65</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ninnka</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
