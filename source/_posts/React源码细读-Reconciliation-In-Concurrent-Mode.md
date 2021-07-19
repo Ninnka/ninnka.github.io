@@ -97,9 +97,9 @@ tags:
 
 在分析之前，我先抛出几个疑问
 
-* `Scheduler` 中的 `Task` 是如何利用 `Scheduler->workLoop` 进行任务中断与恢复的
-* 遍历 `Fiber Tree` 时是怎么中断任务的，中断后为什么可以恢复到上次循环中断的位置
-* 如果中断与恢复的中途出现更高优先级的任务，该如何处理
+* `Reconciler` 是如何利用 `Scheduler` 进行任务中断与恢复的
+* `Reconciler` 遍历 `Fiber Tree` 时是怎么中断任务的，中断后为什么可以恢复到上次循环中断的位置
+* 遍历 `Fiber Tree` 途中如果中断与恢复的中途出现更高优先级的任务，该如何处理
 * 有些 willxxx 生命周期，比如 `componentWillReceiveProps`，为什么会执行两次
 
 对这几个问题肯定有小伙伴会感到疑惑，没关系，这次带着问题盘他
@@ -157,11 +157,12 @@ function performConcurrentWorkOnRoot(root) {
     if (root.callbackNode !== originalCallbackNode) {
       return null;
     } else {
-      // Current task was not canceled. Continue.
+      // 这个 else 现在没啥意义，可能只是留个占位吧，说不定后面会调整
     }
   }
 
-  // 获取当前需要以哪个 lane priority 作为任务执行的优先级标准
+  // 获取当前需要执行的 `lane/lanes`，用最高优先级的 `lane` 作为任务执行的优先级标准
+  // 同时计算 lane 对应的 priority
   let lanes = getNextLanes(
     root,
     root === workInProgressRoot ? workInProgressRootRenderLanes : NoLanes,
@@ -177,7 +178,7 @@ function performConcurrentWorkOnRoot(root) {
 我们先来看 `performConcurrentWorkOnRoot` 的删减后的前半部分
 
 * 进入 `Reconciler` 后，清除 `currentEvent` 的一些信息，留给下一次进入的事件
-* 获取当前需要执行的 `lane/lanes`，用最高优先级的 `lane` 作为任务执行的优先级标准（这个很重要）
+* 获取当前需要执行的 `lane/lanes`，用最高优先级的 `lane` 作为任务执行的优先级标准，同时计算 lane 对应的 priority（这个步骤很重要）
 * 开始 `Reconciler` 的 `render` 阶段，`exitStatus` 用来表示 `render` 流程的结果状态
 
 `renderRootConcurrent` 从函数名上看，似乎已经发现了什么，但是这里按下不表，大家先舒口气，我们继续分析 `performConcurrentWorkOnRoot` 的下半部分
@@ -203,9 +204,9 @@ function performConcurrentWorkOnRoot(root) {
     // 看到这段注释，想必大家会很疑惑，不着急，我们现在还不需要它
   } else if (exitStatus !== RootIncomplete) {
     // 如果退出状态不等于未完成，那么说明有可能是一下几种
-    // 已完成
-    // 有报错被捕获
-    // 有报错未被捕获，严重级别的错误
+    // 1、已完成
+    // 2、有报错被捕获
+    // 3、有报错未被捕获，严重级别的错误
     // 这些流程先忽略，避免干扰
   }
 
@@ -229,24 +230,112 @@ function performConcurrentWorkOnRoot(root) {
 * 1：执行 `ensureRootIsScheduled` 函数
 * 2：如果当前执行的 scheduler task 未发生变化，还是最初在执行的那个 task，则返回 `performConcurrentWorkOnRoot` 函数，并绑定 `root` 参数；如果不相同，则返回 null
 
-最后函数最后的那两个步骤，有一个支流程下返回了函数，而且就是 `performConcurrentWorkOnRoot`
+函数最后的那两个步骤，有一个分支流程下返回了函数，而且就是 `performConcurrentWorkOnRoot`
 
-是不是对前面抛出的第一个疑问有了些想法，那么 performConcurrentWorkOnRoot 是如何利用 scheduler->workLoop 的来进行任务中断与恢复的呢？
+回想下前面抛出的第一个疑问：**`Reconciler` 是如何利用 `Scheduler` 进行任务中断与恢复的**，现在有了些思绪，那么 `performConcurrentWorkOnRoot` 具体是如何做到的呢？
 
-### `Scheduler` 中的 `Task` 是如何利用 `Scheduler->workLoop` 进行任务中断与恢复的
+<!-- 此外，从 `performConcurrentWorkOnRoot` 的代码不难看出，`Reconciler` 中与 `render` 阶段的事关重要的几个部分
+
+* `renderRootConcurrent`
+* `prepareFreshStack`
+* `ensureRootIsScheduled`
+* `getNextLanes` -->
+
+### `Reconciler` 是如何利用 `Scheduler` 进行任务中断与恢复的
+
+回顾 `Scheduler` 中恢复任务的条件
+
+```js
+const continuationCallback = callback(didUserCallbackTimeout);
+currentTime = getCurrentTime();
+if (typeof continuationCallback === 'function') {
+  // 这里是真正的恢复任务，等待下一轮循环时执行
+  currentTask.callback = continuationCallback;
+  // ....
+}
+```
+
+执行的任务必须返回一个函数，下一轮循环时才会恢复执行，`performConcurrentWorkOnRoot` 作为被执行的任务，整个函数只有在这个条件下才返回了函数，关键在于 `root.callbackNode` 是否会被修改
+
+```js
+ensureRootIsScheduled(root, now())
+if (root.callbackNode === originalCallbackNode) {
+  // 如果当前执行的 scheduler task 未发生变化，还是最初在执行的那个 task
+  // 那么返回一个新的函数，注意这一步，很关键
+  return performConcurrentWorkOnRoot.bind(null, root);
+}
+```
+
+但是反观 `performConcurrentWorkOnRoot`，并没有对 `root.callbackNode` 做修改，那么关键应该在这
+
+```js
+ensureRootIsScheduled(root, now())
+```
+
+显然应该把关注点放在 `ensureRootIsScheduled`，稍微回想下 `Scheduler`，在进入调度流程前，也会经过 `ensureRootIsScheduled`，我们之前只关注了 `ensureRootIsScheduled` 是如何进入 `Scheduler` 的，这次需要分析进入 `Scheduler` 前的一些场景处理
+
+```js
+function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
+  // 当前正在执行中的 scheduler task
+  const existingCallbackNode = root.callbackNode;
+
+  // 看看哪些 lane 已经超时了，标记到 root.expiredLanes
+  markStarvedLanesAsExpired(root, currentTime);
+
+  // 获取当前需要执行的 `lane/lanes`，用最高优先级的 `lane` 作为任务执行的优先级标准
+  // 同时计算 lane 对应的 priority
+  const nextLanes = getNextLanes(
+    root,
+    root === workInProgressRoot ? workInProgressRootRenderLanes : NoLanes,
+  );
+  // nextLanes 对应的 priority
+  const newCallbackPriority = returnNextLanesPriority();
+
+  if (nextLanes === NoLanes) {
+    // 没有需要执行的 lanes / lane
+    if (existingCallbackNode !== null) {
+      // 取消当前的 scheduler task
+      // 并清除保存在 root 上的一些信息
+      cancelCallback(existingCallbackNode);
+      root.callbackNode = null;
+      root.callbackPriority = NoLanePriority;
+    }
+    return;
+  }
+
+  // 如果已经有执行中的任务，可以判断是否复用执行中的任务
+  if (existingCallbackNode !== null) {
+    const existingCallbackPriority = root.callbackPriority;
+    if (existingCallbackPriority === newCallbackPriority) {
+      // 任务优先级没有发生变化，则不需要走后续的 scheduler 分配任务流程
+      return;
+    }
+    // 取消当前的 task
+    cancelCallback(existingCallbackNode);
+  }
+  // 上面的流程中如果没有return，意味着一定会取消当前执行中的任务
+
+  // 处理 newCallbackNode 在不同 lane 下的情况
+  let newCallbackNode;
+
+  // 如果上述流程都没走到，那么一定会进入下面进入 schedulerCallback 的流程
+  // ... newCallbackNode = xxxx;
+
+  // 进入 schedulerCallback 的流程意味着 callbackPriority，callbackNode 会被覆盖
+  root.callbackPriority = newCallbackPriority;
+  root.callbackNode = newCallbackNode;
+}
+```
+
+// TODO
 
 如果没有出现更高优先级的 lane priority，任务 task 就不会取消，也就是 root.callbackNode 和 root.callbackPriority 都没有发生变化
 
 那么 performConcurrentWorkOnRoot 会返回 performConcurrentWorkOnRoot.bind(null, root)，scheduler->workloop 会保存这个返回的回调，在下次调度重新执行
 
-此外，从 `performConcurrentWorkOnRoot` 的代码不难看出，`Reconciler` 中与 `render` 阶段的事关重要的几个部分
 
-* `renderRootConcurrent`
-* `prepareFreshStack`
-* `ensureRootIsScheduled`
-* `getNextLanes`
 
-#### workLoopConcurrent 遍历 fiber tree 时是怎么中断任务的，中断后为什么可以恢复到上次循环中断的位置
+### `Reconciler` 遍历 `Fiber Tree` 时是怎么中断任务的，中断后为什么可以恢复到上次循环中断的位置
 
 遍历过程中是从 workInProgress 这个 fiber node 开始的，workInProgress 初始化时的方式是 clone 一份 root.current
 
