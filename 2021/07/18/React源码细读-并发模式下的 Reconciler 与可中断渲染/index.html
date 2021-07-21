@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Concurrent Mode官方对于 Concurrent Mode，用了一个有趣的比喻，把 Concurrent Mode 隐喻为版本控制，版本控制大家都了解，平常开发项目时，大家会在同一个项目的不同分支中修改内容，比如修改同一个文件 假设现在没有版本控制，为了避免冲突，A 同学在修改 a 文件时，B、C、D 等其他同学就得等着 A 同学修改完然后释放文件，这种情况下会阻塞 B，C，D 等其他">
+<meta property="og:type" content="article">
+<meta property="og:title" content="React源码细读-并发模式下的 Reconciler 与可中断渲染">
+<meta property="og:url" content="http://yoursite.com/2021/07/18/React%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E5%B9%B6%E5%8F%91%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%20Reconciler%20%E4%B8%8E%E5%8F%AF%E4%B8%AD%E6%96%AD%E6%B8%B2%E6%9F%93/index.html">
+<meta property="og:site_name" content="某科学の前端杂货铺">
+<meta property="og:description" content="Concurrent Mode官方对于 Concurrent Mode，用了一个有趣的比喻，把 Concurrent Mode 隐喻为版本控制，版本控制大家都了解，平常开发项目时，大家会在同一个项目的不同分支中修改内容，比如修改同一个文件 假设现在没有版本控制，为了避免冲突，A 同学在修改 a 文件时，B、C、D 等其他同学就得等着 A 同学修改完然后释放文件，这种情况下会阻塞 B，C，D 等其他">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img.ninnka.top/1626508076589.png">
+<meta property="og:image" content="https://img.ninnka.top/1626596402374.png">
+<meta property="og:image" content="https://img.ninnka.top/1626762314226.png">
+<meta property="article:published_time" content="2021-07-18T07:24:14.000Z">
+<meta property="article:modified_time" content="2021-07-21T07:52:52.018Z">
+<meta property="article:author" content="Ninnka">
+<meta property="article:tag" content="React">
+<meta property="article:tag" content="前端">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="Reconciler">
+<meta property="article:tag" content="Reconcilition">
+<meta property="article:tag" content="ConcurrentMode">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img.ninnka.top/1626508076589.png">
+
+<link rel="canonical" href="http://yoursite.com/2021/07/18/React%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E5%B9%B6%E5%8F%91%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%20Reconciler%20%E4%B8%8E%E5%8F%AF%E4%B8%AD%E6%96%AD%E6%B8%B2%E6%9F%93/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>React源码细读-并发模式下的 Reconciler 与可中断渲染 | 某科学の前端杂货铺</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">某科学の前端杂货铺</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/07/18/React%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-%E5%B9%B6%E5%8F%91%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%20Reconciler%20%E4%B8%8E%E5%8F%AF%E4%B8%AD%E6%96%AD%E6%B8%B2%E6%9F%93/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="某科学の前端杂货铺">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          React源码细读-并发模式下的 Reconciler 与可中断渲染
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-18 15:24:14" itemprop="dateCreated datePublished" datetime="2021-07-18T15:24:14+08:00">2021-07-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-07-21 15:52:52" itemprop="dateModified" datetime="2021-07-21T15:52:52+08:00">2021-07-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/JavaScript/React/" itemprop="url" rel="index"><span itemprop="name">React</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/JavaScript/React/Reconciler/" itemprop="url" rel="index"><span itemprop="name">Reconciler</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Concurrent-Mode"><a href="#Concurrent-Mode" class="headerlink" title="Concurrent Mode"></a>Concurrent Mode</h1><p>官方对于 <code>Concurrent Mode</code>，用了一个有趣的比喻，把 <code>Concurrent Mode</code> 隐喻为版本控制，版本控制大家都了解，平常开发项目时，大家会在同一个项目的不同分支中修改内容，比如修改同一个文件</p>
+<p>假设现在没有版本控制，为了避免冲突，A 同学在修改 a 文件时，B、C、D 等其他同学就得等着 A 同学修改完然后释放文件，这种情况下会阻塞 B，C，D 等其他同学的开发进度</p>
+<p>而 <code>Concurrent Mode</code> 则提供了一个类似分支的概念，把 A，B，C 等同学比作 <code>React</code> 中的 <code>render</code> 任务，浏览器的渲染进程，IO 进程等等，当<code>React</code> 中的 <code>render</code> 任务执行时，可以不阻塞浏览器中的其他进程</p>
+<p>其实严格来说，<code>Concurrent Mode</code> 比作版本控制也不是那么妥当，毕竟场景不是一模一样，只是希望大家能理解到其中的含义即可</p>
+<p>个人理解的话，<code>React</code> 中的 <code>Concurrent Mode</code> 是指在 <code>Reconciler</code> 中处理 <code>long task</code> 时，可以不阻塞浏览器中的其他进程，并且 <code>React</code> 中的 <code>render 任务</code> 具有各自的优先级，任务可以通过<strong>过时间分片</strong> + <strong>优先级调度</strong>的方式在<strong>执行</strong>和<strong>暂停</strong>之间切换状态</p>
+<h1 id="Legacy-amp-Concurrent-amp-Blocking"><a href="#Legacy-amp-Concurrent-amp-Blocking" class="headerlink" title="Legacy &amp; Concurrent &amp; Blocking"></a>Legacy &amp; Concurrent &amp; Blocking</h1><p><code>React v17</code> 中提供了三种可选的方式来创建 <code>React</code> 应用，分别是 <code>Legacy Mode</code>，<code>Concurrent Mode</code>，<code>Blocking Moode</code></p>
+<p><code>Legacy Mode</code> 是我们熟悉的传统模式，目前是通过 <code>ReactDOM.render</code> 来触发这个模式，<code>Legacy Mode</code> 下大家都熟悉，<code>Reconcile Fiber</code> 流程一步到位，不可中断，当页面中存在大量组件 <code>render</code> 时会导致时间过长，阻塞浏览器的渲染进程，页面响应速度慢，交互卡顿明显</p>
+<p><code>Concurrent Mode</code> 目的是为了能让渲染流程变的可中断，也就是我们现在常听到的 <code>Interruptible Rendering</code> - <strong>可中断式渲染</strong> 这一概念</p>
+<p><code>React</code> 计划在 v18 中正式默认启用 <code>Concurrent Mode</code>，但是让大型的 <code>React App</code> 一口气升级上来难免会遇到一些问题，主要体现在 <code>React</code> 现在的生态中会有些组件还在使用一些不安全的生命周期，一些老旧的 <code>React Library</code> 可能没办法跟 <code>Concurrent Mode</code> 兼容运行</p>
+<p>为了能更加平滑过渡到 <code>Concurrent Mode</code>，新增了 <code>Blocking Mode</code>，目前 <code>React</code> v17 中则是采用了 <code>Blocking Mode</code> 的过渡模式，可以通过 <code>ReactDOM.createBlockingRoot</code> 开启过渡模式，在 <code>Blocking Mode</code> 期间，减少 <code>unsafe_liftcycle</code>，<code>String Refs</code>，<code>Legacy Context</code>，<code>findDOMNode</code> 等不稳定或者不兼容 api 的使用，等待 <code>React</code> 的生态逐步跟进后，再尝试使用 <code>React</code> v18 的新特性</p>
+<p><img src="https://img.ninnka.top/1626508076589.png"></p>
+<p><a target="_blank" rel="noopener" href="https://reactjs.org/docs/concurrent-mode-adoption.html#feature-comparison">关于 Blocking Mode 特性的参考链接</a></p>
+<a id="more"></a>
+
+<p>如果你想提前体验 <code>Concurrent Mode</code>，可以通过 <code>ReactDOM.createRoot(rootNode).render(&lt;App /&gt;)</code> 的方式主动开启<strong>并发模式</strong></p>
+<p><strong>不同模式下开启的方式可以参考这个（出自官方文档）</strong></p>
+<blockquote>
+<p><code>Legacy Mode</code>: <code>ReactDOM.render(&lt;App /&gt;, rootNode)</code></p>
+<p><code>Blocking Mode</code>: <code>ReactDOM.createBlockingRoot(rootNode).render(&lt;App /&gt;)</code></p>
+<p><code>Concurrent Mode</code>: <code>ReactDOM.createRoot(rootNode).render(&lt;App /&gt;)</code></p>
+</blockquote>
+<h1 id="Reconcile-Fiber"><a href="#Reconcile-Fiber" class="headerlink" title="Reconcile Fiber"></a>Reconcile Fiber</h1><p><strong>此文基于 <code>react v17.0.2</code> 分析，<a target="_blank" rel="noopener" href="https://github.com/facebook/react">仓库传送门</a></strong></p>
+<p>在前几个篇章中，解读过 <code>Scheduler</code> - <strong>调度器</strong> 的工作方式，<code>Scheduler</code> 通过<strong>时间分片</strong>控制了每个任务的最大执行时间，给任务设置不同的过期时间，分为 <code>timerQueue</code> 和 <code>taskQueue</code>，通过 <code>MessageChannel</code> 来手动调度 <code>taskQueue</code> 中每个任务的执行</p>
+<p><code>Scheduler</code> 的好处就在于，每个任务在有限的时间内完成部门或全部工作，每帧内的剩余时间可以留给浏览器做渲染或者页面的响应</p>
+<p><code>React</code> 通过 <code>Scheduler</code> 实现任务的中断与恢复，但是，仅此就够了吗？</p>
+<p>假设其中一个任务是个 <code>while</code> 循环，每次循环都需要处理一下组件的 <code>render</code> 函数，遍历的节点有十万个，在这个任务结束之前，<code>Scheduler</code> 没法做下一步的剩余时间计算，在这个 <code>long task</code> 执行的期间，页面如果有交互产生的话，一般会出现我们常说的“掉帧”现象，因为计算资源目前被 JavaScript 的事件占据，浏览器需要等待资源释放才能够处理 UI</p>
+<p><code>Concurrent Mode</code> 作为 <code>React</code> 发展方向上的一个重要环节，又提出了怎样的解决方案呢？</p>
+<p><code>Concurrent Mode</code> 的出现无非是为了解决这两大类的问题：</p>
+<ol>
+<li>受限于 <code>CPU</code> 的更新，比如 <code>render</code> 函数调用时的创建 <code>component dom</code></li>
+<li>受限于 <code>IO</code> 的更新，比如：<code>fetching data from network</code></li>
+</ol>
+<p>小伙伴肯定会好奇，为啥 <code>Concurrent Mode</code> 能解决这些呢？再说这两个算啥问题？🤣</p>
+<p>我们回到前面的说的那个 <code>long task</code> 任务处理问题，比如十万个节点执行 <code>render</code>，那肯定会耗费不少时间，而 <code>render</code> 就是创建 <code>component dom</code> 的过程</p>
+<p>如果这个 <code>long task</code> 可以实现前面所说的“并发模式”的话，通过<strong>过时间分片</strong> + <strong>优先级调度</strong>的方式在<strong>执行</strong>和<strong>暂停</strong>之间切换状态，就像 <code>Scheduler</code> 那样，就可以解决第一类问题</p>
+<p><code>Concurrent Mode</code> 通过分割 <code>Reconcile</code> 中的任务，在适当的时机释放 <code>CPU</code> 支援，让浏览器的渲染进程可以更迅速的响应</p>
+<p>第一类问题在开启 <code>Concurrent Mode</code> 后就会得到优化，而第二类问题通常是涉及到 UI 交互上的体验优化</p>
+<p>比如这样一个场景：比如点击某个按钮后，展示 loading，同时从后端拉取数据，但是这个拉取数据的过程很快，展示的 loading 可能会一闪而过，这个相信大家都常见 🤣</p>
+<p>又或者是这种场景：有一个下拉框，选中某个选项后，拉取接口数据，但是由于接口响应慢或者网络不顺畅，导致数据加载时间较长，此时你切换了另外一个选项，这两个选项最后几乎同一时间响应，你会看到，页面显示变成第一选项的结果然后又迅速切换到了最新的结果 🤣</p>
+<p>上面的场景中，无论是哪种，loading 和结果的展示几乎完全取决于 <code>网络IO</code> 的速度，那么有没有一种办法可以平衡一下体验呢？</p>
+<p>在 <code>Concurrent Mode</code> 下，<code>React</code> 提供了两个新的功能用于解决这个 <code>网络 IO</code> 下的 UI 交互问题</p>
+<ul>
+<li><code>Suspense</code></li>
+<li><code>useTransition</code></li>
+</ul>
+<p>感兴趣的小伙伴可以看看官方文档提供的 demo <a target="_blank" rel="noopener" href="https://codesandbox.io/s/jovial-lalande-26yep">Suspense with useTransition</a>（这里不对 <code>Suspense</code> 和 <code>useTransition</code> 做深入探讨，后续会单独开一个篇章分析）</p>
+<p>既然 <code>Concurrent Mode</code> 能解决这么多问题，那 <code>Concurrent Mode</code> 下的 <code>Reconciler</code> 是如何工作的：</p>
+<ul>
+<li><code>Reconciler</code> 是如何利用 <code>Scheduler</code> 进行任务中断与恢复的</li>
+<li><code>Reconciler</code> 遍历 <code>Fiber Tree</code> 时是怎么中断任务的，中断后为什么可以恢复到上次循环中断的位置</li>
+<li>遍历 <code>Fiber Tree</code> 途中如果中断与恢复的中途出现更高优先级的任务，该如何处理</li>
+<li>有些 willxxx 生命周期，比如 <code>componentWillReceiveProps</code>，为什么会执行两次</li>
+</ul>
+<p>对这几个问题肯定有小伙伴会感到疑惑，没关系，这次带着问题盘他</p>
+<div align="center">
+<img width=160 src="https://img.ninnka.top/1626596402374.png"/>
+</div>
+
+<h2 id="Reconciler-与-Scheduler"><a href="#Reconciler-与-Scheduler" class="headerlink" title="Reconciler 与 Scheduler"></a><code>Reconciler</code> 与 <code>Scheduler</code></h2><p><code>performConcurrentWorkOnRoot</code> 是 <code>Scheduler</code> 开启调度时实际执行的任务，简单回顾一下 <code>ensureRootIsScheduled</code></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">ensureRootIsScheduled</span>(<span class="params">root: FiberRoot, currentTime: number</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">let</span> newCallbackNode;</span><br><span class="line">  <span class="keyword">if</span> (newCallbackPriority === SyncLanePriority) &#123;</span><br><span class="line">    <span class="comment">// ....</span></span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (newCallbackPriority === SyncBatchedLanePriority) &#123;</span><br><span class="line">    <span class="comment">// ....</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> schedulerPriorityLevel =</span><br><span class="line">      lanePriorityToSchedulerPriority(newCallbackPriority);</span><br><span class="line">    <span class="comment">// 这里调度的任务就是 performConcurrentWorkOnRoot</span></span><br><span class="line">    newCallbackNode = scheduleCallback(</span><br><span class="line">      schedulerPriorityLevel,</span><br><span class="line">      performConcurrentWorkOnRoot.bind(<span class="literal">null</span>, root)</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 这里把 react lane priority 保存到了 root.callbackPriority</span></span><br><span class="line">  root.callbackPriority = newCallbackPriority;</span><br><span class="line">  <span class="comment">// 这里把 Scheduler 返回的 Task 保存到了 root.callbackNode</span></span><br><span class="line">  root.callbackNode = newCallbackNode;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>只看部分核心代码，在调度的某个分支中，会传入 <code>performConcurrentWorkOnRoot</code> 函数作为需要调度的任务</p>
+<p>在 <code>Scheduler</code> - <strong>调度器</strong> 开始调度 <code>Task</code> 后，会进入我们常说的 <code>Reconciler</code> - <strong>协调器</strong> 中，<code>performConcurrentWorkOnRoot</code> 就是 <code>Reconciler</code> 执行的第一步</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">performConcurrentWorkOnRoot</span>(<span class="params">root</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 进入 Reconciler 后，清除 currentEvent 的一些信息</span></span><br><span class="line">  currentEventTime = NoTimestamp;</span><br><span class="line">  currentEventWipLanes = NoLanes;</span><br><span class="line">  currentEventPendingLanes = NoLanes;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 取出正在执行的 scheduler task</span></span><br><span class="line">  <span class="keyword">const</span> originalCallbackNode = root.callbackNode;</span><br><span class="line">  <span class="comment">// 遍历执行回调，比如 useEffect，setState 的回调</span></span><br><span class="line">  <span class="keyword">const</span> didFlushPassiveEffects = flushPassiveEffects();</span><br><span class="line">  <span class="keyword">if</span> (didFlushPassiveEffects) &#123;</span><br><span class="line">    <span class="comment">// 执行完回调后有可能 scheduler 中正在执行的 task 已经发生了变化</span></span><br><span class="line">    <span class="comment">// 需要做一个判断是否需要继续执行这个任务</span></span><br><span class="line">    <span class="keyword">if</span> (root.callbackNode !== originalCallbackNode) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 这个 else 现在没啥意义，可能只是留个占位吧，说不定后面会调整</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 获取当前需要执行的 `lane/lanes`，用最高优先级的 `lane` 作为任务执行的优先级标准</span></span><br><span class="line">  <span class="comment">// 同时计算 lane 对应的 priority</span></span><br><span class="line">  <span class="keyword">let</span> lanes = getNextLanes(</span><br><span class="line">    root,</span><br><span class="line">    root === workInProgressRoot ? workInProgressRootRenderLanes : NoLanes</span><br><span class="line">  );</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 开始 Reconciler 的 render 阶段</span></span><br><span class="line">  <span class="comment">// exitStatus 用来表示 render 流程的结果状态</span></span><br><span class="line">  <span class="keyword">let</span> exitStatus = renderRootConcurrent(root, lanes);</span><br><span class="line">  <span class="comment">// 省略一部分代码 ... 这里的中间代码会处理 exitStatus 在不同状态下的相关流程，我们先忽略</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们先来看 <code>performConcurrentWorkOnRoot</code> 的删减后的前半部分</p>
+<ul>
+<li>进入 <code>Reconciler</code> 后，清除 <code>currentEvent</code> 的一些信息，留给下一次进入的事件</li>
+<li>获取当前需要执行的 <code>lane/lanes</code>，用最高优先级的 <code>lane</code> 作为任务执行的优先级标准，同时计算 lane 对应的 priority（这个步骤很重要）</li>
+<li>开始 <code>Reconciler</code> 的 <code>render</code> 阶段，<code>exitStatus</code> 用来表示 <code>render</code> 流程的结果状态</li>
+</ul>
+<p><code>renderRootConcurrent</code> 从函数名上看，似乎已经发现了什么，但是这里按下不表，大家先舒口气，我们继续分析 <code>performConcurrentWorkOnRoot</code> 的下半部分</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">performConcurrentWorkOnRoot</span>(<span class="params">root</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 省略一部分代码 ... 执行 renderRootConcurrent 前的一些准备</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 开始 Reconciler 的 render 阶段</span></span><br><span class="line">  <span class="comment">// exitStatus 用来表示 render 流程的结果状态</span></span><br><span class="line">  <span class="keyword">let</span> exitStatus = renderRootConcurrent(root, lanes);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (</span><br><span class="line">    includesSomeLane(</span><br><span class="line">      workInProgressRootIncludedLanes,</span><br><span class="line">      workInProgressRootUpdatedLanes</span><br><span class="line">    )</span><br><span class="line">  ) &#123;</span><br><span class="line">    <span class="comment">// ... 处理边缘场景</span></span><br><span class="line">    <span class="comment">// 在 rendering 阶段中，如果发生了新的 update，但是这个 update 是把一些隐藏的组件重新展示出来</span></span><br><span class="line">    <span class="comment">// 但是新的 update 的 lane 已经在当前的 rendering 阶段中被标记过了（执行过了），所以需要重头开始</span></span><br><span class="line">    prepareFreshStack(root, NoLanes);</span><br><span class="line">    <span class="comment">// 看到这段注释，想必大家会很疑惑，不着急，我们现在还不需要理解它</span></span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (exitStatus !== RootIncomplete) &#123;</span><br><span class="line">    <span class="comment">// 如果退出状态不等于未完成，那么说明有可能是一下几种</span></span><br><span class="line">    <span class="comment">// 1、已完成</span></span><br><span class="line">    <span class="comment">// 2、有报错被捕获</span></span><br><span class="line">    <span class="comment">// 3、有报错未被捕获，严重级别的错误</span></span><br><span class="line">    <span class="comment">// 这些流程先忽略，避免干扰</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ensureRootIsScheduled(root, now());</span><br><span class="line">  <span class="keyword">if</span> (root.callbackNode === originalCallbackNode) &#123;</span><br><span class="line">    <span class="comment">// 如果当前执行的 scheduler task 未发生变化，还是最初在执行的那个 task</span></span><br><span class="line">    <span class="comment">// 那么返回一个新的函数，注意这一步，很关键</span></span><br><span class="line">    <span class="keyword">return</span> performConcurrentWorkOnRoot.bind(<span class="literal">null</span>, root);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 如果当前执行的 scheduler task 已经发生了变化或者被取消了，返回 null</span></span><br><span class="line">  <span class="comment">// 这一步没有返回函数，也很关键</span></span><br><span class="line">  <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上半部分已 <code>render</code> 流程的结果为结束点，下半部分主要是处理 <code>exitStatus</code> 在不同场景下的流程</p>
+<ul>
+<li>先处理边缘场景，在 rendering 阶段中，如果发生了新的 update，但是这个 update 是把一些隐藏的组件重新展示出来，但是新的 update 的 lane 已经在当前的 rendering 阶段中被标记过了（执行过了），所以需要重头开始</li>
+<li>如果退出状态不等于未完成，那么说明有可能是一下几种：1、已完成；2、有报错被捕获；3、有报错未被捕获，严重级别的错误，这些分支中的处理这里不展开分析</li>
+<li>最后的处理的是状态为 <code>RootIncomplete</code> 情况下的流程，这一步分为两个步骤，这两个步骤都很关键</li>
+<li>1：执行 <code>ensureRootIsScheduled</code> 函数</li>
+<li>2：如果当前执行的 scheduler task 未发生变化，还是最初在执行的那个 task，则返回 <code>performConcurrentWorkOnRoot</code> 函数，并绑定 <code>root</code> 参数；如果不相同，则返回 null</li>
+</ul>
+<p>函数最后的那两个步骤，有一个分支流程下返回了函数，而且就是 <code>performConcurrentWorkOnRoot</code></p>
+<p>回想下前面抛出的问题：**<code>Reconciler</code> 是如何利用 <code>Scheduler</code> 进行任务中断与恢复的**，现在或许有了些思绪，那么 <code>performConcurrentWorkOnRoot</code> 具体是如何做到的呢？</p>
+<h2 id="Reconciler-是如何利用-Scheduler-进行任务中断与恢复的"><a href="#Reconciler-是如何利用-Scheduler-进行任务中断与恢复的" class="headerlink" title="Reconciler 是如何利用 Scheduler 进行任务中断与恢复的"></a><code>Reconciler</code> 是如何利用 <code>Scheduler</code> 进行任务中断与恢复的</h2><p>回顾 <code>Scheduler</code> 中恢复任务的条件</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> continuationCallback = callback(didUserCallbackTimeout);</span><br><span class="line">currentTime = getCurrentTime();</span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">typeof</span> continuationCallback === <span class="string">&quot;function&quot;</span>) &#123;</span><br><span class="line">  <span class="comment">// 这里是真正的恢复任务，等待下一轮循环时执行</span></span><br><span class="line">  currentTask.callback = continuationCallback;</span><br><span class="line">  <span class="comment">// ....</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>执行的任务必须返回一个函数，下一轮循环时才会恢复执行，<code>performConcurrentWorkOnRoot</code> 作为被执行的任务，整个函数只有在这个条件下才返回了函数，关键在于 <code>root.callbackNode</code> 是否会被修改</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ensureRootIsScheduled(root, now());</span><br><span class="line"><span class="keyword">if</span> (root.callbackNode === originalCallbackNode) &#123;</span><br><span class="line">  <span class="comment">// 如果当前执行的 scheduler task 未发生变化，还是最初在执行的那个 task</span></span><br><span class="line">  <span class="comment">// 那么返回一个新的函数，注意这一步，很关键</span></span><br><span class="line">  <span class="keyword">return</span> performConcurrentWorkOnRoot.bind(<span class="literal">null</span>, root);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是反观 <code>performConcurrentWorkOnRoot</code>，并没有对 <code>root.callbackNode</code> 做修改，那么关键应该在这</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ensureRootIsScheduled(root, now());</span><br></pre></td></tr></table></figure>
+
+<p>显然应该把关注点放在 <code>ensureRootIsScheduled</code>，稍微回想下 <code>Scheduler</code>，在进入调度流程前，也会经过 <code>ensureRootIsScheduled</code>，我们之前只关注了 <code>ensureRootIsScheduled</code> 是如何进入 <code>Scheduler</code> 的，这次需要分析进入 <code>Scheduler</code> 前的一些场景处理</p>
+<p><code>ensureRootIsScheduled</code> 在处理 <code>newCallbackNode</code> 前做了不少准备，我们来看看具体都做了啥</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 当前正在执行中的 scheduler task</span></span><br><span class="line"><span class="keyword">const</span> existingCallbackNode = root.callbackNode;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 看看哪些 lane 已经超时了，标记到 root.expiredLanes</span></span><br><span class="line">markStarvedLanesAsExpired(root, currentTime);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取当前需要执行的 `lane/lanes`，用最高优先级的 `lane` 作为任务执行的优先级标准</span></span><br><span class="line"><span class="comment">// 同时计算 lane 对应的 priority</span></span><br><span class="line"><span class="keyword">const</span> nextLanes = getNextLanes(</span><br><span class="line">  root,</span><br><span class="line">  root === workInProgressRoot ? workInProgressRootRenderLanes : NoLanes</span><br><span class="line">);</span><br><span class="line"><span class="comment">// nextLanes 对应的 priority</span></span><br><span class="line"><span class="keyword">const</span> newCallbackPriority = returnNextLanesPriority();</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (nextLanes === NoLanes) &#123;</span><br><span class="line">  <span class="comment">// 没有需要执行的 lanes / lane</span></span><br><span class="line">  <span class="keyword">if</span> (existingCallbackNode !== <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="comment">// 取消当前的 scheduler task</span></span><br><span class="line">    <span class="comment">// 并清除保存在 root 上的一些信息</span></span><br><span class="line">    cancelCallback(existingCallbackNode);</span><br><span class="line">    root.callbackNode = <span class="literal">null</span>;</span><br><span class="line">    root.callbackPriority = NoLanePriority;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>取出当前正在执行中的 <code>scheduler task</code></li>
+<li>看看哪些 <code>lane</code> 已经超时了，<code>标记(merge)</code>到 <code>root.expiredLanes</code></li>
+<li>获取当前需要执行的 <code>lane/lanes</code>，用最高优先级的 <code>lane</code> 作为任务执行的优先级标准，同时计算 lane 对应的 priority</li>
+<li>获取 <code>nextLanes</code> 对应的 <code>priority</code></li>
+<li>如果 <code>nextLanes</code> 属于 <code>NoLanes</code>，那么判断是否有还在执行中的任务，有的话取消当前的 <code>scheduler task</code>，并清除保存在 <code>root</code> 上的一些信息</li>
+</ul>
+<p>流程到这里算是一个分水岭，如果执行完上面的流程后函数退出，说明，任务被取消掉了或者当前无任务了</p>
+<p>如果函数继续往下走，那么继续往下看</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 如果已经有执行中的任务，可以判断是否复用执行中的任务</span></span><br><span class="line"><span class="keyword">if</span> (existingCallbackNode !== <span class="literal">null</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> existingCallbackPriority = root.callbackPriority;</span><br><span class="line">  <span class="keyword">if</span> (existingCallbackPriority === newCallbackPriority) &#123;</span><br><span class="line">    <span class="comment">// 任务优先级没有发生变化，则不需要走后续的 scheduler 分配任务流程</span></span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 取消当前的 task</span></span><br><span class="line">  cancelCallback(existingCallbackNode);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 上面的流程中如果没有return，意味着一定会取消当前执行中的任务</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 处理 newCallbackNode 在不同 lane 下的情况</span></span><br><span class="line"><span class="keyword">let</span> newCallbackNode;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ... 省略代码 newCallbackNode = schedulerCallback(xxx) / schedulerSyncCallback(xxx)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 这里把 react lane priority 保存到了 root.callbackPriority</span></span><br><span class="line">root.callbackPriority = newCallbackPriority;</span><br><span class="line"><span class="comment">// 这里把 Scheduler 返回的 Task 保存到了 root.callbackNode</span></span><br><span class="line">root.callbackNode = newCallbackNode;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>如果已经有执行中的任务，可以判断是否复用执行中的任务，若任务优先级没有发生变化，则不需要走后续的 <code>Scheduler</code> 分配任务流程；若优先级发生了变化，则取消当前的 <code>scheduler task</code></li>
+</ul>
+<p>函数如果执行了上面这部分的流程后就结束的话，意味着当前执行中的任务是可以复用的</p>
+<p>如果函数还未退出，那么说明有两种情况：</p>
+<ol>
+<li>没有执行中的任务，下面需要分配一个新的</li>
+<li>原有的任务被取消掉了，现在重新分配一个新的</li>
+</ol>
+<p>两种情况的处理流程代码是一样的</p>
+<ul>
+<li>处理 <code>newCallbackNode</code> 在不同 lane 下的情况，进入下面 <code>schedulerCallback</code> 的流程</li>
+<li>进入 <code>schedulerCallback</code> 的流程意味着 <code>callbackPriority、callbackNode</code> 会被覆盖</li>
+</ul>
+<p>结合 <code>ensureRootIsScheduled</code> 和 <code>performConcurrentWorkOnRoot</code> 来看</p>
+<p>一般来说，如果没有出现更高优先级的 <code>lane priority</code>，任务 <code>task</code> 就不会取消，也就是 <code>root.callbackNode</code> 和 <code>root.callbackPriority</code> 都没有发生变化，若任务处于 <code>RootInComplete</code> - <strong>未完成</strong> 状态，那么 <code>performConcurrentWorkOnRoot</code> 会返回 <code>performConcurrentWorkOnRoot.bind(null, root)</code> 作为恢复任务的关键，<code>Scheduler</code> 在执行 <code>workloop</code> 流程中会保存这个返回的回调，并重新赋值到 <code>task.callback</code> 上，在下次调度时重新执行</p>
+<p>简单点说，判断到任务还可以复用的情况，把任务绑定 <code>root</code> 参数后重新返回，<strong>利用了任务未执行完且未出现更高优先级的任务就可以继续执行的特点（root 未发生变化）</strong></p>
+<h2 id="Reconciler-遍历-Fiber-Tree-时是怎么中断任务的，中断后为什么可以恢复到上次循环中断的位置"><a href="#Reconciler-遍历-Fiber-Tree-时是怎么中断任务的，中断后为什么可以恢复到上次循环中断的位置" class="headerlink" title="Reconciler 遍历 Fiber Tree 时是怎么中断任务的，中断后为什么可以恢复到上次循环中断的位置"></a><code>Reconciler</code> 遍历 <code>Fiber Tree</code> 时是怎么中断任务的，中断后为什么可以恢复到上次循环中断的位置</h2><p>现在应该都了解 <code>Reconciler</code> 是如何利用 <code>Scheduler</code> 进行任务中断与恢复的了，但是没有解决前面提到的 <code>long task</code> 占用时长的问题呀</p>
+<div align="center">
+<img width=200 src="https://img.ninnka.top/1626762314226.png"/>
+</div>
+
+<p>莫慌，我们稍微看看 <code>performConcurrentWorkOnRoot</code> 中的一个关键入口，已经忘记了的小伙伴可以翻回去看看</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 开始 Reconciler 的 render 阶段</span></span><br><span class="line"><span class="comment">// exitStatus 用来表示 render 流程的结果状态</span></span><br><span class="line"><span class="keyword">let</span> exitStatus = renderRootConcurrent(root, lanes);</span><br></pre></td></tr></table></figure>
+
+<p><code>performConcurrentWorkOnRoot</code> 是个老大哥，它只负责做些统筹工作，细活是交给 <code>renderRootConcurrent</code> 去做的，来看看 <code>renderRootConcurrent</code> 小弟做了啥</p>
+<p>说实话这个函数名太好猜了哈哈，函数流程的关键几乎是一眼就发现了，我们先看看关键部分</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">renderRootConcurrent</span>(<span class="params">root: FiberRoot, lanes: Lanes</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ... 省略流程</span></span><br><span class="line">  <span class="keyword">do</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      workLoopConcurrent();</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (thrownValue) &#123;</span><br><span class="line">      handleError(root, thrownValue);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">while</span> (<span class="literal">true</span>);</span><br><span class="line">  <span class="comment">// ... 省略流程</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里上来就是一个 <code>do...while</code> 结构，里面<del>又是一个小弟</del>执行的是 <code>workLoopConcurrent</code>，从函数名就猜到了是要循环做大事情的（这个循环相信大家肯定都愣了一下，我们先抛开这个 <code>do...while + break</code> 不管 🤣）</p>
+<p>得先说一句，这个函数就这么简单，不是我删删减减</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">workLoopConcurrent</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 循环遍历 current fiber tree 直到剩余执行时间不足</span></span><br><span class="line">  <span class="keyword">while</span> (workInProgress !== <span class="literal">null</span> &amp;&amp; !shouldYield()) &#123;</span><br><span class="line">    performUnitOfWork(workInProgress);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>遍历过程很简单，就是 <code>workInProgress</code> 这个 <code>fiber node</code> 不为空就执行 <code>performUnitOfWork</code></p>
+<p>这里中断循环的两种方法有两种：</p>
+<ol>
+<li>整个 <code>Fiber tree</code> 遍历 <code>render</code> 完成</li>
+<li>通过时间分片控制给每个 <code>fiber node</code> 分配执行时间</li>
+</ol>
+<p>这个时间分片有点眼熟，<code>Scheduler</code> 不就有一个吗？是的，这里时间分片跟 <code>Scheduler</code> 使用的是同一个函数 <code>shouldYield</code>，<code>shouldYield</code> 是 <code>Scheduler</code> 中 <code>shouldYieldToHost</code> 的换名马甲</p>
+<p>当循环中断后，<code>workInProgress</code> 记录了当前执行中的节点，通过 <code>Reconciler</code> 与 <code>Scheduler</code> 的任务中断恢复机制，下次进入循环时可以从停止的地方开始</p>
+<h2 id="如果中断与恢复的途中出现更高优先级的-lane-priority"><a href="#如果中断与恢复的途中出现更高优先级的-lane-priority" class="headerlink" title="如果中断与恢复的途中出现更高优先级的 lane priority"></a>如果中断与恢复的途中出现更高优先级的 <code>lane priority</code></h2><p>前面说到在 <code>Reconciler</code> 中，判断到任务还可以复用的情况，把任务绑定 <code>root</code> 参数后重新返回，<strong>利用了任务未执行完且未出现更高优先级的任务就可以继续执行的特点（root 未发生变化）</strong></p>
+<p>但是，这里的条件是 <strong>如果没有出现更高优先级的 <code>lane priority</code>，<code>scheduler task</code> 就不会取消</strong></p>
+<p>如果途中出现了更高优先级的 <code>lane priority</code>，那应该如何处理呢？</p>
+<p><code>ensureRootIsScheduled</code> 标记了当前 <code>scheduler</code> 中执行的任务以及对应的 <code>lane priority</code> 到 <code>root</code> 节点上</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">root.callbackPriority = newCallbackPriority;</span><br><span class="line">root.callbackNode = newCallbackNode;</span><br></pre></td></tr></table></figure>
+
+<p><code>ensureRootIsScheduled</code> 通过 <code>getNextLanes</code> 来获取最高优先级的 lane，如果刚刚的任务是中断的，那么就把任务的 <code>lane priority</code> 和新获取的最高优先级的 <code>lane priority</code> 对比</p>
+<p>优先级一样的情况就走前面 <strong>“如果没有出现更高优先级的 lane priority，scheduler task 就不会取消”</strong> 的流程；如果不一样，那就把中断的任务取消掉，开启一个新的调度</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> nextLanes = getNextLanes(</span><br><span class="line">  root,</span><br><span class="line">  root === workInProgressRoot ? workInProgressRootRenderLanes : NoLanes</span><br><span class="line">);</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="keyword">if</span> (existingCallbackPriority === newCallbackPriority) &#123;</span><br><span class="line">  <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line">cancelCallback(existingCallbackNode);</span><br></pre></td></tr></table></figure>
+
+<p>咋看一下，当出现更高优先级的 <code>lane priority</code> 时，不过是取消当前任务，重新开启一个调度罢了？</p>
+<p>可是，真实情况显然不会这么简单，取消当前任务，重新开启一个调度是第一步，我们接着分析</p>
+<p>这里的 <code>nextLanes</code> 需要通过 <code>getNextLanes</code> 获取，<code>getNextLanes</code> 在 <code>performConcurrentWorkOnRoot</code> 也有调用过，并且结果作为 <code>lanes</code> 参数传递到了 <code>renderRootConcurrent</code></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> lanes = getNextLanes(</span><br><span class="line">  root,</span><br><span class="line">  root === workInProgressRoot ? workInProgressRootRenderLanes : NoLanes</span><br><span class="line">);</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="keyword">let</span> exitStatus = renderRootConcurrent(root, lanes);</span><br></pre></td></tr></table></figure>
+
+<p>我们来看看 <code>Reconcile</code> 中的 <code>renderRootConcurrent</code> 利用这个 <code>lanes</code> 做了什么</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">renderRootConcurrent</span>(<span class="params">root: FiberRoot, lanes: Lanes</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 添加渲染上下文到当前的执行上下文中</span></span><br><span class="line">  <span class="keyword">const</span> prevExecutionContext = executionContext;</span><br><span class="line">  executionContext |= RenderContext;</span><br><span class="line">  <span class="comment">// 保存当前的 dispatcher</span></span><br><span class="line">  <span class="keyword">const</span> prevDispatcher = pushDispatcher();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 如果根节点发生了变化，或者当前的 lanes 发生了变化</span></span><br><span class="line">  <span class="keyword">if</span> (workInProgressRoot !== root || workInProgressRootRenderLanes !== lanes) &#123;</span><br><span class="line">    <span class="comment">// 重置目标更新截止时间</span></span><br><span class="line">    resetRenderTimer();</span><br><span class="line">    <span class="comment">// 准备一个全新的堆栈</span></span><br><span class="line">    prepareFreshStack(root, lanes);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ----- 分割线</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上半部分做的事情比较少，简单分析看看</p>
+<ul>
+<li>添加渲染上下文到当前的执行上下文中</li>
+<li>保存当前的 dispatcher</li>
+<li>如果根节点发生了变化或者当前的 lanes 发生了变化，重置目标更新截止时间，并且准备一个全新的堆栈</li>
+</ul>
+<p><code>lanes</code> 参数只在这一部分用到，大概两个地方</p>
+<ol>
+<li>根据当前的 <code>workInProgressRootRenderLanes</code> 判断 <code>lanes</code> 是否发生变化了</li>
+<li>若 <code>lanes</code> 发生变化了，调用 <code>prepareFreshStack(root, lanes)</code>，意思大概是”准备一个全新的堆栈“</li>
+</ol>
+<p>不管 <code>prepareFreshStack</code> 具体做了啥，先做个猜想，既然当前的 <code>lanes</code> 发生了变化，那准备一个全新的堆栈是为了啥？</p>
+<p>先留个悬念，我们接着分析下半部分</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">renderRootConcurrent</span>(<span class="params">root: FiberRoot, lanes: Lanes</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ----- 分割线</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// workLoopConcurrent</span></span><br><span class="line">  <span class="keyword">do</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      workLoopConcurrent();</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (thrownValue) &#123;</span><br><span class="line">      handleError(root, thrownValue);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">while</span> (<span class="literal">true</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 前面的 workLoopConcurrent 流程中组件 render 阶段会去操作 context 依赖</span></span><br><span class="line">  <span class="comment">// 这里重置 context 依赖</span></span><br><span class="line">  resetContextDependencies();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 还原当前的 dispatcher</span></span><br><span class="line">  popDispatcher(prevDispatcher);</span><br><span class="line">  <span class="comment">// 还原当前的 执行上下文</span></span><br><span class="line">  executionContext = prevExecutionContext;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 判断是否有未处理完的节点</span></span><br><span class="line">  <span class="keyword">if</span> (workInProgress !== <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="comment">// 还有剩余节点需要处理</span></span><br><span class="line">    <span class="keyword">return</span> RootIncomplete;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 全部处理完，重置 workInProgress 状态</span></span><br><span class="line">    workInProgressRoot = <span class="literal">null</span>;</span><br><span class="line">    workInProgressRootRenderLanes = NoLanes;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> workInProgressRootExitStatus;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>renderRootConcurrent</code> 的后半部分做的事情也比较简单，除了执行 <code>workLoopConcurrent</code> 外，就是把前面的一些关键状态做了恢复操作，然后把当前的处理状态做个汇总，返回给 <code>performConcurrentWorkOnRoot</code></p>
+<ul>
+<li>执行 <code>workLoopConcurrent</code></li>
+<li>前面的 workLoopConcurrent 流程中组件 render 阶段会去操作 context 依赖，这里重置 context 依赖</li>
+<li>还原当前的 dispatcher</li>
+<li>还原当前的 执行上下文</li>
+<li>判断是否有未处理完的节点，如果还有剩余节点需要处理，返回未完成的状态；如果已完成，重置 workInProgress 状态，返回 <code>workInProgressRootExitStatus</code>，这个 <code>workInProgressRootExitStatus</code> 的状态可以翻阅上面处理逻辑的部分进行查看</li>
+</ul>
+<p>前面分析过 <code>workLoopConcurrent</code> 遍历 <code>Fiber Tree</code> 时会从 <code>workInProgress</code> 节点开始，但是这一套流程下来，并没有直接发现有初始化 <code>workInProgress</code> 的地方</p>
+<p>大胆猜测一下，这个初始化的流程就在 <code>prepareFreshStack</code> 中</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">prepareFreshStack</span>(<span class="params">root: FiberRoot, lanes: Lanes</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 重置 finfished 状态</span></span><br><span class="line">  root.finishedWork = <span class="literal">null</span>;</span><br><span class="line">  root.finishedLanes = NoLanes;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> timeoutHandle = root.timeoutHandle;</span><br><span class="line">  <span class="keyword">if</span> (timeoutHandle !== noTimeout) &#123;</span><br><span class="line">    <span class="comment">// 删除等待中的 suspense 任务，一般环境下，timeoutHandle 就是 setTimeout 返回的 Timeout number</span></span><br><span class="line">    root.timeoutHandle = noTimeout;</span><br><span class="line">    <span class="comment">// 封装了 clearTimeout，就是清除定时器</span></span><br><span class="line">    cancelTimeout(timeoutHandle);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 往上遍历节点释放节点</span></span><br><span class="line">  <span class="keyword">if</span> (workInProgress !== <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> interruptedWork = workInProgress.return;</span><br><span class="line">    <span class="keyword">while</span> (interruptedWork !== <span class="literal">null</span>) &#123;</span><br><span class="line">      unwindInterruptedWork(interruptedWork);</span><br><span class="line">      interruptedWork = interruptedWork.return;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 清除 workInProgress 相关的状态</span></span><br><span class="line">  workInProgressRoot = root;</span><br><span class="line">  workInProgress = createWorkInProgress(root.current, <span class="literal">null</span>);</span><br><span class="line">  workInProgressRootRenderLanes =</span><br><span class="line">    subtreeRenderLanes =</span><br><span class="line">    workInProgressRootIncludedLanes =</span><br><span class="line">      lanes;</span><br><span class="line">  workInProgressRootExitStatus = RootIncomplete;</span><br><span class="line">  workInProgressRootFatalError = <span class="literal">null</span>;</span><br><span class="line">  workInProgressRootSkippedLanes = NoLanes;</span><br><span class="line">  workInProgressRootUpdatedLanes = NoLanes;</span><br><span class="line">  workInProgressRootPingedLanes = NoLanes;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>猜测是对的，<code>prepareFreshStack</code> 做了很多 <code>workInProgress</code> 状态初始化的工作，初始化的过程也很简单</p>
+<ul>
+<li>重置 <code>finfished</code> 状态</li>
+<li>删除等待中的 <code>suspense</code> 任务（清除定时器），一般环境下，<code>timeoutHandle</code> 就是 <code>setTimeout</code> 返回的数字</li>
+<li>往上遍历节点释放节点，这一步是针对 <code>legacy context</code> 做的处理</li>
+<li>清除 <code>workInProgress</code> 相关的状态</li>
+</ul>
+<p>关键在最后一个步骤：清除 <code>workInProgress</code> 相关的状态</p>
+<p>这一步重置了 <code>workInProgressRoot</code> 节点，初始化了 <code>workInProgress</code> 等状态，也就导致了当重新进入 <code>workLoopConCurrent</code> 时，<code>workInProgress</code> 已不是上次离开时存储的节点，而是根节点 <code>workInProgressRoot</code></p>
+<p>这也说明了如果中断与恢复的途中出现更高优先级的 <code>lane priority</code>，<code>workInProgress</code> 会被重新初始化为根节点，当下次调度开始时会从根节点开始遍历</p>
+<h2 id="有些-willxxx-的生命周期为什么会执行两次"><a href="#有些-willxxx-的生命周期为什么会执行两次" class="headerlink" title="有些 willxxx 的生命周期为什么会执行两次"></a>有些 willxxx 的生命周期为什么会执行两次</h2><p>前面一部分说到遍历 <code>Fiber Tree</code> 的途中出现更高优先级的 <code>lane priority</code>时，会导致 <code>workInProgress</code> 会被重新初始化为根节点</p>
+<p>被重置意味着上次遍历执行完 <code>render</code> 的节点需要在下次调度时再执行一次，这就导致了部分 <code>UNSAFE</code> 的生命周期，如：<code>componentWillReceiveProps / UNSAFE_componentWillReceiveProps</code> 在部分场景下可能执行多次</p>
+<h1 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h1><p>很抱歉这次图画的少了，后面抽空一个个补上</p>
+<p>这次分析只是从大的方向上对并发模式下的 <code>Reconciler</code> 做了简单的分析，对于其细节部分的 <code>diff</code> 与 <code>rendering</code> 过程，下次开个单独的篇幅一起探讨</p>
+<p>纯属个人观点，有兴趣的可以一起交流交流 😝</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/React/" rel="tag"># React</a>
+              <a href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag"># 前端</a>
+              <a href="/tags/JavaScript/" rel="tag"># JavaScript</a>
+              <a href="/tags/Reconciler/" rel="tag"># Reconciler</a>
+              <a href="/tags/Reconcilition/" rel="tag"># Reconcilition</a>
+              <a href="/tags/ConcurrentMode/" rel="tag"># ConcurrentMode</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/07/03/React%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-UpdateQueue%E6%9C%BA%E5%88%B6%E4%B8%8ELane%E4%BC%98%E5%85%88%E7%BA%A7%E6%A8%A1%E5%9E%8B/" rel="prev" title="React源码细读-UpdateQueue机制与Lane优先级模型">
+      <i class="fa fa-chevron-left"></i> React源码细读-UpdateQueue机制与Lane优先级模型
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Concurrent-Mode"><span class="nav-number">1.</span> <span class="nav-text">Concurrent Mode</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Legacy-amp-Concurrent-amp-Blocking"><span class="nav-number">2.</span> <span class="nav-text">Legacy &amp; Concurrent &amp; Blocking</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Reconcile-Fiber"><span class="nav-number">3.</span> <span class="nav-text">Reconcile Fiber</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Reconciler-%E4%B8%8E-Scheduler"><span class="nav-number">3.1.</span> <span class="nav-text">Reconciler 与 Scheduler</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reconciler-%E6%98%AF%E5%A6%82%E4%BD%95%E5%88%A9%E7%94%A8-Scheduler-%E8%BF%9B%E8%A1%8C%E4%BB%BB%E5%8A%A1%E4%B8%AD%E6%96%AD%E4%B8%8E%E6%81%A2%E5%A4%8D%E7%9A%84"><span class="nav-number">3.2.</span> <span class="nav-text">Reconciler 是如何利用 Scheduler 进行任务中断与恢复的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reconciler-%E9%81%8D%E5%8E%86-Fiber-Tree-%E6%97%B6%E6%98%AF%E6%80%8E%E4%B9%88%E4%B8%AD%E6%96%AD%E4%BB%BB%E5%8A%A1%E7%9A%84%EF%BC%8C%E4%B8%AD%E6%96%AD%E5%90%8E%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%AF%E4%BB%A5%E6%81%A2%E5%A4%8D%E5%88%B0%E4%B8%8A%E6%AC%A1%E5%BE%AA%E7%8E%AF%E4%B8%AD%E6%96%AD%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="nav-number">3.3.</span> <span class="nav-text">Reconciler 遍历 Fiber Tree 时是怎么中断任务的，中断后为什么可以恢复到上次循环中断的位置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E6%9E%9C%E4%B8%AD%E6%96%AD%E4%B8%8E%E6%81%A2%E5%A4%8D%E7%9A%84%E9%80%94%E4%B8%AD%E5%87%BA%E7%8E%B0%E6%9B%B4%E9%AB%98%E4%BC%98%E5%85%88%E7%BA%A7%E7%9A%84-lane-priority"><span class="nav-number">3.4.</span> <span class="nav-text">如果中断与恢复的途中出现更高优先级的 lane priority</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%89%E4%BA%9B-willxxx-%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E6%89%A7%E8%A1%8C%E4%B8%A4%E6%AC%A1"><span class="nav-number">3.5.</span> <span class="nav-text">有些 willxxx 的生命周期为什么会执行两次</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E6%9C%80%E5%90%8E"><span class="nav-number">4.</span> <span class="nav-text">写在最后</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ninnka</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">29</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ninnka</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

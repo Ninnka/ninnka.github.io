@@ -155,6 +155,111 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/05/30/Vue2%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-vue%E5%88%9D%E5%A7%8B%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ninnka">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="某科学の前端杂货铺">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/05/30/Vue2%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-vue%E5%88%9D%E5%A7%8B%E5%8C%96/" class="post-title-link" itemprop="url">Vue2源码细读-vue初始化</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-30 21:12:43" itemprop="dateCreated datePublished" datetime="2021-05-30T21:12:43+08:00">2021-05-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-31 17:27:07" itemprop="dateModified" datetime="2021-05-31T17:27:07+08:00">2021-05-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Vue2/" itemprop="url" rel="index"><span itemprop="name">Vue2</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Vue2/%E5%88%9D%E5%A7%8B%E5%8C%96-init/" itemprop="url" rel="index"><span itemprop="name">初始化-init</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>Vue.js 是一个以数据驱动为设计原理的框架。</p>
+<p>所谓数据驱动，是指视图是由数据驱动生成的，比起视图如何生成，开发者更关注数据模型和数据流转。</p>
+<p>接下来，我们会从源码角度来分析 Vue 是如何实现的，分析过程会以主线代码为主，重要的分支逻辑会放在之后单独分析。</p>
+<p>先来看一个熟悉的 demo</p>
+<h2 id="熟悉的-demo"><a href="#熟悉的-demo" class="headerlink" title="熟悉的 demo"></a>熟悉的 demo</h2><p>大家对这简单的案例应该都不会陌生，在我还是萌新的那会常看这个demo</p>
+<p>demo的代码很简单，功能是点击数字然后累增</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;utf-8&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span><span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;/path/to/dist/vue.min.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;app&quot;</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">div</span> @<span class="attr">click</span>=<span class="string">&quot;num++&quot;</span>&gt;</span></span><br><span class="line">        &#123;&#123; num &#125;&#125;</span><br><span class="line">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript">    <span class="keyword">var</span> vm1 = <span class="keyword">new</span> Vue(&#123;</span></span><br><span class="line"><span class="javascript">      el: <span class="string">&#x27;#app&#x27;</span>,</span></span><br><span class="line">      data: &#123;</span><br><span class="line">        num: 1,</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>现在回想起来，这一切似乎就从这个 <code>new Vue()</code> 开始了：）</p>
+<p>带着些许怀旧的心情，我们从 <code>new vue()</code> 开始一探究竟。</p>
+<h2 id="new-Vue-做了什么"><a href="#new-Vue-做了什么" class="headerlink" title="new Vue() 做了什么"></a>new Vue() 做了什么</h2><p>new Vue() 本质上是创建了一个 Vue 的实例对象，那么 Vue 是怎么定义的呢</p>
+<h3 id="Vue-的定义"><a href="#Vue-的定义" class="headerlink" title="Vue 的定义"></a>Vue 的定义</h3><p>Vue本质是一个构造函数，只能通过 new 操作符去创建一个 Vue 的实例</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> Vue(&#123; <span class="comment">/* options */</span> &#125;);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src/core/instance/index.js</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// vue 构造函数</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Vue</span> (<span class="params">options</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 初始化的入口</span></span><br><span class="line">  <span class="built_in">this</span>._init(options)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 下面的都是在 Vue.prototype 上挂载接来下要用到函数</span></span><br><span class="line">initMixin(Vue)</span><br><span class="line">stateMixin(Vue)</span><br><span class="line">eventsMixin(Vue)</span><br><span class="line">lifecycleMixin(Vue)</span><br><span class="line">renderMixin(Vue)</span><br></pre></td></tr></table></figure>
+
+<p>Vue 本身很简单，就只做了一件事，就是调用初始化方法 <code>this._init</code>，并发参数传入</p>
+<p>Vue 实例的函数并没直接写在 Vue 构造函数内，而是通过各种 mixin 挂载到了 Vue.prototype</p>
+<p>其实这些函数都可以直接在当前文件中书写，但是拆开到不同模块分别挂载可以降低当前文件的耦合度，更利于代码的维护</p>
+<h3 id="initMixin-初始化"><a href="#initMixin-初始化" class="headerlink" title="initMixin 初始化"></a>initMixin 初始化</h3><p><code>initMixin</code> 用于挂载初始化相关的函数到 Vue.prototype</p>
+<p><code>_init</code> 函数则是通过 <code>initMixin</code> 注入到 Vue 的原型链上</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/05/30/Vue2%E6%BA%90%E7%A0%81%E7%BB%86%E8%AF%BB-vue%E5%88%9D%E5%A7%8B%E5%8C%96/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/05/22/HTTP%E8%A7%A3%E6%83%91-Content-Type/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1078,113 +1183,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/05/%E9%AD%94%E6%94%B9%E7%89%88TCP%E5%8A%A0%E9%80%9F%E7%AE%97%E6%B3%95BBR%E5%AE%89%E8%A3%85%E8%84%9A%E6%9C%ACDebian_Ubuntu%EF%BC%88%E6%94%B6%E9%9B%86%E7%B1%BB%EF%BC%89%EF%BC%88%E8%BD%AC%E8%BD%BD%EF%BC%89/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ninnka">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="某科学の前端杂货铺">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/12/05/%E9%AD%94%E6%94%B9%E7%89%88TCP%E5%8A%A0%E9%80%9F%E7%AE%97%E6%B3%95BBR%E5%AE%89%E8%A3%85%E8%84%9A%E6%9C%ACDebian_Ubuntu%EF%BC%88%E6%94%B6%E9%9B%86%E7%B1%BB%EF%BC%89%EF%BC%88%E8%BD%AC%E8%BD%BD%EF%BC%89/" class="post-title-link" itemprop="url">魔改版TCP加速算法BBR安装脚本:Debian_Ubuntu（收集类）（转载）</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2017-12-05 14:53:00" itemprop="dateCreated datePublished" datetime="2017-12-05T14:53:00+08:00">2017-12-05</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-19 18:59:37" itemprop="dateModified" datetime="2021-05-19T18:59:37+08:00">2021-05-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Linux/%E7%A7%91%E5%AD%A6%E4%B8%8A%E7%BD%91/" itemprop="url" rel="index"><span itemprop="name">科学上网</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <blockquote>
-<p>原文地址: <a target="_blank" rel="noopener" href="https://blog.liyuans.com/archives/altered-bbr-onekey-script-collection.html">https://blog.liyuans.com/archives/altered-bbr-onekey-script-collection.html</a><br>这里我仅做一个文档保存备份</p>
-</blockquote>
-<h1 id="雨落无声版本脚本"><a href="#雨落无声版本脚本" class="headerlink" title="雨落无声版本脚本"></a>雨落无声版本脚本</h1><blockquote>
-<p>来源<a target="_blank" rel="noopener" href="http://www.hostloc.com/thread-372361-1-1.html">雨落无声：魔改版 BBR 一键安装脚本 For Debian8 / Ubuntu16 +</a></p>
-</blockquote>
-<p>注意：内核固定切换为 4.10.15，成功率高。</p>
-<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
-<li>在 Debian 8 和 Ubuntu16 + 系统上一键部署魔改版 BBR，自动换内核成 4.10.15 ，自动安装 Headers。</li>
-<li>用户只需要将系统安装成 Debian 8 或者 Ubuntu 16 即可，剩下的交给脚本来吧。</li>
-</ul>
-<h2 id="提醒"><a href="#提醒" class="headerlink" title="提醒"></a>提醒</h2><p><strong>部分商家的 VPS 可能会遇到换内核之后无法启动系统的情况，所以请运行脚本前一定要备份好重要数据！！</strong></p>
-<h2 id="一键脚本"><a href="#一键脚本" class="headerlink" title="一键脚本"></a>一键脚本</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -N --no-check-certificate https://raw.githubusercontent.com/FunctionClub/YankeeBBR/master/bbr.sh &amp;&amp; bash bbr.sh install</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>然后根据提示重启系统。重启完成后，运行</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash bbr.sh start</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>查看魔改 BBR 状态，运行下面的命令，如果看到有 tsunami 就表示开启成功！</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sysctl net.ipv4.tcp_available_congestion_control</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2017/12/05/%E9%AD%94%E6%94%B9%E7%89%88TCP%E5%8A%A0%E9%80%9F%E7%AE%97%E6%B3%95BBR%E5%AE%89%E8%A3%85%E8%84%9A%E6%9C%ACDebian_Ubuntu%EF%BC%88%E6%94%B6%E9%9B%86%E7%B1%BB%EF%BC%89%EF%BC%88%E8%BD%AC%E8%BD%BD%EF%BC%89/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1254,20 +1252,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-count">29</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-count">29</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">65</span>
+        <span class="site-state-item-count">68</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
