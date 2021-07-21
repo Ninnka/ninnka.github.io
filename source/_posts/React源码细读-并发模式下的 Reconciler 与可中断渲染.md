@@ -21,7 +21,7 @@ tags:
 
 假设现在没有版本控制，为了避免冲突，A 同学在修改 a 文件时，B、C、D 等其他同学就得等着 A 同学修改完然后释放文件，这种情况下会阻塞 B，C，D 等其他同学的开发进度
 
-而 `Concurrent Mode` 则提供了一个类似分支的概念，把 A，B，C 等同学比作 `React` 中的 `render 任务`，浏览器的渲染进程，IO 进程等等，当`React` 中的 `render任务` 执行时，可以不阻塞浏览器中的其他进程
+而 `Concurrent Mode` 则提供了一个类似分支的概念，把 A，B，C 等同学比作 `React` 中的 `render` 任务，浏览器的渲染进程，IO 进程等等，当`React` 中的 `render` 任务执行时，可以不阻塞浏览器中的其他进程
 
 其实严格来说，`Concurrent Mode` 比作版本控制也不是那么妥当，毕竟场景不是一模一样，只是希望大家能理解到其中的含义即可
 
@@ -110,7 +110,7 @@ tags:
 <img width=160 src="https://img.ninnka.top/1626596402374.png"/>
 </div>
 
-## `Reconciler` 启动
+## `Reconciler` 与 `Scheduler`
 
 `performConcurrentWorkOnRoot` 是 `Scheduler` 开启调度时实际执行的任务，简单回顾一下 `ensureRootIsScheduled`
 
@@ -597,17 +597,11 @@ function prepareFreshStack(root: FiberRoot, lanes: Lanes) {
 
 前面一部分说到遍历 `Fiber Tree` 的途中出现更高优先级的 `lane priority`时，会导致 `workInProgress` 会被重新初始化为根节点
 
-被重置意味着上次遍历执行完 `render` 的节点需要在下次调度时再执行一次，这就导致了部分 `unsafe` 的生命周期，如：`componentWillReceiveProps` 在部分场景下可能执行多次
-
-## 更高优先级的 `lane/lanes` 是怎么检测出来的
-
-上面的流程中其实都用到了很关键的一个部分，就是 `getNextLanes`，上次讲到 `Lanes` 车道优先级模型时没有切入的机会，这次一起看看 `getNextLanes` 的全貌
-
-```js
-
-```
+被重置意味着上次遍历执行完 `render` 的节点需要在下次调度时再执行一次，这就导致了部分 `UNSAFE` 的生命周期，如：`componentWillReceiveProps / UNSAFE_componentWillReceiveProps` 在部分场景下可能执行多次
 
 # 写在最后
+
+很抱歉这次图画的少了，后面抽空一个个补上
 
 这次分析只是从大的方向上对并发模式下的 `Reconciler` 做了简单的分析，对于其细节部分的 `diff` 与 `rendering` 过程，下次开个单独的篇幅一起探讨
 
