@@ -11,7 +11,7 @@ tags:
 	- React
 	- JavaScript
 	- Reconciler
-	- Reconcilition
+	- reconciliation
 	- ConcurrentMode
 ---
 
@@ -139,7 +139,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
 
 只看部分核心代码，在调度的某个分支中，会传入 `performConcurrentWorkOnRoot` 函数作为需要调度的任务
 
-在 `Scheduler` - **调度器** 开始调度 `Task` 后，会进入我们常说的 `Reconciler` - **协调器** 中，`performConcurrentWorkOnRoot` 就是 `Reconciler` 执行的第一步
+在 `Scheduler` - **调度器** 开始调度 `Task` 后，会进入 `Concurrent Mode` 工作流的第一步 `reconciliation`，这一步流程主要是我们常说的 `Reconciler` - **协调器** 在负责
 
 ```js
 function performConcurrentWorkOnRoot(root) {
